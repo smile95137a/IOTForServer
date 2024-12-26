@@ -1,72 +1,46 @@
 package backend.entity.menu;
 
-import java.util.Date;
-import java.util.List;
-
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
+import backend.entity.role.Role;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Entity
-@Table(name = "menu")
+import java.util.Set;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
+@Entity
+@Table(name = "menus")
 public class Menu {
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-	@Column
-	private String uid;
+    @Column(nullable = false)
+    private String menuName; // 菜单名称
 
-	@Column
-	private String menuName;
+    @Column(nullable = false)
+    private String url; // 菜单路径
 
-	@Column
-	private String menuDesc;
+    @Column
+    private String icon; // 菜单图标 (可选)
 
-	@Column
-	private Date startDate;
+    @Column
+    private Integer menuOrder; // 菜单排序
 
-	@Column
-	private Date endDate;
-	
-	@Column
-	private Long channelId;
+    @Column
+    private String status; // 状态 (VISIBLE 或 HIDDEN)
 
-	@Column
-	private Boolean isEnable;
-	
-	@Column
-	private Boolean isShow;
+    @ManyToOne
+    @JoinColumn(name = "parent_id")
+    private Menu parent; // 父菜单
 
-	@OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-	@JoinColumn(name = "menu_id")
-	private List<MenuItem> items;
+    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<Menu> children; // 子菜单
 
-	@Column
-	private Date createDate;
-
-	@Column
-	private Long createUserId;
-	
-	@Column
-	private Date updateDate;
-	
-	@Column
-	private Long updateUserId;
-
+    @ManyToMany(mappedBy = "menus")
+    private Set<Role> roles; // 能访问此菜单的角色
 }

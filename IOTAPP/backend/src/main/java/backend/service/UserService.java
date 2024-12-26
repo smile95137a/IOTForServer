@@ -8,7 +8,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import backend.config.service.UserPrinciple;
-import backend.entity.user.Role;
+import backend.entity.role.Role;
 import backend.entity.user.User;
 import backend.enums.RoleName;
 import backend.mapper.UserMapper;
@@ -78,7 +78,7 @@ public class UserService {
 	    }
 
 	    Set<Role> roles = new HashSet<>();
-	    Role userRole = roleRepository.findByName(RoleName.ROLE_USER).orElseThrow(() -> new Exception("找不到使用者角色"));
+	    Role userRole = roleRepository.findByRoleName(RoleName.ROLE_USER).orElseThrow(() -> new Exception("找不到使用者角色"));
 	    roles.add(userRole);
 
 	    var userEntity = userMapper.mapToUser(userReq);

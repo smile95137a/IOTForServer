@@ -28,9 +28,11 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class WebSecurityConfig {
 
-	private static final String[] AUTH_WHITELIST = { "/api/auth/**", "/api/test/**", "/line/callback/**",
-	"/api/password/**", "/api/menus/click/**" };
-	
+//	private static final String[] AUTH_WHITELIST = { "/api/auth/**", "/api/test/**", "/line/callback/**",
+//	"/api/password/**", "/api/menus/click/**" };
+
+	private static final String[] AUTH_WHITELIST = { "/**" };
+
 	private final UserDetailsServiceImpl userDetailsService;
 	private final JwtAuthEntryPoint unauthorizedHandler;
 	private final JwtAuthTokenFilter jwtAuthTokenFilter;
@@ -59,7 +61,8 @@ public class WebSecurityConfig {
 	     	.csrf(csrf -> csrf.disable())
 				.exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
 				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-				.authorizeHttpRequests(auth -> auth.requestMatchers(AUTH_WHITELIST).permitAll().anyRequest().authenticated());
+//				.authorizeHttpRequests(auth -> auth.requestMatchers(AUTH_WHITELIST).permitAll().anyRequest().authenticated());
+				.authorizeHttpRequests(auth -> auth.requestMatchers(AUTH_WHITELIST).permitAll());
 
 		http.authenticationProvider(authenticationProvider());
 		http.addFilterBefore(jwtAuthTokenFilter, UsernamePasswordAuthenticationFilter.class);

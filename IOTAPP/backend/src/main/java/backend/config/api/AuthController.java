@@ -3,10 +3,12 @@ package backend.config.api;
 import java.util.stream.Collectors;
 
 import backend.config.jwt.JwtProvider;
+import backend.config.service.UserPrinciple;
 import backend.enums.RoleName;
 import backend.req.user.UserReq;
 import backend.res.user.UserRes;
 import backend.service.UserService;
+import backend.utils.ResponseUtils;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -17,7 +19,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.mo.app.utils.ResponseUtils;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,7 +38,7 @@ public class AuthController {
 		var authToken = new UsernamePasswordAuthenticationToken(userReq.getUsername(), userReq.getPassword());
 		var authentication = authenticationManager.authenticate(authToken);
 		SecurityContextHolder.getContext().setAuthentication(authentication);
-		var userDetails = (com.mo.app.config.service.UserPrinciple) authentication.getPrincipal();
+		var userDetails = (UserPrinciple) authentication.getPrincipal();
 		
 		var jwt = jwtProvider.generateToken(userDetails);
 		

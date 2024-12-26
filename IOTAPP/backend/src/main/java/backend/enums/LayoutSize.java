@@ -1,4 +1,4 @@
-package com.mo.app.enums;
+package backend.enums;
 
 import lombok.Getter;
 

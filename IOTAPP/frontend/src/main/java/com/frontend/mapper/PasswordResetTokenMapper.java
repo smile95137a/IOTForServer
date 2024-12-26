@@ -3,7 +3,7 @@ package com.frontend.mapper;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 
-import backend.entity.pwd.PasswordResetToken;
+import com.frontend.entity.pwd.PasswordResetToken;
 import org.springframework.stereotype.Component;
 
 

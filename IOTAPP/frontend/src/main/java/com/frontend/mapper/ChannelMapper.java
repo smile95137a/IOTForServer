@@ -3,9 +3,9 @@ package com.frontend.mapper;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import backend.entity.channel.Channel;
-import backend.req.channel.ChannelReq;
-import backend.res.channel.ChannelRes;
+import com.frontend.entity.channel.Channel;
+import com.frontend.req.channel.ChannelReq;
+import com.frontend.res.channel.ChannelRes;
 import org.springframework.stereotype.Component;
 
 

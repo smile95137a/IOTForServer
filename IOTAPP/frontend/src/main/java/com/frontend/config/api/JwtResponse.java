@@ -2,7 +2,7 @@ package com.frontend.config.api;
 
 import java.io.Serializable;
 
-import backend.res.user.UserRes;
+import com.frontend.res.user.UserRes;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

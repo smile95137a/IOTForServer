@@ -3,7 +3,7 @@ package com.frontend.res.layout;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import backend.res.layout.LayoutAreaRes;
+import com.frontend.res.layout.LayoutAreaRes;
 import com.mo.app.enums.LayoutSize;
 
 import lombok.AllArgsConstructor;

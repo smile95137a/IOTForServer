@@ -2,7 +2,7 @@ package com.frontend.entity.user;
 
 import java.io.Serializable;
 
-import backend.enums.RoleName;
+import com.frontend.enums.RoleName;
 import org.hibernate.annotations.NaturalId;
 
 import jakarta.persistence.Column;

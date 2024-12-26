@@ -1,17 +1,18 @@
 package com.frontend.mapper;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.stream.Collectors;
 
-import backend.entity.user.User;
-import backend.repo.UserRepository;
-import backend.req.user.UserReq;
-import backend.res.user.UserRes;
+import com.frontend.entity.user.User;
+import com.frontend.repo.UserRepository;
+import com.frontend.req.user.UserReq;
+import com.frontend.res.user.UserRes;
+import com.frontend.utils.RandomUtils;
+import com.frontend.utils.SecurityUtils;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
-import com.mo.app.utils.RandomUtils;
-import com.mo.app.utils.SecurityUtils;
 
 import lombok.RequiredArgsConstructor;
 
@@ -28,8 +29,8 @@ public class UserMapper {
 		var userId = SecurityUtils.getSecurityUser().getId();
 
 		return User.builder().username(userReq.getUsername()).password(passwordEncoder.encode(userReq.getPassword()))
-				.name(userReq.getName()).email(userReq.getEmail()).uid(RandomUtils.genRandom(32)).createUserId(userId)
-				.createTime(LocalDateTime.now()).build();
+				.name(userReq.getName()).email(userReq.getEmail()).uid(RandomUtils.genRandom(24)).createUserId(userId)
+				.createTime(LocalDateTime.now()).money(0L).couponList(new ArrayList<>()).build();
 	}
 
 	public UserRes mapToUserRes(User userEntity) {

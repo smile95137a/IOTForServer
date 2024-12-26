@@ -3,7 +3,7 @@ package com.frontend.res.menu;
 import java.util.Date;
 import java.util.List;
 
-import backend.res.menu.MenuItemRes;
+import com.frontend.res.menu.MenuItemRes;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 import lombok.AllArgsConstructor;

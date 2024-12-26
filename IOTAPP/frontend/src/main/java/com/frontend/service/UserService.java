@@ -7,16 +7,16 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import backend.config.service.UserPrinciple;
-import backend.entity.user.Role;
-import backend.entity.user.User;
-import backend.enums.RoleName;
-import backend.mapper.UserMapper;
-import backend.repo.RoleRepository;
-import backend.repo.UserRepository;
-import backend.req.user.UserReq;
-import backend.res.user.UserRes;
-import backend.utils.SecurityUtils;
+import com.frontend.config.service.UserPrinciple;
+import com.frontend.entity.user.Role;
+import com.frontend.entity.user.User;
+import com.frontend.enums.RoleName;
+import com.frontend.mapper.UserMapper;
+import com.frontend.repo.RoleRepository;
+import com.frontend.repo.UserRepository;
+import com.frontend.req.user.UserReq;
+import com.frontend.res.user.UserRes;
+import com.frontend.utils.SecurityUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.security.core.GrantedAuthority;
@@ -51,14 +51,6 @@ public class UserService {
 		return userRepository.findAll();
 	}
 
-	public User getUserById(Long id) {
-		var optional = userRepository.findById(id);
-		if (optional.isPresent()) {
-			return optional.get();
-		}
-		return null;
-	}
-
 	public User getUserByuid(String uid) {
 		var optional = userRepository.findByuid(uid);
 		if (optional.isPresent()) {
@@ -87,10 +79,7 @@ public class UserService {
 
 	    var res = userMapper.mapToUserRes(userEntity);
 
-	    var isSendEmail = userReq.getIsSendEmail();
-	    if (isSendEmail) {
-	        mailService.sendPasswordEmail(userReq.getEmail(), userReq.getName(), userReq.getPassword());
-	    }
+		mailService.sendPasswordEmail(userReq.getEmail(), userReq.getName(), userReq.getPassword());
 
 	    return res;
 	}

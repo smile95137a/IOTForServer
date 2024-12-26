@@ -3,10 +3,10 @@ package com.frontend.mapper;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import backend.entity.layout.Layout;
-import backend.entity.layout.LayoutArea;
-import backend.res.layout.LayoutAreaRes;
-import backend.res.layout.LayoutRes;
+import com.frontend.entity.layout.Layout;
+import com.frontend.entity.layout.LayoutArea;
+import com.frontend.res.layout.LayoutAreaRes;
+import com.frontend.res.layout.LayoutRes;
 import org.springframework.stereotype.Component;
 
 

@@ -1,4 +1,4 @@
-package com.frontend.config;//package backend.config;
+package com.frontend.config;//package com.frontend.config;
 //
 //import java.text.ParseException;
 //import java.time.Instant;

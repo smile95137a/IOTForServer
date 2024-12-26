@@ -3,7 +3,7 @@ package com.frontend.repo;
 import java.util.List;
 import java.util.Optional;
 
-import backend.entity.pwd.PasswordResetToken;
+import com.frontend.entity.pwd.PasswordResetToken;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

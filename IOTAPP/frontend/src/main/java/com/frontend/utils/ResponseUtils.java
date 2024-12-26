@@ -1,6 +1,7 @@
 package com.frontend.utils;
 
-import com.mo.app.config.message.ApiResponse;
+
+import com.frontend.config.message.ApiResponse;
 
 public class ResponseUtils {
 

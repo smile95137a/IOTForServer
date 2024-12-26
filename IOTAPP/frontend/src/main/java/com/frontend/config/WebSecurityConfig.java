@@ -1,8 +1,8 @@
 package com.frontend.config;
 
-import backend.config.jwt.JwtAuthEntryPoint;
-import backend.config.jwt.JwtAuthTokenFilter;
-import backend.config.service.UserDetailsServiceImpl;
+import com.frontend.config.jwt.JwtAuthEntryPoint;
+import com.frontend.config.jwt.JwtAuthTokenFilter;
+import com.frontend.config.service.UserDetailsServiceImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -28,7 +28,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class WebSecurityConfig {
 
-	private static final String[] AUTH_WHITELIST = { "/api/auth/**", "/api/test/**", "/line/callback/**",
+	private static final String[] AUTH_WHITELIST = { "/api/auth/**", "/api/test/**" , "/api/users/createUser" ,
 	"/api/password/**", "/api/menus/click/**" };
 	
 	private final UserDetailsServiceImpl userDetailsService;

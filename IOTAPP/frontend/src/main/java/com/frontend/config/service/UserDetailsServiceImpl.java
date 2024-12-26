@@ -2,7 +2,7 @@ package com.frontend.config.service;
 
 import java.util.stream.Collectors;
 
-import backend.repo.UserRepository;
+import com.frontend.repo.UserRepository;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -26,7 +26,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 				.findByUsername(username)
 				.orElseThrow(() -> new UsernameNotFoundException("找不到使用者名稱:" + username));
 		var authorities = userEntity.getRoles().stream().map(role -> new SimpleGrantedAuthority(role.getName().name())).collect(Collectors.toList());
-		return  com.mo.app.config.service.UserPrinciple.builder()
+		return  UserPrinciple.builder()
 				.id(userEntity.getId())
 				.uid(userEntity.getUid())
 				.username(userEntity.getUsername())

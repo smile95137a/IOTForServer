@@ -1,6 +1,7 @@
-package com.mo.app.utils;
+package backend.utils;
 
-import com.mo.app.config.message.ApiResponse;
+
+import backend.config.message.ApiResponse;
 
 public class ResponseUtils {
 

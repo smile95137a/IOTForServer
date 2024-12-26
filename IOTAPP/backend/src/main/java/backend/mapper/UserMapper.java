@@ -3,15 +3,16 @@ package backend.mapper;
 import java.time.LocalDateTime;
 import java.util.stream.Collectors;
 
+import backend.entity.role.Role;
 import backend.entity.user.User;
 import backend.repo.UserRepository;
 import backend.req.user.UserReq;
 import backend.res.user.UserRes;
+import backend.utils.SecurityUtils;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import com.mo.app.utils.RandomUtils;
-import com.mo.app.utils.SecurityUtils;
 
 import lombok.RequiredArgsConstructor;
 
@@ -58,7 +59,7 @@ public class UserMapper {
 	                  .name(userEntity.getName())
 	                  .email(userEntity.getEmail())
 	                  .roles(userEntity.getRoles().stream()
-	                                    .map(role -> role.getName().name())
+	                                    .map(Role::getRoleName)
 	                                    .collect(Collectors.toSet()))
 	                  .createTime(userEntity.getCreateTime())
 	                  .updateTime(userEntity.getUpdateTime())
