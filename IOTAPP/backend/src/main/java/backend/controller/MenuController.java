@@ -1,10 +1,14 @@
 package backend.controller;
 
+import backend.config.message.ApiResponse;
 import backend.entity.menu.Menu;
 import backend.service.MenuService;
+import backend.utils.ResponseUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -14,37 +18,65 @@ public class MenuController {
     @Autowired
     private MenuService menuService;
 
-    public MenuController(MenuService menuService) {
-        this.menuService = menuService;
-    }
-
     // 1. 查询所有菜单（支持树形结构）
     @GetMapping
-    public List<Menu> getAllMenus() {
-        return menuService.findAllMenus();
+    public ResponseEntity<ApiResponse<List<Menu>>> getAllMenus() {
+        List<Menu> allMenus = menuService.findAllMenus();
+        if (allMenus.isEmpty()) {
+            ApiResponse<List<Menu>> error = ResponseUtils.error(List.of());
+            return ResponseEntity.ok(error);
+        }
+        ApiResponse<List<Menu>> success = ResponseUtils.success(allMenus);
+        return ResponseEntity.ok(success);
     }
 
     // 2. 查询单个菜单详情
+    // 根据菜单 ID 获取菜单
     @GetMapping("/{menuId}")
-    public Menu getMenuById(@PathVariable Long menuId) {
-        return menuService.findMenuById(menuId);
+    public ResponseEntity<ApiResponse<Menu>> getMenuById(@PathVariable Long menuId) {
+        Menu menu = menuService.findMenuById(menuId);
+        if (menu == null) {
+            ApiResponse<Menu> error = ResponseUtils.error(null);
+            return ResponseEntity.ok(error);
+        }
+        ApiResponse<Menu> success = ResponseUtils.success(menu);
+        return ResponseEntity.ok(success);
     }
 
-    // 3. 新增菜单
+    // 新增菜单
     @PostMapping
-    public List<Menu> createMenus(@RequestBody List<Menu> menus) {
-        return menuService.createMenus(menus);
+    public ResponseEntity<ApiResponse<List<Menu>>> createMenus(@RequestBody List<Menu> menus) {
+        List<Menu> createdMenus = menuService.createMenus(menus);
+        if (createdMenus.isEmpty()) {
+            ApiResponse<List<Menu>> error = ResponseUtils.error(List.of());
+            return ResponseEntity.ok(error);
+        }
+        ApiResponse<List<Menu>> success = ResponseUtils.success(createdMenus);
+        return ResponseEntity.ok(success);
     }
 
-    // 4. 更新菜单
+    // 更新菜单
     @PutMapping("/{menuId}")
-    public Menu updateMenu(@PathVariable Long menuId, @RequestBody Menu menu) {
-        return menuService.updateMenu(menuId, menu);
+    public ResponseEntity<ApiResponse<Menu>> updateMenu(@PathVariable Long menuId, @RequestBody Menu menu) {
+        Menu updatedMenu = menuService.updateMenu(menuId, menu);
+        if (updatedMenu == null) {
+            ApiResponse<Menu> error = ResponseUtils.error(null);
+            return ResponseEntity.ok(error);
+        }
+        ApiResponse<Menu> success = ResponseUtils.success(updatedMenu);
+        return ResponseEntity.ok(success);
     }
 
-    // 5. 删除菜单
+    // 删除菜单
     @DeleteMapping("/{menuId}")
-    public void deleteMenu(@PathVariable Long menuId) {
-        menuService.deleteMenu(menuId);
+    public ResponseEntity<ApiResponse<Void>> deleteMenu(@PathVariable Long menuId) {
+        boolean isDeleted = menuService.deleteMenu(menuId);
+        if (!isDeleted) {
+            ApiResponse<Void> error = ResponseUtils.error(null);
+            return ResponseEntity.ok(error);
+        }
+        ApiResponse<Void> success = ResponseUtils.success(null);
+        return ResponseEntity.ok(success);
     }
+
 }

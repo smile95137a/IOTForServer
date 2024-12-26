@@ -1,7 +1,9 @@
 package backend.controller;
 
+import backend.config.message.ApiResponse;
 import backend.entity.poolTable.PoolTable;
 import backend.service.PoolTableService;
+import backend.utils.ResponseUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,46 +18,57 @@ public class PoolTableController {
     @Autowired
     private PoolTableService poolTableService;
 
-    // Create a new pool table
+    // 创建一个新的桌台
     @PostMapping
-    public ResponseEntity<PoolTable> createPoolTable(@RequestBody PoolTable poolTable) {
+    public ResponseEntity<ApiResponse<PoolTable>> createPoolTable(@RequestBody PoolTable poolTable) {
         PoolTable createdPoolTable = poolTableService.createPoolTable(poolTable);
-        return ResponseEntity.ok(createdPoolTable);
+        ApiResponse<PoolTable> success = ResponseUtils.success(createdPoolTable);
+        return ResponseEntity.ok(success);
     }
 
-    // Get a pool table by ID
+    // 根据 ID 获取桌台
     @GetMapping("/{id}")
-    public ResponseEntity<PoolTable> getPoolTableById(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<PoolTable>> getPoolTableById(@PathVariable Long id) {
         Optional<PoolTable> poolTable = poolTableService.getPoolTableById(id);
-        return poolTable.map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
+        if (poolTable.isEmpty()) {
+            ApiResponse<PoolTable> error = ResponseUtils.error(null);
+            return ResponseEntity.ok(error);
+        }
+        ApiResponse<PoolTable> success = ResponseUtils.success(poolTable.get());
+        return ResponseEntity.ok(success);
     }
 
-    // Get all pool tables
+    // 获取所有桌台
     @GetMapping
-    public ResponseEntity<List<PoolTable>> getAllPoolTables() {
+    public ResponseEntity<ApiResponse<List<PoolTable>>> getAllPoolTables() {
         List<PoolTable> poolTables = poolTableService.getAllPoolTables();
-        return ResponseEntity.ok(poolTables);
+        ApiResponse<List<PoolTable>> success = ResponseUtils.success(poolTables);
+        return ResponseEntity.ok(success);
     }
 
-    // Update a pool table
+    // 更新桌台
     @PutMapping("/{id}")
-    public ResponseEntity<PoolTable> updatePoolTable(@PathVariable Long id, @RequestBody PoolTable updatedPoolTable) {
+    public ResponseEntity<ApiResponse<PoolTable>> updatePoolTable(@PathVariable Long id, @RequestBody PoolTable updatedPoolTable) {
         try {
             PoolTable poolTable = poolTableService.updatePoolTable(id, updatedPoolTable);
-            return ResponseEntity.ok(poolTable);
+            ApiResponse<PoolTable> success = ResponseUtils.success(poolTable);
+            return ResponseEntity.ok(success);
         } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
+            ApiResponse<PoolTable> error = ResponseUtils.error(null);
+            return ResponseEntity.ok(error);
         }
     }
 
-    // Delete a pool table
+    // 删除桌台
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletePoolTable(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<Void>> deletePoolTable(@PathVariable Long id) {
         try {
             poolTableService.deletePoolTable(id);
-            return ResponseEntity.noContent().build();
+            ApiResponse<Void> success = ResponseUtils.success(null);
+            return ResponseEntity.ok(success);
         } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
+            ApiResponse<Void> error = ResponseUtils.error(null);
+            return ResponseEntity.ok(error);
         }
     }
 }

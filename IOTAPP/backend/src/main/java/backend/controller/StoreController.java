@@ -1,13 +1,14 @@
 package backend.controller;
 
+import backend.config.message.ApiResponse;
 import backend.entity.store.Store;
 import backend.service.StoreService;
+import backend.utils.ResponseUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/stores")
@@ -18,44 +19,55 @@ public class StoreController {
 
     // Create a new store
     @PostMapping
-    public ResponseEntity<Store> createStore(@RequestBody Store store) {
+    public ResponseEntity<ApiResponse<Store>> createStore(@RequestBody Store store) {
         Store createdStore = storeService.createStore(store);
-        return ResponseEntity.ok(createdStore);
+        ApiResponse<Store> success = ResponseUtils.success(createdStore);
+        return ResponseEntity.ok(success);
     }
 
     // Get a store by ID
     @GetMapping("/{id}")
-    public ResponseEntity<Store> getStoreById(@PathVariable Long id) {
-        Optional<Store> store = storeService.getStoreById(id);
-        return store.map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<ApiResponse<Store>> getStoreById(@PathVariable Long id) {
+        Store store = storeService.getStoreById(id).orElse(null);
+        if (store == null) {
+            ApiResponse<Store> error = ResponseUtils.error(null);
+            return ResponseEntity.ok(error);
+        }
+        ApiResponse<Store> success = ResponseUtils.success(store);
+        return ResponseEntity.ok(success);
     }
 
     // Get all stores
     @GetMapping
-    public ResponseEntity<List<Store>> getAllStores() {
+    public ResponseEntity<ApiResponse<List<Store>>> getAllStores() {
         List<Store> stores = storeService.getAllStores();
-        return ResponseEntity.ok(stores);
+        ApiResponse<List<Store>> success = ResponseUtils.success(stores);
+        return ResponseEntity.ok(success);
     }
 
     // Update a store
     @PutMapping("/{id}")
-    public ResponseEntity<Store> updateStore(@PathVariable Long id, @RequestBody Store updatedStore) {
+    public ResponseEntity<ApiResponse<Store>> updateStore(@PathVariable Long id, @RequestBody Store updatedStore) {
         try {
             Store store = storeService.updateStore(id, updatedStore);
-            return ResponseEntity.ok(store);
+            ApiResponse<Store> success = ResponseUtils.success(store);
+            return ResponseEntity.ok(success);
         } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
+            ApiResponse<Store> error = ResponseUtils.error(null);
+            return ResponseEntity.ok(error);
         }
     }
 
     // Delete a store
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteStore(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<Void>> deleteStore(@PathVariable Long id) {
         try {
             storeService.deleteStore(id);
-            return ResponseEntity.noContent().build();
+            ApiResponse<Void> success = ResponseUtils.success(null);
+            return ResponseEntity.ok(success);
         } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
+            ApiResponse<Void> error = ResponseUtils.error(null);
+            return ResponseEntity.ok(error);
         }
     }
 }

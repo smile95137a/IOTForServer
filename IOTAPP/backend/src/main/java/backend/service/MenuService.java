@@ -77,7 +77,7 @@ public class MenuService {
     /**
      * 删除菜单
      */
-    public void deleteMenu(Long menuId) {
+    public boolean deleteMenu(Long menuId) {
         Menu menuToDelete = findMenuById(menuId);
 
         // 清理子菜单关系
@@ -88,5 +88,6 @@ public class MenuService {
 
         // 删除菜单
         menuRepository.delete(menuToDelete);
+        return true;
     }
 }

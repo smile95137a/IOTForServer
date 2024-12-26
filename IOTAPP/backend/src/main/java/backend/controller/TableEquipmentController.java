@@ -1,14 +1,14 @@
 package backend.controller;
 
+import backend.config.message.ApiResponse;
 import backend.entity.poolTable.TableEquipment;
 import backend.service.TableEquipmentService;
+import backend.utils.ResponseUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/table-equipments")
@@ -19,41 +19,56 @@ public class TableEquipmentController {
 
     // 获取所有桌台设备
     @GetMapping
-    public List<TableEquipment> getAllTableEquipments() {
-        return tableEquipmentService.getAllTableEquipments();
+    public ResponseEntity<ApiResponse<List<TableEquipment>>> getAllTableEquipments() {
+        List<TableEquipment> tableEquipments = tableEquipmentService.getAllTableEquipments();
+        ApiResponse<List<TableEquipment>> success = ResponseUtils.success(tableEquipments);
+        return ResponseEntity.ok(success);
     }
 
     // 根据 ID 获取桌台设备
     @GetMapping("/{id}")
-    public ResponseEntity<TableEquipment> getTableEquipmentById(@PathVariable Long id) {
-        Optional<TableEquipment> tableEquipment = tableEquipmentService.getTableEquipmentById(id);
-        return tableEquipment.map(ResponseEntity::ok)
-                             .orElseGet(() -> ResponseEntity.notFound().build());
+    public ResponseEntity<ApiResponse<TableEquipment>> getTableEquipmentById(@PathVariable Long id) {
+        TableEquipment tableEquipment = tableEquipmentService.getTableEquipmentById(id).orElse(null);
+        if (tableEquipment == null) {
+            ApiResponse<TableEquipment> error = ResponseUtils.error(null);
+            return ResponseEntity.ok(error);
+        }
+        ApiResponse<TableEquipment> success = ResponseUtils.success(tableEquipment);
+        return ResponseEntity.ok(success);
     }
 
     // 创建新的桌台设备
     @PostMapping
-    public ResponseEntity<TableEquipment> createTableEquipment(@RequestBody TableEquipment tableEquipment) {
+    public ResponseEntity<ApiResponse<TableEquipment>> createTableEquipment(@RequestBody TableEquipment tableEquipment) {
         TableEquipment createdTableEquipment = tableEquipmentService.createTableEquipment(tableEquipment);
-        return new ResponseEntity<>(createdTableEquipment, HttpStatus.CREATED);
+        ApiResponse<TableEquipment> success = ResponseUtils.success(createdTableEquipment);
+        return ResponseEntity.ok(success);
     }
 
     // 更新桌台设备
     @PutMapping("/{id}")
-    public ResponseEntity<TableEquipment> updateTableEquipment(@PathVariable Long id,
-                                                                @RequestBody TableEquipment tableEquipmentDetails) {
+    public ResponseEntity<ApiResponse<TableEquipment>> updateTableEquipment(@PathVariable Long id,
+                                                                            @RequestBody TableEquipment tableEquipmentDetails) {
         TableEquipment updatedTableEquipment = tableEquipmentService.updateTableEquipment(id, tableEquipmentDetails);
         if (updatedTableEquipment != null) {
-            return ResponseEntity.ok(updatedTableEquipment);
+            ApiResponse<TableEquipment> success = ResponseUtils.success(updatedTableEquipment);
+            return ResponseEntity.ok(success);
         } else {
-            return ResponseEntity.notFound().build();
+            ApiResponse<TableEquipment> error = ResponseUtils.error(null);
+            return ResponseEntity.ok(error);
         }
     }
 
     // 删除桌台设备
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteTableEquipment(@PathVariable Long id) {
-        tableEquipmentService.deleteTableEquipment(id);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<ApiResponse<Void>> deleteTableEquipment(@PathVariable Long id) {
+        try {
+            tableEquipmentService.deleteTableEquipment(id);
+            ApiResponse<Void> success = ResponseUtils.success(null);
+            return ResponseEntity.ok(success);
+        } catch (RuntimeException e) {
+            ApiResponse<Void> error = ResponseUtils.error(null);
+            return ResponseEntity.ok(error);
+        }
     }
 }
