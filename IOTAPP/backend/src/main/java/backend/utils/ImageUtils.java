@@ -1,4 +1,4 @@
-package com.mo.app.utils;
+package backend.utils;
 
 import java.io.IOException;
 import java.io.InputStream;

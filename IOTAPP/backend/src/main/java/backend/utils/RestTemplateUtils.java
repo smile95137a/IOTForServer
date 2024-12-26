@@ -1,4 +1,4 @@
-package com.mo.app.utils;
+package backend.utils;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;

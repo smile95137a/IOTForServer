@@ -35,7 +35,7 @@ public class Store {
     private Set<PoolTable> poolTables; // 分店中的桌台
 
     @OneToMany(mappedBy = "store", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<Equipment> equipments; // 店家的设备
+    private Set<StoreEquipment> equipments; // 店家的设备
 
     @Column
     private LocalDateTime createTime;
