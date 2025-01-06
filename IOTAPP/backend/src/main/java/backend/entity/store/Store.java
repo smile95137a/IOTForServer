@@ -21,6 +21,8 @@ public class Store {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column
+    private String uid;
     @Column(nullable = false)
     private String name; // 分店名稱
 

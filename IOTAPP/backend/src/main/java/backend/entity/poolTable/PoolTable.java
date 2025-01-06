@@ -20,6 +20,9 @@ public class PoolTable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column
+    private String uid;
+
     @Column(nullable = false, unique = true)
     private String tableNumber; // 桌台編號
 

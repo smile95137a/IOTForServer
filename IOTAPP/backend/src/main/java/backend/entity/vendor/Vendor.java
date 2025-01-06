@@ -20,6 +20,9 @@ public class Vendor {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column
+    private String uid;
+
     @Column(nullable = false, unique = true)
     private String name; // 廠商名稱
 

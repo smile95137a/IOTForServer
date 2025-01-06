@@ -43,6 +43,9 @@ public class TableEquipment {
     private LocalDateTime createTime;
 
     @Column
+    private String uid;
+
+    @Column
     private Long createUserId;
 
     @Column
