@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import io.micrometer.common.util.StringUtils;
 import backend.config.service.UserPrinciple;
 import backend.entity.role.Role;
 import backend.entity.user.User;
@@ -18,7 +19,6 @@ import backend.repo.UserRoleCustomRepository;
 import backend.req.user.UserReq;
 import backend.res.user.UserRes;
 import backend.utils.SecurityUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
@@ -103,7 +103,7 @@ public class UserService {
             var principal = (UserPrinciple) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
             var reqPwd = userReq.getPassword();
             var ePwd = entity.getPassword();
-            var pwd = StringUtils.equals(reqPwd, ePwd) ? ePwd : passwordEncoder.encode(reqPwd);
+            var pwd = reqPwd.equals(ePwd) ? ePwd : passwordEncoder.encode(reqPwd);
 
             entity.setName(userReq.getName());
             entity.setPassword(pwd);

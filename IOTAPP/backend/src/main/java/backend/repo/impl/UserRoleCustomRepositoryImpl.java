@@ -4,9 +4,11 @@ import backend.repo.UserRoleCustomRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
+@Repository
 public class UserRoleCustomRepositoryImpl implements UserRoleCustomRepository {
 
     @PersistenceContext
