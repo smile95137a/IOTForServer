@@ -1,7 +1,9 @@
 package backend.controller;
 
+import java.util.List;
 import java.util.stream.Collectors;
 
+import backend.config.message.ApiResponse;
 import backend.req.user.UserReq;
 import backend.res.user.UserRes;
 import backend.service.UserService;
@@ -110,4 +112,34 @@ public class UserController {
         }
     }
 
+
+    /**
+     * 加入黑名單
+     */
+    @PutMapping("/addBlackList")
+    public ResponseEntity<?> updateBlackList(@RequestBody List<Long> userId){
+        try {
+            userService.updateBlack(userId);
+            ApiResponse<String> success = ResponseUtils.success("加入成功");
+            return ResponseEntity.ok(success);
+        }catch (Exception e){
+            ApiResponse<String> error = ResponseUtils.error(e.getMessage());
+            return ResponseEntity.ok(error);
+        }
+    }
+
+    /**
+     * 加入黑名單
+     */
+    @PutMapping("/removeBlackList")
+    public ResponseEntity<?> removeBlackList(@RequestBody List<Long> userId){
+        try {
+            userService.removeBlackList(userId);
+            ApiResponse<String> success = ResponseUtils.success("移除成功");
+            return ResponseEntity.ok(success);
+        }catch (Exception e){
+            ApiResponse<String> error = ResponseUtils.error(e.getMessage());
+            return ResponseEntity.ok(error);
+        }
+    }
 }

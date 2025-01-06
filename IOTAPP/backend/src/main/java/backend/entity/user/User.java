@@ -5,17 +5,10 @@ import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
+import backend.entity.vendor.Vendor;  // 引入廠商類別
 import backend.entity.role.Role;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -55,6 +48,10 @@ public class User implements Serializable {
 	@Builder.Default
 	private Set<Role> roles = new HashSet<>();
 
+	@ManyToOne
+	@JoinColumn(name = "vendor_id")  // 外鍵指向廠商
+	private Vendor vendor;  // 用戶對應的廠商
+
 	@Column
 	private LocalDateTime createTime;
 
@@ -69,5 +66,4 @@ public class User implements Serializable {
 
 	@Column
 	private LocalDateTime lastActiveTime;
-
 }

@@ -14,11 +14,13 @@ import backend.enums.RoleName;
 import backend.mapper.UserMapper;
 import backend.repo.RoleRepository;
 import backend.repo.UserRepository;
+import backend.repo.UserRoleCustomRepository;
 import backend.req.user.UserReq;
 import backend.res.user.UserRes;
 import backend.utils.SecurityUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -31,105 +33,103 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 
-
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserService {
 
-	private final UserRepository userRepository;
+    private final UserRepository userRepository;
 
-	private final RoleRepository roleRepository;
+    private final RoleRepository roleRepository;
 
-	private final PasswordEncoder passwordEncoder;
+    private final PasswordEncoder passwordEncoder;
 
-	private final MailService mailService;
+    private final MailService mailService;
 
-	private final UserMapper userMapper;
-	
-	public List<User> getAllUsers() {
-		return userRepository.findAll();
-	}
+    private final UserMapper userMapper;
 
-	public User getUserById(Long id) {
-		var optional = userRepository.findById(id);
-		if (optional.isPresent()) {
-			return optional.get();
-		}
-		return null;
-	}
+    @Autowired
+    private UserRoleCustomRepository userRoleCustomRepository;
 
-	public User getUserByuid(String uid) {
-		var optional = userRepository.findByuid(uid);
-		if (optional.isPresent()) {
-			return optional.get();
-		}
-		return null;
-	}
-	@Transactional(rollbackFor = { Exception.class })
-	public UserRes createUser(UserReq userReq) throws Exception {
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
+    }
 
-	    if (userRepository.existsByUsername(userReq.getUsername())) {
-	        throw new Exception("使用者名稱已被使用");
-	    }
+    public User getUserById(Long id) {
+        var optional = userRepository.findById(id);
+        if (optional.isPresent()) {
+            return optional.get();
+        }
+        return null;
+    }
 
-	    if (userRepository.existsByEmail(userReq.getEmail())) {
-	        throw new Exception("電子郵件已被使用");
-	    }
+    public User getUserByuid(String uid) {
+        var optional = userRepository.findByuid(uid);
+        if (optional.isPresent()) {
+            return optional.get();
+        }
+        return null;
+    }
 
-	    Set<Role> roles = new HashSet<>();
-	    Role userRole = roleRepository.findByRoleName(RoleName.ROLE_USER).orElseThrow(() -> new Exception("找不到使用者角色"));
-	    roles.add(userRole);
+    @Transactional(rollbackFor = {Exception.class})
+    public UserRes createUser(UserReq userReq) throws Exception {
 
-	    var userEntity = userMapper.mapToUser(userReq);
-	    userEntity.setRoles(roles);
-	    userRepository.save(userEntity);
+        if (userRepository.existsByUsername(userReq.getUsername())) {
+            throw new Exception("使用者名稱已被使用");
+        }
 
-	    var res = userMapper.mapToUserRes(userEntity);
+        if (userRepository.existsByEmail(userReq.getEmail())) {
+            throw new Exception("電子郵件已被使用");
+        }
 
-	    var isSendEmail = userReq.getIsSendEmail();
-	    if (isSendEmail) {
-	        mailService.sendPasswordEmail(userReq.getEmail(), userReq.getName(), userReq.getPassword());
-	    }
+        Set<Role> roles = new HashSet<>();
+        Role userRole = roleRepository.findByRoleName(RoleName.ROLE_USER).orElseThrow(() -> new Exception("找不到使用者角色"));
+        roles.add(userRole);
 
-	    return res;
-	}
+        var userEntity = userMapper.mapToUser(userReq);
+        userEntity.setRoles(roles);
+        userRepository.save(userEntity);
+
+        var res = userMapper.mapToUserRes(userEntity);
+        mailService.sendPasswordEmail(userReq.getEmail(), userReq.getName(), userReq.getPassword());
+        return res;
+    }
 
 
-	@Transactional(rollbackFor = { Exception.class })
-	public UserRes updateUser(UserReq userReq) {
-		var entity = this.getUserByuid(userReq.getUid());
-		if (entity != null) {
-			var principal = (UserPrinciple) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-			var reqPwd = userReq.getPassword();
-			var ePwd = entity.getPassword();
-			var pwd = StringUtils.equals(reqPwd, ePwd) ? ePwd : passwordEncoder.encode(reqPwd);
+    @Transactional(rollbackFor = {Exception.class})
+    public UserRes updateUser(UserReq userReq) {
+        var entity = this.getUserByuid(userReq.getUid());
+        if (entity != null) {
+            var principal = (UserPrinciple) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            var reqPwd = userReq.getPassword();
+            var ePwd = entity.getPassword();
+            var pwd = StringUtils.equals(reqPwd, ePwd) ? ePwd : passwordEncoder.encode(reqPwd);
 
-			entity.setName(userReq.getName());
-			entity.setPassword(pwd);
-			entity.setEmail(userReq.getEmail());
-			entity.setUpdateTime(LocalDateTime.now());
-			entity.setUpdateUserId(principal.getId());
+            entity.setName(userReq.getName());
+            entity.setPassword(pwd);
+            entity.setEmail(userReq.getEmail());
+            entity.setUpdateTime(LocalDateTime.now());
+            entity.setUpdateUserId(principal.getId());
 
-			entity = userRepository.save(entity);
-			var res = UserRes.builder().build();
-			BeanUtils.copyProperties(entity, res);
-			return res;
-		}
-		return null;
-	}
+            entity = userRepository.save(entity);
+            var res = UserRes.builder().build();
+            BeanUtils.copyProperties(entity, res);
+            return res;
+        }
+        return null;
+    }
 
-	@Transactional(rollbackFor = { Exception.class })
-	public boolean deleteUser(String id) {
-		var entity = this.getUserByuid(id);
-		if (entity != null) {
-			userRepository.delete(entity);
-			return true;
-		}
-		return false;
-	}
+    @Transactional(rollbackFor = {Exception.class})
+    public boolean deleteUser(String id) {
+        var entity = this.getUserByuid(id);
+        if (entity != null) {
+            userRepository.delete(entity);
+            return true;
+        }
+        return false;
+    }
 
-	public List<UserRes> queryUser(UserReq req) {
+    public List<UserRes> queryUser(UserReq req) {
         List<User> userList = userRepository.findAll((root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
 
@@ -148,17 +148,31 @@ public class UserService {
         var authorities = detail.getAuthorities();
         var uid = detail.getUid();
         boolean isAdmin = authorities.stream()
-                                     .map(GrantedAuthority::getAuthority)
-                                     .anyMatch(role -> role.equals("ROLE_ADMIN"));
+                .map(GrantedAuthority::getAuthority)
+                .anyMatch(role -> role.equals("ROLE_ADMIN"));
 
         if (!isAdmin) {
             userList = userList.stream()
-                               .filter(user -> user.getUid().equals(uid))
-                               .collect(Collectors.toList());
+                    .filter(user -> user.getUid().equals(uid))
+                    .collect(Collectors.toList());
         }
 
         return userList.stream()
-                       .map(userMapper::mapToUserRes)
-                       .collect(Collectors.toList());
+                .map(userMapper::mapToUserRes)
+                .collect(Collectors.toList());
+    }
+
+    public void updateBlack(List<Long> userIds) {
+        Role blacklistRole = roleRepository.findByRoleName(RoleName.ROLE_BLACKLIST)
+                .orElseThrow(() -> new RuntimeException("Role not found"));
+
+        userRoleCustomRepository.batchAddToBlacklist(userIds, blacklistRole.getId());
+    }
+
+    public void removeBlackList(List<Long> userIds) {
+        Role blacklistRole = roleRepository.findByRoleName(RoleName.ROLE_USER)
+                .orElseThrow(() -> new RuntimeException("Role not found"));
+
+        userRoleCustomRepository.batchAddToBlacklist(userIds, blacklistRole.getId());
     }
 }

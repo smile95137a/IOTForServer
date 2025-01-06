@@ -25,6 +25,4 @@ public class UserReq implements Serializable {
 
 	private String email;
 
-	private Boolean isSendEmail;
-
 }
