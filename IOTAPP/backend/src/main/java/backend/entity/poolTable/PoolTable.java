@@ -23,7 +23,7 @@ public class PoolTable {
     @Column
     private String uid;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String tableNumber; // 桌台編號
 
     @Column(nullable = false)

@@ -26,9 +26,9 @@ public class TableEquipmentController {
     }
 
     // 根据 ID 获取桌台设备
-    @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<TableEquipment>> getTableEquipmentById(@PathVariable Long id) {
-        TableEquipment tableEquipment = tableEquipmentService.getTableEquipmentById(id).orElse(null);
+    @GetMapping("/{uid}")
+    public ResponseEntity<ApiResponse<TableEquipment>> getTableEquipmentById(@PathVariable String uid) {
+        TableEquipment tableEquipment = tableEquipmentService.getTableEquipmentById(uid).orElse(null);
         if (tableEquipment == null) {
             ApiResponse<TableEquipment> error = ResponseUtils.error(null);
             return ResponseEntity.ok(error);
@@ -46,10 +46,10 @@ public class TableEquipmentController {
     }
 
     // 更新桌台设备
-    @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<TableEquipment>> updateTableEquipment(@PathVariable Long id,
+    @PutMapping("/{uid}")
+    public ResponseEntity<ApiResponse<TableEquipment>> updateTableEquipment(@PathVariable String uid,
                                                                             @RequestBody TableEquipment tableEquipmentDetails) {
-        TableEquipment updatedTableEquipment = tableEquipmentService.updateTableEquipment(id, tableEquipmentDetails);
+        TableEquipment updatedTableEquipment = tableEquipmentService.updateTableEquipment(uid, tableEquipmentDetails);
         if (updatedTableEquipment != null) {
             ApiResponse<TableEquipment> success = ResponseUtils.success(updatedTableEquipment);
             return ResponseEntity.ok(success);
@@ -60,10 +60,10 @@ public class TableEquipmentController {
     }
 
     // 删除桌台设备
-    @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse<Void>> deleteTableEquipment(@PathVariable Long id) {
+    @DeleteMapping("/{uid}")
+    public ResponseEntity<ApiResponse<Void>> deleteTableEquipment(@PathVariable String uid) {
         try {
-            tableEquipmentService.deleteTableEquipment(id);
+            tableEquipmentService.deleteTableEquipment(uid);
             ApiResponse<Void> success = ResponseUtils.success(null);
             return ResponseEntity.ok(success);
         } catch (RuntimeException e) {

@@ -30,9 +30,6 @@ public class News {
     @Column(name = "title", nullable = false, length = 255) // 新闻标题，不能为空，最大长度 255
     private String title;
 
-    @Column(name = "preview", length = 500) // 新闻预览文字，最大长度 500
-    private String preview;
-
     @Column(name = "content", columnDefinition = "TEXT") // 新闻详细内容，使用 TEXT 类型以支持较大文本
     private String content;
 

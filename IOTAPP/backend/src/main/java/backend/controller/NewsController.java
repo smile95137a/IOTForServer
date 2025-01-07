@@ -36,9 +36,9 @@ public class NewsController {
     }
 
     // 根据 ID 获取新闻
-    @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<News>> getNewsById(@PathVariable Long id) {
-        Optional<News> news = newsService.getNewsById(id);
+    @GetMapping("/{uid}")
+    public ResponseEntity<ApiResponse<News>> getNewsById(@PathVariable String uid) {
+        Optional<News> news = newsService.getNewsById(uid);
         if (news.isEmpty()) {
             ApiResponse<News> error = ResponseUtils.error(null);
             return ResponseEntity.ok(error);
@@ -48,9 +48,9 @@ public class NewsController {
     }
 
     // 根据 ID 删除新闻
-    @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse<Void>> deleteNewsById(@PathVariable Long id) {
-        newsService.deleteNewsById(id);
+    @DeleteMapping("/{uid}")
+    public ResponseEntity<ApiResponse<Void>> deleteNewsById(@PathVariable String uid) {
+        newsService.deleteNewsById(uid);
         ApiResponse<Void> success = ResponseUtils.success(null);
         return ResponseEntity.ok(success);
     }

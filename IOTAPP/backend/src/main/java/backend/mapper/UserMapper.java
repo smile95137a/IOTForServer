@@ -59,7 +59,7 @@ public class UserMapper {
 	                  .name(userEntity.getName())
 	                  .email(userEntity.getEmail())
 	                  .roles(userEntity.getRoles().stream()
-	                                    .map(Role::getRoleName)
+	                                    .map(role -> role.getRoleName().toString())
 	                                    .collect(Collectors.toSet()))
 	                  .createTime(userEntity.getCreateTime())
 	                  .updateTime(userEntity.getUpdateTime())

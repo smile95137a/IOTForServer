@@ -27,7 +27,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 		var userEntity = userRepository
 				.findByUsername(username)
 				.orElseThrow(() -> new UsernameNotFoundException("找不到使用者名稱:" + username));
-		var authorities = userEntity.getRoles().stream().map(role -> new SimpleGrantedAuthority(role.getRoleName()));
+		var authorities = userEntity.getRoles().stream().map(role -> new SimpleGrantedAuthority(role.getRoleName().toString()));
 		return  UserPrinciple.builder()
 				.id(userEntity.getId())
 				.uid(userEntity.getUid())

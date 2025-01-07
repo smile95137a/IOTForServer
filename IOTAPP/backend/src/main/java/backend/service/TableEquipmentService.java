@@ -20,8 +20,8 @@ public class TableEquipmentService {
     }
 
     // 根据 ID 获取桌台设备
-    public Optional<TableEquipment> getTableEquipmentById(Long id) {
-        return tableEquipmentRepository.findById(id);
+    public Optional<TableEquipment> getTableEquipmentById(String uid) {
+        return tableEquipmentRepository.findByUid(uid);
     }
 
     // 创建新的桌台设备
@@ -30,8 +30,8 @@ public class TableEquipmentService {
     }
 
     // 更新桌台设备
-    public TableEquipment updateTableEquipment(Long id, TableEquipment tableEquipmentDetails) {
-        Optional<TableEquipment> tableEquipmentOptional = tableEquipmentRepository.findById(id);
+    public TableEquipment updateTableEquipment(String uid, TableEquipment tableEquipmentDetails) {
+        Optional<TableEquipment> tableEquipmentOptional = tableEquipmentRepository.findByUid(uid);
         if (tableEquipmentOptional.isPresent()) {
             TableEquipment tableEquipment = tableEquipmentOptional.get();
             tableEquipment.setEquipmentName(tableEquipmentDetails.getEquipmentName());
@@ -48,7 +48,7 @@ public class TableEquipmentService {
     }
 
     // 删除桌台设备
-    public void deleteTableEquipment(Long id) {
-        tableEquipmentRepository.deleteById(id);
+    public void deleteTableEquipment(String uid) {
+        tableEquipmentRepository.deleteByUid(uid);
     }
 }

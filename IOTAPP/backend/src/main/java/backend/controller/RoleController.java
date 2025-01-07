@@ -3,6 +3,7 @@ package backend.controller;
 import backend.config.message.ApiResponse;
 import backend.entity.menu.Menu;
 import backend.entity.role.Role;
+import backend.req.MenuIdsRequest;
 import backend.service.MenuService;
 import backend.service.RoleService;
 import backend.utils.ResponseUtils;
@@ -11,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/api/roles")
@@ -77,17 +79,18 @@ public class RoleController {
 
     // 6. 设置角色的菜单权限
     @PostMapping("/{roleId}/menus")
-    public ResponseEntity<ApiResponse<Role>> assignMenusToRole(@PathVariable Long roleId, @RequestBody List<Long> menuIds) {
-        Role updatedRole = roleService.assignMenusToRole(roleId, menuIds);
+    public ResponseEntity<ApiResponse<Role>> assignMenusToRole(@PathVariable Long roleId, @RequestBody MenuIdsRequest menuIdsRequest) {
+        System.out.println(menuIdsRequest.getMenuIds());
+        Role updatedRole = roleService.assignMenusToRole(roleId, menuIdsRequest.getMenuIds());
         ApiResponse<Role> success = ResponseUtils.success(updatedRole);
         return ResponseEntity.ok(success);
     }
 
     // 7. 查询角色的菜单权限
     @GetMapping("/{roleId}/menus")
-    public ResponseEntity<ApiResponse<List<Menu>>> getMenusByRole(@PathVariable Long roleId) {
-        List<Menu> menus = roleService.findMenusByRole(roleId);
-        ApiResponse<List<Menu>> success = ResponseUtils.success(menus);
+    public ResponseEntity<ApiResponse<Set<Menu>>> getMenusByRole(@PathVariable Long roleId) {
+        Set<Menu> menus = roleService.findMenusByRole(roleId);
+        ApiResponse<Set<Menu>> success = ResponseUtils.success(menus);
         return ResponseEntity.ok(success);
     }
 }

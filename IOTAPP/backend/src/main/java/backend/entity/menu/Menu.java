@@ -1,18 +1,18 @@
 package backend.entity.menu;
 
 import backend.entity.role.Role;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.Set;
-
-@Data
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
 @Table(name = "menus")
+@ToString(exclude = {"roles", "parent", "children"}) // Menu類
 public class Menu {
 
     @Id
@@ -41,6 +41,7 @@ public class Menu {
     @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Menu> children; // 子菜单
 
-    @ManyToMany(mappedBy = "menus")
-    private Set<Role> roles; // 能访问此菜单的角色
+    @ManyToMany(mappedBy = "menus", fetch = FetchType.EAGER)
+    @JsonBackReference
+    private Set<Role> roles;
 }

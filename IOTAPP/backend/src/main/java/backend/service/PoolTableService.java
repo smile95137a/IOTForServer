@@ -15,13 +15,14 @@ public class PoolTableService {
     private PoolTableRepository poolTableRepository;
 
     // Create a new pool table
-    public PoolTable createPoolTable(PoolTable poolTable) {
-        return poolTableRepository.save(poolTable);
+    public List<PoolTable> createPoolTables(List<PoolTable> poolTables) {
+        // 使用 saveAll 方法批量保存所有傳入的 PoolTable
+        return poolTableRepository.saveAll(poolTables);
     }
 
     // Retrieve a pool table by ID
-    public Optional<PoolTable> getPoolTableById(Long id) {
-        return poolTableRepository.findById(id);
+    public Optional<PoolTable> getPoolTableById(String uid) {
+        return poolTableRepository.findByUid(uid);
     }
 
     // Retrieve all pool tables
@@ -30,8 +31,8 @@ public class PoolTableService {
     }
 
     // Update a pool table
-    public PoolTable updatePoolTable(Long id, PoolTable updatedPoolTable) {
-        return poolTableRepository.findById(id).map(poolTable -> {
+    public PoolTable updatePoolTable(String uid, PoolTable updatedPoolTable) {
+        return poolTableRepository.findByUid(uid).map(poolTable -> {
             poolTable.setTableNumber(updatedPoolTable.getTableNumber());
             poolTable.setStatus(updatedPoolTable.getStatus());
             poolTable.setStore(updatedPoolTable.getStore());
@@ -40,11 +41,11 @@ public class PoolTableService {
             poolTable.setUpdateTime(updatedPoolTable.getUpdateTime());
             poolTable.setUpdateUserId(updatedPoolTable.getUpdateUserId());
             return poolTableRepository.save(poolTable);
-        }).orElseThrow(() -> new RuntimeException("PoolTable not found with id: " + id));
+        }).orElseThrow(() -> new RuntimeException("PoolTable not found with id: " + uid));
     }
 
     // Delete a pool table
-    public void deletePoolTable(Long id) {
-        poolTableRepository.deleteById(id);
+    public void deletePoolTable(String uid) {
+        poolTableRepository.deleteByUid(uid);
     }
 }

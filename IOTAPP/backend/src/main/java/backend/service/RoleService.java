@@ -4,9 +4,12 @@ import backend.entity.menu.Menu;
 import backend.entity.role.Role;
 import backend.repo.MenuRepository;
 import backend.repo.RoleRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Service;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -44,13 +47,17 @@ public class RoleService {
 
     public Role assignMenusToRole(Long roleId, List<Long> menuIds) {
         Role role = findRoleById(roleId);
-        Set<Menu> menus = Set.copyOf(menuRepository.findAllById(menuIds));
+        List<Menu> allById = menuRepository.findAllById(menuIds);
+        Set<Menu> menus = new HashSet<Menu>(allById);
         role.setMenus(menus);
         return roleRepository.save(role);
     }
 
-    public List<Menu> findMenusByRole(Long roleId) {
-        Role role = findRoleById(roleId);
-        return List.copyOf(role.getMenus());
+    @Transactional
+    @Query("SELECT r FROM Role r LEFT JOIN FETCH r.menus WHERE r.id = :roleId")
+    public Set<Menu> findMenusByRole(Long roleId) {
+        Role role = roleRepository.findById(roleId)
+                .orElseThrow(() -> new RuntimeException("Role not found"));
+        return role.getMenus();
     }
 }

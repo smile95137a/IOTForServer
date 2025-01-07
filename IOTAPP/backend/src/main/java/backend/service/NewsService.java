@@ -26,13 +26,13 @@ public class NewsService {
     }
 
     // Retrieve News by ID
-    public Optional<News> getNewsById(Long id) {
-        return newsRepository.findById(id);
+    public Optional<News> getNewsById(String uid) {
+        return newsRepository.findByNewsUid(uid);
     }
 
     // Delete News by ID
-    public void deleteNewsById(Long id) {
-        newsRepository.deleteById(id);
+    public void deleteNewsById(String uid) {
+        newsRepository.deleteByNewsUid(uid);
     }
 
     // Retrieve News by Status

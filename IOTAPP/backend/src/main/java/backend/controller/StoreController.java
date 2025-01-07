@@ -26,9 +26,9 @@ public class StoreController {
     }
 
     // Get a store by ID
-    @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<Store>> getStoreById(@PathVariable Long id) {
-        Store store = storeService.getStoreById(id).orElse(null);
+    @GetMapping("/{uid}")
+    public ResponseEntity<ApiResponse<Store>> getStoreById(@PathVariable String uid) {
+        Store store = storeService.getStoreById(uid).orElse(null);
         if (store == null) {
             ApiResponse<Store> error = ResponseUtils.error(null);
             return ResponseEntity.ok(error);
@@ -46,10 +46,10 @@ public class StoreController {
     }
 
     // Update a store
-    @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<Store>> updateStore(@PathVariable Long id, @RequestBody Store updatedStore) {
+    @PutMapping("/{uid}")
+    public ResponseEntity<ApiResponse<Store>> updateStore(@PathVariable String uid, @RequestBody Store updatedStore) {
         try {
-            Store store = storeService.updateStore(id, updatedStore);
+            Store store = storeService.updateStore(uid, updatedStore);
             ApiResponse<Store> success = ResponseUtils.success(store);
             return ResponseEntity.ok(success);
         } catch (RuntimeException e) {
@@ -59,10 +59,10 @@ public class StoreController {
     }
 
     // Delete a store
-    @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse<Void>> deleteStore(@PathVariable Long id) {
+    @DeleteMapping("/{uid}")
+    public ResponseEntity<ApiResponse<Void>> deleteStore(@PathVariable String uid) {
         try {
-            storeService.deleteStore(id);
+            storeService.deleteStore(uid);
             ApiResponse<Void> success = ResponseUtils.success(null);
             return ResponseEntity.ok(success);
         } catch (RuntimeException e) {
@@ -70,4 +70,5 @@ public class StoreController {
             return ResponseEntity.ok(error);
         }
     }
+
 }

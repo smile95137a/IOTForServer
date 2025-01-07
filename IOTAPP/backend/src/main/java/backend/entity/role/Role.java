@@ -1,35 +1,41 @@
 package backend.entity.role;
 
 import backend.entity.menu.Menu;
+import backend.enums.RoleName;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
+import java.util.HashSet;
 import java.util.Set;
 
-@Data
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
 @Table(name = "roles")
+@ToString(exclude = {"menus"})
 public class Role {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
-    private String roleName; // 角色标识，如 ROLE_ADMIN
+    @Enumerated(EnumType.STRING)
+    @Column
+    private RoleName roleName;
 
     @Column
     private String description; // 角色描述
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
-        name = "role_menu",
-        joinColumns = @JoinColumn(name = "role_id"),
-        inverseJoinColumns = @JoinColumn(name = "menu_id")
+            name = "role_menu",
+            joinColumns = @JoinColumn(name = "role_id"),
+            inverseJoinColumns = @JoinColumn(name = "menu_id")
     )
-    private Set<Menu> menus; // 角色可以访问的菜单
+    @JsonManagedReference // 防止序列化 role 相關的菜單循環引用
+    private Set<Menu> menus = new HashSet<>();
+
 }
