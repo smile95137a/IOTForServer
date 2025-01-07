@@ -3,6 +3,7 @@ package backend.config.jwt;
 import java.io.IOException;
 
 import backend.config.service.UserDetailsServiceImpl;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -25,8 +26,10 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 public class JwtAuthTokenFilter extends OncePerRequestFilter {
 
-	private final JwtProvider jwtProvider;
-	private final UserDetailsServiceImpl userDetailsService;
+	@Autowired
+	private JwtProvider jwtProvider;
+	@Autowired
+	private UserDetailsServiceImpl userDetailsService;
 
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)

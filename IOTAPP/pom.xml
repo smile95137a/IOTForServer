@@ -16,7 +16,7 @@
   </parent>
 
   <modules>
-    <module>backend</module>
+    <module>backend.</module>
     <module>common</module>
     <module>frontend</module>
   </modules>
