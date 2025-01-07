@@ -8,11 +8,11 @@ import backend.entity.user.User;
 import backend.repo.UserRepository;
 import backend.req.user.UserReq;
 import backend.res.user.UserRes;
+import backend.utils.RandomUtils;
 import backend.utils.SecurityUtils;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
-import com.mo.app.utils.RandomUtils;
 
 import lombok.RequiredArgsConstructor;
 
