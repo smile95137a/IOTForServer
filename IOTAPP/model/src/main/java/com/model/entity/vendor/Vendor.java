@@ -1,6 +1,6 @@
-package backend.entity.vendor;
+package com.model.entity.vendor;
 
-import backend.entity.store.Store;
+import com.model.entity.store.Store;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
