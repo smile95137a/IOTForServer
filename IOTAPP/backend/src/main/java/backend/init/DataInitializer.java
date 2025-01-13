@@ -7,11 +7,14 @@ import backend.repo.MenuRepository;
 import backend.repo.RoleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
+import java.util.List;
 
 @Component
+@Order(2)
 public class DataInitializer implements CommandLineRunner {
 
     @Autowired
@@ -22,58 +25,32 @@ public class DataInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        // 取得菜單資料
-        Menu menu1 = menuRepository.findById(1L).orElse(null);
-        Menu menu2 = menuRepository.findById(2L).orElse(null);
-        Menu menu3 = menuRepository.findById(3L).orElse(null);
-        Menu menu4 = menuRepository.findById(4L).orElse(null);
-        Menu menu5 = menuRepository.findById(5L).orElse(null);
-        Menu menu6 = menuRepository.findById(6L).orElse(null);
+        // Retrieve menu items by their IDs
+        List<Menu> menus = menuRepository.findAllById(List.of(1L, 2L, 3L, 4L, 5L, 6L));
 
-        // 取得角色資料
-        Optional<Role> roleAdmin = roleRepository.findByRoleName(RoleName.ROLE_ADMIN);
-        Optional<Role> roleVendor = roleRepository.findByRoleName(RoleName.ROLE_MANUFACTURER);
-        Optional<Role> roleMember = roleRepository.findByRoleName(RoleName.ROLE_USER);
-        Optional<Role> roleBlacklist = roleRepository.findByRoleName(RoleName.ROLE_BLACKLIST);
+        // Create roles and assign menus if they do not exist
+        createRoleIfNotExist(RoleName.ROLE_ADMIN, "最高權限者", menus.subList(0, 6)); // RoleAdmin
+        createRoleIfNotExist(RoleName.ROLE_MANUFACTURER, "廠商權限", menus.subList(0, 3)); // RoleManufacturer
+        createRoleIfNotExist(RoleName.ROLE_USER, "一般會員", menus.subList(0, 2)); // RoleUser
+        createRoleIfNotExist(RoleName.ROLE_BLACKLIST, "黑名單", menus.subList(0, 1)); // RoleBlacklist
+    }
 
-        // 初始化 ROLE_ADMIN 的菜單關聯
-        roleAdmin.ifPresent(role -> {
-            if (menu1 != null) {
-                role.getMenus().add(menu1);
-                role.getMenus().add(menu2);
-                role.getMenus().add(menu3);
-                role.getMenus().add(menu4);
-                role.getMenus().add(menu5);
-                role.getMenus().add(menu6);
-                roleRepository.save(role);  // 更新角色資料
-            }
-        });
+    private void createRoleIfNotExist(RoleName roleName, String description, List<Menu> menus) {
+        Optional<Role> roleOptional = roleRepository.findByRoleName(roleName);
+        if (roleOptional.isEmpty()) {
+            // If the role does not exist, create a new role and assign menus
+            Role newRole = new Role();
+            newRole.setRoleName(roleName);
+            newRole.setDescription(description);
+            newRole.getMenus().addAll(menus);  // Add all valid menus
 
-        // 初始化 ROLE_VENDOR 的菜單關聯
-        roleVendor.ifPresent(role -> {
-            if (menu1 != null) {
-                role.getMenus().add(menu1);
-                role.getMenus().add(menu2);
-                role.getMenus().add(menu3);
-                roleRepository.save(role);  // 更新角色資料
-            }
-        });
-
-        // 初始化 ROLE_MEMBER 的菜單關聯
-        roleMember.ifPresent(role -> {
-            if (menu1 != null) {
-                role.getMenus().add(menu1);
-                role.getMenus().add(menu2);
-                roleRepository.save(role);  // 更新角色資料
-            }
-        });
-
-        // 初始化 ROLE_BLACKLIST 的菜單關聯
-        roleBlacklist.ifPresent(role -> {
-            if (menu1 != null) {
-                role.getMenus().add(menu1);
-                roleRepository.save(role);  // 更新角色資料
-            }
-        });
+            roleRepository.save(newRole);  // Save the new role
+        } else {
+            // If the role exists, ensure it gets the correct menu associations
+            Role role = roleOptional.get();
+            role.getMenus().clear();  // Clear existing menus before re-adding them
+            role.getMenus().addAll(menus);  // Add new menus
+            roleRepository.save(role);  // Save the updated role
+        }
     }
 }

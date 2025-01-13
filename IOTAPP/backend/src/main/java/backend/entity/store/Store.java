@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.Set;
 
 @Data
@@ -50,4 +51,18 @@ public class Store {
 
     @Column
     private Long updateUserId;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Store store = (Store) o;
+        return Objects.equals(uid, store.uid);  // 使用 uid 比較物件
+    }
+
+    // 覆寫 hashCode() 方法
+    @Override
+    public int hashCode() {
+        return Objects.hash(uid);  // 根據 uid 計算 hashCode，確保與 equals 一致
+    }
 }
