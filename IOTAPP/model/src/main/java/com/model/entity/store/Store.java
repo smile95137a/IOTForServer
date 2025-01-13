@@ -1,11 +1,11 @@
-package backend.entity.store;
+package com.model.entity.store;
 
-import backend.entity.poolTable.PoolTable;
-import backend.entity.vendor.Vendor;
+import com.model.entity.poolTable.PoolTable;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import com.model.entity.vendor.Vendor;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
