@@ -1,20 +1,19 @@
-package backend.entity.vendor;
+package com.model.entity.store;
 
-import backend.entity.store.Store;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.Set;
+import java.time.LocalTime;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "vendors")
-public class Vendor {
+@Table(name = "store_equipment")
+public class StoreEquipment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,13 +23,20 @@ public class Vendor {
     private String uid;
 
     @Column(nullable = false, unique = true)
-    private String name; // 廠商名稱
+    private String name; // 设备名称
 
     @Column(nullable = false)
-    private String contactInfo; // 聯繫資訊 (例如電話、郵件)
+    private String status; // 设备状态 (例如 "ON", "OFF")
 
-    @OneToMany(mappedBy = "vendor", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<Store> stores; // 管理的分店
+    @Column
+    private LocalTime autoStartTime; // 自动开启时间
+
+    @Column
+    private LocalTime autoStopTime; // 自动关闭时间
+
+    @ManyToOne
+    @JoinColumn(name = "store_id", nullable = false)
+    private Store store; // 所属店家
 
     @Column
     private LocalDateTime createTime;

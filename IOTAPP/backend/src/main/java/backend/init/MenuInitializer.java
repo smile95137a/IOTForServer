@@ -5,11 +5,13 @@ import backend.repo.MenuRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 
 import java.util.Arrays;
 import java.util.List;
 
 @Configuration
+@Order(1)
 public class MenuInitializer {
 
     @Bean

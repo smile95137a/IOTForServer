@@ -1,10 +1,10 @@
-package backend.entity.vendor;
+package com.model.entity.poolTable;
 
-import backend.entity.store.Store;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import com.model.entity.store.Store;
 
 import java.time.LocalDateTime;
 import java.util.Set;
@@ -13,8 +13,8 @@ import java.util.Set;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "vendors")
-public class Vendor {
+@Table(name = "pool_tables")
+public class PoolTable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,14 +23,18 @@ public class Vendor {
     @Column
     private String uid;
 
-    @Column(nullable = false, unique = true)
-    private String name; // 廠商名稱
+    @Column(nullable = false)
+    private String tableNumber; // 桌台編號
 
     @Column(nullable = false)
-    private String contactInfo; // 聯繫資訊 (例如電話、郵件)
+    private String status; // 桌台狀態 (例如 "AVAILABLE", "IN_USE")
 
-    @OneToMany(mappedBy = "vendor", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<Store> stores; // 管理的分店
+    @ManyToOne
+    @JoinColumn(name = "store_id", nullable = false)
+    private Store store; // 所屬分店
+
+    @OneToMany(mappedBy = "poolTable", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<TableEquipment> tableEquipments; // 桌台設備設定
 
     @Column
     private LocalDateTime createTime;
