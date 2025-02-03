@@ -1,4 +1,4 @@
-package com.common.config.message;
+package src.main.java.com.common.config.message;
 
 import org.springframework.http.ResponseEntity;
 

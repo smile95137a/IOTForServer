@@ -1,33 +1,29 @@
-package com.frontend.req.user;
+package src.main.java.com.frontend.req.user;
 
-import java.io.Serializable;
-
-import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
-@Builder
-public class UserReq implements Serializable {
+@AllArgsConstructor
+public class UserReq {
 
-	private static final long serialVersionUID = 1L;
-	
-	private String uid;
-
-	@NotNull
 	private String username;
-
-	@NotNull
 	private String password;
-
+	private String natId;
+	private String nickname;
 	private String name;
-
-	@NotNull
 	private String email;
+	private Integer phoneNumber;
+	private String city;
+	private String area;
+	private String address;
+	private String addressName;
+	private String lineId;
+	private String invoiceInfo;
+	private String invoiceInfoEmail;
 
-
+	private String zipCode;
+	private String vehicle;
 }

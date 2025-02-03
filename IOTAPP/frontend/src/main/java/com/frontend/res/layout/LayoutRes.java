@@ -1,9 +1,9 @@
-package com.frontend.res.layout;
+package src.main.java.com.frontend.res.layout;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-import com.frontend.res.layout.LayoutAreaRes;
+import src.main.java.com.frontend.res.layout.LayoutAreaRes;
 import com.mo.app.enums.LayoutSize;
 
 import lombok.AllArgsConstructor;

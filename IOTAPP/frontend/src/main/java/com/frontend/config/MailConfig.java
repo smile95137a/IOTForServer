@@ -1,4 +1,4 @@
-package com.frontend.config;
+package src.main.java.com.frontend.config;
 
 import java.nio.charset.StandardCharsets;
 

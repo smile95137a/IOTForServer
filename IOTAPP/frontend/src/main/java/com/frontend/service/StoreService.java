@@ -1,9 +1,9 @@
-package com.frontend.service;
+package src.main.java.com.frontend.service;
 
-import com.frontend.repo.StoreRepository;
-import com.frontend.res.store.StoreRes;
-import com.model.entity.store.Store;
-import com.model.enums.PoolTableStatus;
+import src.main.java.com.frontend.entity.store.Store;
+import src.main.java.com.frontend.enums.PoolTableStatus;
+import src.main.java.com.frontend.repo.StoreRepository;
+import src.main.java.com.frontend.res.store.StoreRes;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

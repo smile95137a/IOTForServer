@@ -1,4 +1,4 @@
-package com.frontend.mapper;//package com.frontend.mapper;
+package src.main.java.com.frontend.mapper;//package src.main.java.com.frontend.mapper;
 //
 //import java.time.LocalDateTime;
 //import java.util.List;

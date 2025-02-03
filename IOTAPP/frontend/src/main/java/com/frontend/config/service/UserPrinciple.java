@@ -1,4 +1,4 @@
-package com.frontend.config.service;
+package src.main.java.com.frontend.config.service;
 
 import java.util.Collection;
 import java.util.Objects;

@@ -1,17 +1,18 @@
-package com.frontend.entity.user;
+package src.main.java.com.frontend.entity.user;
 
-import java.io.Serializable;
-import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import com.frontend.entity.coupon.Coupon;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import src.main.java.com.frontend.entity.role.Role;
+import src.main.java.com.frontend.entity.vendor.Vendor;
+
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "users")
@@ -34,6 +35,15 @@ public class User implements Serializable {
 	private String username;
 
 	@Column
+	private String nickname;
+
+	@Column
+	private Integer phoneNumber;
+
+	@Column
+	private String lineId;
+
+	@Column
 	private String password;
 
 	@Column
@@ -46,6 +56,10 @@ public class User implements Serializable {
 	@JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
 	@Builder.Default
 	private Set<Role> roles = new HashSet<>();
+
+	@ManyToOne
+	@JoinColumn(name = "vendor_id")  // 外鍵指向廠商
+	private Vendor vendor;  // 用戶對應的廠商
 
 	@Column
 	private LocalDateTime createTime;
@@ -61,14 +75,6 @@ public class User implements Serializable {
 
 	@Column
 	private LocalDateTime lastActiveTime;
-
 	@Column
-	private Long money;
-
-	@Column
-	@ManyToMany(fetch = FetchType.LAZY)
-	private List<Coupon> couponList;
-
-
-
+	private BigDecimal totalAmount;
 }

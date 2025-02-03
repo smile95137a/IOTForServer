@@ -1,4 +1,4 @@
-package com.frontend.res.layout;
+package src.main.java.com.frontend.res.layout;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

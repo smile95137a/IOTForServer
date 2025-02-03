@@ -1,8 +1,8 @@
-package com.frontend.req.template;
+package src.main.java.com.frontend.req.template;
 
 import java.util.List;
 
-import com.frontend.req.template.TemplateAreaReq;
+import src.main.java.com.frontend.req.template.TemplateAreaReq;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

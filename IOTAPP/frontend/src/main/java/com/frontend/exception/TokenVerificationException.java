@@ -1,4 +1,4 @@
-package com.frontend.exception;
+package src.main.java.com.frontend.exception;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

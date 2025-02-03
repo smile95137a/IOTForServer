@@ -1,8 +1,8 @@
-package com.frontend.config.api;
+package src.main.java.com.frontend.config.api;
 
 import java.io.Serializable;
 
-import com.frontend.res.user.UserRes;
+import src.main.java.com.frontend.res.user.UserRes;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

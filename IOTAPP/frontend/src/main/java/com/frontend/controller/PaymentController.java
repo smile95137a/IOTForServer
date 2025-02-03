@@ -1,9 +1,9 @@
-package com.frontend.controller;
+package src.main.java.com.frontend.controller;
 
-import com.frontend.config.message.ApiResponse;
-import com.frontend.repo.UserRepository;
-import com.frontend.utils.ResponseUtils;
-import com.frontend.utils.SecurityUtils;
+import src.main.java.com.frontend.config.message.ApiResponse;
+import src.main.java.com.frontend.repo.UserRepository;
+import src.main.java.com.frontend.utils.ResponseUtils;
+import src.main.java.com.frontend.utils.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
