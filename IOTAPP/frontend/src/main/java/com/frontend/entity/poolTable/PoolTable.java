@@ -1,10 +1,10 @@
 package src.main.java.com.frontend.entity.poolTable;
 
-import backend.entity.store.Store;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import src.main.java.com.frontend.entity.store.Store;
 
 import java.time.LocalDateTime;
 import java.util.Set;
@@ -47,4 +47,7 @@ public class PoolTable {
 
     @Column
     private Long updateUserId;
+
+    @Column
+    private Boolean isUse;
 }

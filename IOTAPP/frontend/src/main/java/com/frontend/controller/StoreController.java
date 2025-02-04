@@ -44,7 +44,16 @@ public class StoreController {
     public ResponseEntity<ApiResponse<List<StoreRes>>> countAvailableAndInUseByUid(@PathVariable String uid) {
         List<StoreRes> storeRes = storeService.countAvailableAndInUseByUid(uid).orElse(Collections.emptyList());
         if (storeRes.isEmpty()) {
-            return ResponseEntity.ok(ResponseUtils.error(9999, null, null));
+            return ResponseEntity.ok(ResponseUtils.error(9999, "無此桌台", null));
+        }
+        return ResponseEntity.ok(ResponseUtils.success(storeRes));
+    }
+
+    @GetMapping
+    public ResponseEntity<ApiResponse<List<StoreRes>>> findAll() {
+        List<StoreRes> storeRes = storeService.findAll();
+        if (storeRes.isEmpty()) {
+            return ResponseEntity.ok(ResponseUtils.error(9999, "查無桌台", null));
         }
         return ResponseEntity.ok(ResponseUtils.success(storeRes));
     }
