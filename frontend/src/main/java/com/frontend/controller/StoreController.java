@@ -18,7 +18,7 @@ import java.util.*;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/test/stores")
+@RequestMapping("/stores")
 public class StoreController {
 
     @Autowired
@@ -57,5 +57,7 @@ public class StoreController {
         }
         return ResponseEntity.ok(ResponseUtils.success(storeRes));
     }
+
+
 
 }

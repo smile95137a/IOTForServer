@@ -75,6 +75,10 @@ public class User implements Serializable {
 
 	@Column
 	private LocalDateTime lastActiveTime;
+
 	@Column
-	private BigDecimal totalAmount;
+	private Integer amount;
+
+	@Column
+	private Integer totalAmount;
 }

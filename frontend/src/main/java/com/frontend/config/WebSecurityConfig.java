@@ -12,6 +12,7 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -53,17 +54,34 @@ public class WebSecurityConfig {
 		return new BCryptPasswordEncoder();
 	}
 
+//	@Bean
+//	public SecurityFilterChain filterChain(HttpSecurity http,CorsConfigurationSource corsConfigurationSource) throws Exception {
+//	     http.cors(cors -> cors.configurationSource(corsConfigurationSource))
+//	     	.csrf(csrf -> csrf.disable())
+//				.exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
+//				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+//				.authorizeHttpRequests(auth -> auth.requestMatchers(AUTH_WHITELIST).permitAll().anyRequest().authenticated());
+//
+//		http.authenticationProvider(authenticationProvider());
+//		http.addFilterBefore(jwtAuthTokenFilter, UsernamePasswordAuthenticationFilter.class);
+//
+//		return http.build();
+//	}
+
 	@Bean
-	public SecurityFilterChain filterChain(HttpSecurity http,CorsConfigurationSource corsConfigurationSource) throws Exception {
-	     http.cors(cors -> cors.configurationSource(corsConfigurationSource))
-	     	.csrf(csrf -> csrf.disable())
-				.exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
-				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-				.authorizeHttpRequests(auth -> auth.requestMatchers(AUTH_WHITELIST).permitAll().anyRequest().authenticated());
+	public SecurityFilterChain filterChain(HttpSecurity http, CorsConfigurationSource corsConfigurationSource) throws Exception {
+		http.cors(cors -> cors.configurationSource(corsConfigurationSource))
+				.csrf(AbstractHttpConfigurer::disable) // 禁用 CSRF
+				.exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler)) // 认证失败处理
+				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // 无状态会话
+
+				// 允许所有请求不经过身份验证
+				.authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
 
 		http.authenticationProvider(authenticationProvider());
 		http.addFilterBefore(jwtAuthTokenFilter, UsernamePasswordAuthenticationFilter.class);
 
 		return http.build();
 	}
+
 }
