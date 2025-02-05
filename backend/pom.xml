@@ -9,9 +9,9 @@
         <version>1.0-SNAPSHOT</version>
     </parent>
 
-    <groupId>com</groupId>
     <artifactId>backend</artifactId>
     <version>0.0.1-SNAPSHOT</version>
+    <packaging>jar</packaging>
     <name>backend</name>
 
     <!-- 依赖父模块已经提供的依赖和插件，不需要再重复 -->
