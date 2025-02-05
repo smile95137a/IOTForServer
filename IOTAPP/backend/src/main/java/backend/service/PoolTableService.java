@@ -2,6 +2,7 @@ package backend.service;
 
 import backend.entity.poolTable.PoolTable;
 import backend.repo.PoolTableRepository;
+import backend.utils.RandomUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -15,9 +16,11 @@ public class PoolTableService {
     private PoolTableRepository poolTableRepository;
 
     // Create a new pool table
-    public List<PoolTable> createPoolTables(List<PoolTable> poolTables) {
+    public PoolTable createPoolTables(PoolTable poolTables) {
         // 使用 saveAll 方法批量保存所有傳入的 PoolTable
-        return poolTableRepository.saveAll(poolTables);
+        String s = RandomUtils.genRandom(24);
+        poolTables.setUid(s);
+        return poolTableRepository.save(poolTables);
     }
 
     // Retrieve a pool table by ID

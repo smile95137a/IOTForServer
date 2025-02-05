@@ -2,6 +2,7 @@ package backend.service;
 
 import backend.entity.poolTable.TableEquipment;
 import backend.repo.TableEquipmentRepository;
+import backend.utils.RandomUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -26,6 +27,8 @@ public class TableEquipmentService {
 
     // 创建新的桌台设备
     public TableEquipment createTableEquipment(TableEquipment tableEquipment) {
+        String s = RandomUtils.genRandom(24);
+        tableEquipment.setUid(s);
         return tableEquipmentRepository.save(tableEquipment);
     }
 

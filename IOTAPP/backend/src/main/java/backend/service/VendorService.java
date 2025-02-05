@@ -4,6 +4,7 @@ import backend.entity.store.Store;
 import backend.entity.vendor.Vendor;
 import backend.repo.StoreRepository;
 import backend.repo.VendorRepository;
+import backend.utils.RandomUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -22,6 +23,9 @@ public class VendorService {
 
     // Create a new vendor
     public Vendor createVendor(Vendor vendor) {
+
+        String s = RandomUtils.genRandom(24);
+        vendor.setUid(s);
         return vendorRepository.save(vendor);
     }
 

@@ -20,11 +20,11 @@ public class PoolTableController {
 
     // 创建一个新的桌台
     @PostMapping
-    public ResponseEntity<ApiResponse<List<PoolTable>>> createPoolTables(@RequestBody List<PoolTable> poolTables) {
+    public ResponseEntity<ApiResponse<PoolTable>> createPoolTables(@RequestBody PoolTable poolTable) {
         try {
             // 呼叫 Service 處理多個 PoolTable 的創建
-            List<PoolTable> createdPoolTables = poolTableService.createPoolTables(poolTables);
-            ApiResponse<List<PoolTable>> success = ResponseUtils.success(createdPoolTables);
+            PoolTable createdPoolTables = poolTableService.createPoolTables(poolTable);
+            ApiResponse<PoolTable> success = ResponseUtils.success(createdPoolTables);
             return ResponseEntity.ok(success);
         } catch (Exception e) {
             // 處理錯誤並返回

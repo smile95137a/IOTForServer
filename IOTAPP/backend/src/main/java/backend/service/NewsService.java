@@ -3,11 +3,13 @@ package backend.service;
 import backend.entity.news.News;
 import backend.enums.NewsStatus;
 import backend.repo.NewsRepository;
+import backend.utils.RandomUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class NewsService {
@@ -17,6 +19,8 @@ public class NewsService {
 
     // Create or Update News
     public News saveNews(News news) {
+        String s = RandomUtils.genRandom(24);
+        news.setNewsUid(s);
         return newsRepository.save(news);
     }
 

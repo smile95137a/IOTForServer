@@ -2,6 +2,7 @@ package backend.service;
 
 import backend.entity.store.Store;
 import backend.repo.StoreRepository;
+import backend.utils.RandomUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -15,7 +16,10 @@ public class StoreService {
     private StoreRepository storeRepository;
 
     // Create a new store
-    public Store createStore(Store store) {
+    public Store createStore(Store store)
+    {
+        String s = RandomUtils.genRandom(24);
+        store.setUid(s);
         return storeRepository.save(store);
     }
 
