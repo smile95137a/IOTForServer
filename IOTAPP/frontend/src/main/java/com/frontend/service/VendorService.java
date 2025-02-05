@@ -1,10 +1,9 @@
-package com.frontend.service;
+package src.main.java.com.frontend.service;
 
-import com.frontend.repo.StoreRepository;
-import com.frontend.repo.VendorRepository;
-import com.frontend.res.vendor.VendorRes;
-import com.model.entity.store.Store;
-import com.model.entity.vendor.Vendor;
+import src.main.java.com.frontend.entity.vendor.Vendor;
+import src.main.java.com.frontend.repo.StoreRepository;
+import src.main.java.com.frontend.repo.VendorRepository;
+import src.main.java.com.frontend.res.vendor.VendorRes;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

@@ -1,5 +1,5 @@
-package com.frontend.repo;
-import com.frontend.entity.user.User;
+package src.main.java.com.frontend.repo;
+import src.main.java.com.frontend.entity.user.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;

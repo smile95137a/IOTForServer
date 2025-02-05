@@ -1,8 +1,8 @@
-package com.frontend.config.service;
+package src.main.java.com.frontend.config.service;
 
 import java.util.stream.Collectors;
 
-import com.frontend.repo.UserRepository;
+import src.main.java.com.frontend.repo.UserRepository;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

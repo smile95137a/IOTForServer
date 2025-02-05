@@ -1,6 +1,6 @@
-package com.frontend.entity.log;
+package src.main.java.com.frontend.entity.log;
 
-import com.frontend.enums.PayType;
+import src.main.java.com.frontend.enums.PayType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;

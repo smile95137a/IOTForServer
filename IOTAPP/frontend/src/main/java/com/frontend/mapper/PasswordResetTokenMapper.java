@@ -1,9 +1,9 @@
-package com.frontend.mapper;
+package src.main.java.com.frontend.mapper;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 
-import com.frontend.entity.pwd.PasswordResetToken;
+import src.main.java.com.frontend.entity.pwd.PasswordResetToken;
 import org.springframework.stereotype.Component;
 
 

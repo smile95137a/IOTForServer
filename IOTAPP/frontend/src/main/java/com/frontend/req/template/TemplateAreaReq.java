@@ -1,4 +1,4 @@
-package com.frontend.req.template;
+package src.main.java.com.frontend.req.template;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

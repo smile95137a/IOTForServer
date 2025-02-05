@@ -1,9 +1,9 @@
-package com.frontend.res.menu;
+package src.main.java.com.frontend.res.menu;
 
 import java.util.Date;
 import java.util.List;
 
-import com.frontend.res.menu.MenuItemRes;
+import src.main.java.com.frontend.res.menu.MenuItemRes;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 import lombok.AllArgsConstructor;

@@ -1,4 +1,4 @@
-package com.frontend.req.template;
+package src.main.java.com.frontend.req.template;
 
 import java.time.LocalDateTime;
 import java.util.List;

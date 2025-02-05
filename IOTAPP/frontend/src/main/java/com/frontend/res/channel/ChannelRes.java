@@ -1,4 +1,4 @@
-package com.frontend.res.channel;
+package src.main.java.com.frontend.res.channel;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

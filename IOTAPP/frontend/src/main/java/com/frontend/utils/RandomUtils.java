@@ -1,4 +1,4 @@
-package com.frontend.utils;
+package src.main.java.com.frontend.utils;
 
 import java.util.Arrays;
 import java.util.Collections;

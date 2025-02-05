@@ -1,9 +1,9 @@
-package com.frontend.repo;
+package src.main.java.com.frontend.repo;
 
 import java.util.Optional;
 
-import com.frontend.entity.user.Role;
-import com.frontend.enums.RoleName;
+import src.main.java.com.frontend.entity.role.Role;
+import src.main.java.com.frontend.enums.RoleName;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

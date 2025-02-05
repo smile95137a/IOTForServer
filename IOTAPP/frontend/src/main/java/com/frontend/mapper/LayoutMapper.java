@@ -1,12 +1,12 @@
-package com.frontend.mapper;
+package src.main.java.com.frontend.mapper;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.frontend.entity.layout.Layout;
-import com.frontend.entity.layout.LayoutArea;
-import com.frontend.res.layout.LayoutAreaRes;
-import com.frontend.res.layout.LayoutRes;
+import src.main.java.com.frontend.entity.layout.Layout;
+import src.main.java.com.frontend.entity.layout.LayoutArea;
+import src.main.java.com.frontend.res.layout.LayoutAreaRes;
+import src.main.java.com.frontend.res.layout.LayoutRes;
 import org.springframework.stereotype.Component;
 
 

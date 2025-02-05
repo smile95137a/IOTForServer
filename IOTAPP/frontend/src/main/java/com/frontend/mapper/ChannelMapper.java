@@ -1,11 +1,11 @@
-package com.frontend.mapper;
+package src.main.java.com.frontend.mapper;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.frontend.entity.channel.Channel;
-import com.frontend.req.channel.ChannelReq;
-import com.frontend.res.channel.ChannelRes;
+import src.main.java.com.frontend.entity.channel.Channel;
+import src.main.java.com.frontend.req.channel.ChannelReq;
+import src.main.java.com.frontend.res.channel.ChannelRes;
 import org.springframework.stereotype.Component;
 
 

@@ -1,4 +1,4 @@
-package com.frontend.enums;
+package src.main.java.com.frontend.enums;
 
 public enum  RoleName {
     ROLE_USER,

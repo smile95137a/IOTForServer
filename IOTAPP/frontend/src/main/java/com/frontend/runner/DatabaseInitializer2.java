@@ -1,4 +1,4 @@
-package com.frontend.runner;//package com.mo.app.runner;
+package src.main.java.com.frontend.runner;//package com.mo.app.runner;
 //
 //import java.io.IOException;
 //import java.time.LocalDateTime;

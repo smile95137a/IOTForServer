@@ -1,6 +1,7 @@
 package backend.entity.user;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
@@ -35,6 +36,15 @@ public class User implements Serializable {
 	private String username;
 
 	@Column
+	private String nickname;
+
+	@Column
+	private Integer phoneNumber;
+
+	@Column
+	private String lineId;
+
+	@Column
 	private String password;
 
 	@Column
@@ -66,4 +76,6 @@ public class User implements Serializable {
 
 	@Column
 	private LocalDateTime lastActiveTime;
+	@Column
+	private BigDecimal totalAmount;
 }

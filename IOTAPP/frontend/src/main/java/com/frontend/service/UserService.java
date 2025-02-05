@@ -1,153 +1,159 @@
-package com.frontend.service;
+package src.main.java.com.frontend.service;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import com.frontend.config.service.UserPrinciple;
-import com.frontend.entity.user.Role;
-import com.frontend.entity.user.User;
-import com.frontend.enums.RoleName;
-import com.frontend.mapper.UserMapper;
-import com.frontend.repo.RoleRepository;
-import com.frontend.repo.UserRepository;
-import com.frontend.req.user.UserReq;
-import com.frontend.res.user.UserRes;
-import com.frontend.utils.SecurityUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.BeanUtils;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import src.main.java.com.frontend.entity.role.Role;
+import src.main.java.com.frontend.entity.user.User;
+import src.main.java.com.frontend.entity.verification.VerificationToken;
+import src.main.java.com.frontend.enums.RoleName;
+import src.main.java.com.frontend.repo.RoleRepository;
+import src.main.java.com.frontend.repo.UserRepository;
+import src.main.java.com.frontend.repo.VerificationTokenRepository;
+import src.main.java.com.frontend.req.user.UserReq;
+import src.main.java.com.frontend.res.user.UserRes;
+import src.main.java.com.frontend.utils.RandomUtils;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
-import jakarta.persistence.criteria.Predicate;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
-
-
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class UserService {
 
-	private final UserRepository userRepository;
+	@Autowired
+	private UserRepository userRepository;
 
-	private final RoleRepository roleRepository;
+	@Autowired
+	private PasswordEncoder passwordEncoder;
 
-	private final PasswordEncoder passwordEncoder;
+	@Autowired
+	private RoleRepository roleRepository;
 
-	private final MailService mailService;
+	@Autowired
+	private VerificationTokenRepository tokenRepository;
 
-	private final UserMapper userMapper;
-	
-	public List<User> getAllUsers() {
-		return userRepository.findAll();
+	@Autowired
+	private MailService mailService;
+
+	@Value("${verification.url}")
+	private String verificationUrl;
+
+	public UserRes getUserById(Long userId) {
+		User user = userRepository.findById(userId).get();
+
+        return convertToUserRes(user);
 	}
 
-	public User getUserByuid(String uid) {
-		var optional = userRepository.findByuid(uid);
-		if (optional.isPresent()) {
-			return optional.get();
+	public UserRes registerUser(UserReq userDto) throws Exception {
+		try {
+			// 1. 检查用户是否存在
+			Optional<User> check = userRepository.findByEmail(userDto.getUsername());
+			if (check.isPresent()) {
+				throw new Exception("帳號已存在");
+			}
+
+			// 2. 获取角色和加密密码
+			Optional<Role> memberRole = roleRepository.findByName(RoleName.ROLE_USER);
+			String encryptedPassword = passwordEncoder.encode(userDto.getPassword());
+
+			// 3. 创建用户并保存
+			// 1. 创建 User
+			User user = User.builder()
+					.uid(RandomUtils.genRandom(32))
+					.username(userDto.getUsername())
+					.password(encryptedPassword)
+					.nickname(userDto.getNickname())
+					.email(userDto.getUsername())
+					.phoneNumber(userDto.getPhoneNumber())
+					.lineId(userDto.getLineId())
+					.createTime(LocalDateTime.now())
+					.name(userDto.getName())
+					.build();
+
+// 2. 查找 `ROLE_USER` 角色
+			Role userRole = roleRepository.findByName(RoleName.ROLE_USER)
+					.orElseThrow(() -> new RuntimeException("Default role ROLE_USER not found"));
+
+// 3. 绑定角色
+			user.setRoles(Set.of(userRole));
+
+// 4. 保存用户
+			userRepository.save(user);
+
+			// 5. 生成验证链接并发送邮件
+			generateVerificationTokenAndSendEmail(user);
+
+			// 6. 返回用户信息
+			UserRes userRes = new UserRes();
+			userRes.setUsername(user.getUsername());
+			userRes.setEmail(user.getEmail());
+			userRes.setUid(user.getUid());
+
+			return userRes;
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
 		}
-		return null;
-	}
-	@Transactional(rollbackFor = { Exception.class })
-	public UserRes createUser(UserReq userReq) throws Exception {
-
-	    if (userRepository.existsByUsername(userReq.getUsername())) {
-	        throw new Exception("使用者名稱已被使用");
-	    }
-
-	    if (userRepository.existsByEmail(userReq.getEmail())) {
-	        throw new Exception("電子郵件已被使用");
-	    }
-
-	    Set<Role> roles = new HashSet<>();
-	    Role userRole = roleRepository.findByName(RoleName.ROLE_USER).orElseThrow(() -> new Exception("找不到使用者角色"));
-	    roles.add(userRole);
-
-	    var userEntity = userMapper.mapToUser(userReq);
-	    userEntity.setRoles(roles);
-	    userRepository.save(userEntity);
-
-	    var res = userMapper.mapToUserRes(userEntity);
-
-		mailService.sendPasswordEmail(userReq.getEmail(), userReq.getName(), userReq.getPassword());
-
-	    return res;
 	}
 
 
-	@Transactional(rollbackFor = { Exception.class })
-	public UserRes updateUser(UserReq userReq) {
-		var entity = this.getUserByuid(userReq.getUid());
-		if (entity != null) {
-			var principal = (UserPrinciple) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-			var reqPwd = userReq.getPassword();
-			var ePwd = entity.getPassword();
-			var pwd = StringUtils.equals(reqPwd, ePwd) ? ePwd : passwordEncoder.encode(reqPwd);
-
-			entity.setName(userReq.getName());
-			entity.setPassword(pwd);
-			entity.setEmail(userReq.getEmail());
-			entity.setUpdateTime(LocalDateTime.now());
-			entity.setUpdateUserId(principal.getId());
-
-			entity = userRepository.save(entity);
-			var res = UserRes.builder().build();
-			BeanUtils.copyProperties(entity, res);
-			return res;
-		}
-		return null;
-	}
-
-	@Transactional(rollbackFor = { Exception.class })
-	public boolean deleteUser(String id) {
-		var entity = this.getUserByuid(id);
-		if (entity != null) {
-			userRepository.delete(entity);
+	@Transactional
+	public boolean updateUser(UserReq req, Long userId) throws Exception {
+		try {
+			Optional<User> userObj = userRepository.findById(userId);
+			User user = userObj.get();
+			user.setNickname(req.getNickname());
+			user.setLineId(req.getLineId());
+			user.setPhoneNumber(req.getPhoneNumber());
+			user.setUpdateTime(LocalDateTime.now());
+			userRepository.save(user);
 			return true;
+		} catch (Exception e) {
+			throw new Exception("Failed to update user with ID: " + userId, e);
 		}
-		return false;
 	}
 
-	public List<UserRes> queryUser(UserReq req) {
-        List<User> userList = userRepository.findAll((root, query, criteriaBuilder) -> {
-            List<Predicate> predicates = new ArrayList<>();
+	public void generateVerificationTokenAndSendEmail(User user) {
+		// 1. 生成唯一 token
+		String token = UUID.randomUUID().toString();
+		VerificationToken verificationToken = new VerificationToken();
+		verificationToken.setToken(token);
+		verificationToken.setUserId(user.getId());
+		verificationToken.setExpiryDate(LocalDateTime.now().plusHours(24)); // 设置 24 小时过期
+		tokenRepository.save(verificationToken);
 
-            if (StringUtils.isNotBlank(req.getUsername())) {
-                predicates.add(criteriaBuilder.like(root.get("username"), "%" + req.getUsername() + "%"));
-            }
+		// 2. 生成验证链接
+		String verificationUrls = verificationUrl + token;
 
-            if (StringUtils.isNotBlank(req.getEmail())) {
-                predicates.add(criteriaBuilder.like(root.get("email"), "%" + req.getEmail() + "%"));
-            }
+		// 3. 发送邮件
+		mailService.sendVerificationMail(user.getEmail(), verificationUrls);
+	}
 
-            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
-        });
+	public static UserRes convertToUserRes(User user) {
+			if (user == null) {
+				return null;
+			}
 
-        var detail = SecurityUtils.getSecurityUser();
-        var authorities = detail.getAuthorities();
-        var uid = detail.getUid();
-        boolean isAdmin = authorities.stream()
-                                     .map(GrantedAuthority::getAuthority)
-                                     .anyMatch(role -> role.equals("ROLE_ADMIN"));
-
-        if (!isAdmin) {
-            userList = userList.stream()
-                               .filter(user -> user.getUid().equals(uid))
-                               .collect(Collectors.toList());
-        }
-
-        return userList.stream()
-                       .map(userMapper::mapToUserRes)
-                       .collect(Collectors.toList());
-    }
+			return UserRes.builder()
+					.uid(user.getUid())
+					.username(user.getUsername())
+					.name(user.getName())
+					.email(user.getEmail())
+					.roles(user.getRoles().stream()
+							.map(role -> role.getRoleName().name()) // 顯式轉換 Enum 為 String
+							.collect(Collectors.toSet()))
+					.createTime(user.getCreateTime())
+					.createUserName(user.getCreateUserId() != null ? user.getCreateUserId().toString() : null)
+					.updateTime(user.getUpdateTime())
+					.updateUserName(user.getUpdateUserId() != null ? user.getUpdateUserId().toString() : null)
+					.lastActiveTime(user.getLastActiveTime())
+					.build();
+	}
 }

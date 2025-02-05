@@ -1,4 +1,4 @@
-package com.frontend.res.menu;
+package src.main.java.com.frontend.res.menu;
 
 import java.util.List;
 

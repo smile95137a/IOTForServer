@@ -1,4 +1,4 @@
-package com.frontend.config.message;
+package src.main.java.com.frontend.config.message;
 
 import java.io.Serializable;
 

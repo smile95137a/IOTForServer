@@ -1,4 +1,4 @@
-package com.frontend.utils;
+package src.main.java.com.frontend.utils;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;

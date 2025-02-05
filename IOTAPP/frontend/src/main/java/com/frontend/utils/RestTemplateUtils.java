@@ -1,4 +1,4 @@
-package com.frontend.utils;
+package src.main.java.com.frontend.utils;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;

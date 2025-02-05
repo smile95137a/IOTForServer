@@ -1,9 +1,9 @@
-package com.frontend.repo;
+package src.main.java.com.frontend.repo;
 
 import java.util.List;
 import java.util.Optional;
 
-import com.frontend.entity.pwd.PasswordResetToken;
+import src.main.java.com.frontend.entity.pwd.PasswordResetToken;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

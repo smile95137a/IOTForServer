@@ -1,7 +1,7 @@
-package com.frontend.service;
+package src.main.java.com.frontend.service;
 
-import com.frontend.entity.log.UserTransaction;
-import com.frontend.repo.UserTransactionRepository;
+import src.main.java.com.frontend.entity.log.UserTransaction;
+import src.main.java.com.frontend.repo.UserTransactionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

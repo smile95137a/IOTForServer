@@ -1,4 +1,4 @@
-package com.frontend.config.jwt;
+package src.main.java.com.frontend.config.jwt;
 
 
 import java.security.Key;

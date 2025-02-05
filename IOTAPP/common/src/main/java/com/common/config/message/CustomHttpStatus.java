@@ -1,4 +1,4 @@
-package com.common.config.message;
+package src.main.java.com.common.config.message;
 
 public enum CustomHttpStatus implements ApiStatus {
     URL_CANNOT_BE_NULL_OR_EMPTY(400,"URL cannot be null or empty"),

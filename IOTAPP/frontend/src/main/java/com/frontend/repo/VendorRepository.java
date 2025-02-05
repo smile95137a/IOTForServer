@@ -1,8 +1,8 @@
-package com.frontend.repo;
+package src.main.java.com.frontend.repo;
 
-import com.frontend.res.vendor.VendorRes;
-import com.model.entity.vendor.Vendor;
 import org.springframework.data.jpa.repository.JpaRepository;
+import src.main.java.com.frontend.entity.vendor.Vendor;
+import src.main.java.com.frontend.res.vendor.VendorRes;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -15,7 +15,7 @@ public interface VendorRepository extends JpaRepository<Vendor, Long> {
 
     Optional<Vendor> findByUid(String uid);
 
-    @Query(value = "SELECT new com.frontend.res.vendor.VendorRes(s.id, s.uid, s.address, s.name, COUNT(pt.status)) " +
+    @Query(value = "SELECT new src.main.java.com.frontend.res.vendor.VendorRes(s.id, s.uid, s.address, s.name, COUNT(pt.status)) " +
             "FROM Vendor v " +
             "JOIN v.stores s " +
             "JOIN s.poolTables pt " +
