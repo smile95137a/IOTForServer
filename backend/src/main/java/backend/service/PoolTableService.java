@@ -1,8 +1,8 @@
-package src.main.java.backend.service;
+package backend.service;
 
-import src.main.java.backend.entity.poolTable.PoolTable;
-import src.main.java.backend.repo.PoolTableRepository;
-import src.main.java.backend.utils.RandomUtils;
+import backend.entity.poolTable.PoolTable;
+import backend.repo.PoolTableRepository;
+import backend.utils.RandomUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

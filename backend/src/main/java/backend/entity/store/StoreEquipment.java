@@ -1,6 +1,6 @@
-package src.main.java.backend.entity.store;
+package backend.entity.store;
 
-import src.main.java.backend.entity.store.Store;
+import backend.entity.store.Store;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;

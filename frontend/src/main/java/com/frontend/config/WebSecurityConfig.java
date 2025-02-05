@@ -1,8 +1,8 @@
-package src.main.java.com.frontend.config;
+package com.frontend.config;
 
-import src.main.java.com.frontend.config.jwt.JwtAuthEntryPoint;
-import src.main.java.com.frontend.config.jwt.JwtAuthTokenFilter;
-import src.main.java.com.frontend.config.service.UserDetailsServiceImpl;
+import com.frontend.config.jwt.JwtAuthEntryPoint;
+import com.frontend.config.jwt.JwtAuthTokenFilter;
+import com.frontend.config.service.UserDetailsServiceImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;

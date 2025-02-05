@@ -1,9 +1,9 @@
-package src.main.java.backend.service;
+package backend.service;
 
-import src.main.java.backend.entity.menu.Menu;
-import src.main.java.backend.entity.role.Role;
-import src.main.java.backend.repo.MenuRepository;
-import src.main.java.backend.repo.RoleRepository;
+import backend.entity.menu.Menu;
+import backend.entity.role.Role;
+import backend.repo.MenuRepository;
+import backend.repo.RoleRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.Query;

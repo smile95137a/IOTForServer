@@ -1,4 +1,4 @@
-package src.main.java.backend.entity.user;
+package backend.entity.user;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -6,8 +6,8 @@ import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
-import src.main.java.backend.entity.vendor.Vendor;  // 引入廠商類別
-import src.main.java.backend.entity.role.Role;
+import backend.entity.vendor.Vendor;  // 引入廠商類別
+import backend.entity.role.Role;
 import jakarta.persistence.*;
 
 import lombok.AllArgsConstructor;

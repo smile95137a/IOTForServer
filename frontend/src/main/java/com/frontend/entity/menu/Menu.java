@@ -1,7 +1,7 @@
-package src.main.java.com.frontend.entity.menu;
+package com.frontend.entity.menu;
 
-import src.main.java.backend.entity.role.Role;
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.frontend.entity.role.Role;
 import jakarta.persistence.*;
 import lombok.*;
 

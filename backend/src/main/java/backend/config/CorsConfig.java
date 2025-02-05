@@ -1,4 +1,4 @@
-package src.main.java.src.main.java.backend.config;
+package src.main.java.backend.config;
 
 import java.util.List;
 

@@ -1,4 +1,4 @@
-package src.main.java.com.frontend.service;
+package com.frontend.service;
 
 import org.springframework.stereotype.Service;
 

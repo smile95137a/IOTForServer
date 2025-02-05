@@ -1,4 +1,4 @@
-package src.main.java.com.frontend.req.job;
+package com.frontend.req.job;
 
 import java.time.LocalDateTime;
 

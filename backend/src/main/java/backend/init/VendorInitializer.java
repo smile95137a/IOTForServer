@@ -1,11 +1,11 @@
-package src.main.java.backend.init;
+package backend.init;
 
-import src.main.java.backend.entity.poolTable.PoolTable;
-import src.main.java.backend.entity.store.Store;
-import src.main.java.backend.entity.vendor.Vendor;
-import src.main.java.backend.repo.PoolTableRepository;
-import src.main.java.backend.repo.StoreRepository;
-import src.main.java.backend.repo.VendorRepository;
+import backend.entity.poolTable.PoolTable;
+import backend.entity.store.Store;
+import backend.entity.vendor.Vendor;
+import backend.repo.PoolTableRepository;
+import backend.repo.StoreRepository;
+import backend.repo.VendorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.annotation.Order;

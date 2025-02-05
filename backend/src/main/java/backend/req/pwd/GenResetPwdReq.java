@@ -1,4 +1,4 @@
-package src.main.java.backend.req.pwd;
+package backend.req.pwd;
 
 import java.io.Serializable;
 

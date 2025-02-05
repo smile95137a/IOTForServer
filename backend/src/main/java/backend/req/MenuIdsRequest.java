@@ -1,4 +1,4 @@
-package src.main.java.backend.req;
+package backend.req;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

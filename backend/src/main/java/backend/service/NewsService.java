@@ -1,9 +1,9 @@
-package src.main.java.backend.service;
+package backend.service;
 
-import src.main.java.backend.entity.news.News;
-import src.main.java.backend.enums.NewsStatus;
-import src.main.java.backend.repo.NewsRepository;
-import src.main.java.backend.utils.RandomUtils;
+import backend.entity.news.News;
+import backend.enums.NewsStatus;
+import backend.repo.NewsRepository;
+import backend.utils.RandomUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

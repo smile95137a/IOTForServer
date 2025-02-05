@@ -1,10 +1,10 @@
-package src.main.java.backend.controller;
+package backend.controller;
 
-import src.main.java.backend.config.message.ApiResponse;
-import src.main.java.backend.entity.store.Store;
-import src.main.java.backend.entity.vendor.Vendor;
-import src.main.java.backend.service.VendorService;
-import src.main.java.backend.utils.ResponseUtils;
+import backend.config.message.ApiResponse;
+import backend.entity.store.Store;
+import backend.entity.vendor.Vendor;
+import backend.service.VendorService;
+import backend.utils.ResponseUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

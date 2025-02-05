@@ -1,4 +1,4 @@
-package src.main.java.com.frontend.res.user;
+package com.frontend.res.user;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;

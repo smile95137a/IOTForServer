@@ -1,6 +1,6 @@
-package src.main.java.backend.repo.impl;
+package backend.repo.impl;
 
-import src.main.java.backend.repo.UserRoleCustomRepository;
+import backend.repo.UserRoleCustomRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;

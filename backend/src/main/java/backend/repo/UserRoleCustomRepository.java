@@ -1,4 +1,4 @@
-package src.main.java.backend.repo;
+package backend.repo;
 
 import org.springframework.stereotype.Repository;
 

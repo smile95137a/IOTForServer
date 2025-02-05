@@ -1,4 +1,4 @@
-package src.main.java.backend.entity.job;
+package backend.entity.job;
 
 import java.time.LocalDateTime;
 

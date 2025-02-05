@@ -1,4 +1,4 @@
-package src.main.java.com.frontend.utils;
+package com.frontend.utils;
 
 import java.util.List;
 import java.util.Map;

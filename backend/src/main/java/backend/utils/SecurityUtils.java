@@ -1,9 +1,9 @@
-package src.main.java.backend.utils;
+package backend.utils;
 
 import java.util.Collection;
 
-import src.main.java.backend.config.service.UserPrinciple;
-import src.main.java.backend.constant.AuthoritiesConstants;
+import backend.config.service.UserPrinciple;
+import backend.constant.AuthoritiesConstants;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;

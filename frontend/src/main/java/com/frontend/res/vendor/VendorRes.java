@@ -1,4 +1,4 @@
-package src.main.java.com.frontend.res.vendor;
+package com.frontend.res.vendor;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

@@ -1,4 +1,4 @@
-package src.main.java.com.frontend.config;
+package com.frontend.config;
 
 import java.time.Duration;
 

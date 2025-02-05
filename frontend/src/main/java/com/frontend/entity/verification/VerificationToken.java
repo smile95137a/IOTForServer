@@ -1,4 +1,4 @@
-package src.main.java.com.frontend.entity.verification;
+package com.frontend.entity.verification;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

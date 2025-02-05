@@ -1,7 +1,7 @@
-package src.main.java.backend.repo;
+package backend.repo;
 
 
-import src.main.java.backend.entity.menu.Menu;
+import backend.entity.menu.Menu;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

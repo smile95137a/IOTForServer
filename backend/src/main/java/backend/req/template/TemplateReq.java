@@ -1,4 +1,4 @@
-package src.main.java.backend.req.template;
+package backend.req.template;
 
 import java.util.List;
 

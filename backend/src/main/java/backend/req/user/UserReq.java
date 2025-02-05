@@ -1,4 +1,4 @@
-package src.main.java.backend.req.user;
+package backend.req.user;
 
 import java.io.Serializable;
 

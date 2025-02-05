@@ -1,4 +1,4 @@
-package src.main.java.backend.req.layout;
+package backend.req.layout;
 
 public class LayoutReq {
 	

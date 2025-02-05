@@ -1,4 +1,4 @@
-package src.main.java.backend.service;
+package backend.service;
 
 import java.time.LocalDate;
 import java.util.HashMap;

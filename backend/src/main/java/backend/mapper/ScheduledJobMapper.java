@@ -1,4 +1,4 @@
-//package src.main.java.backend.mapper;
+//package backend.mapper;
 //
 //import java.time.LocalDateTime;
 //import java.util.List;

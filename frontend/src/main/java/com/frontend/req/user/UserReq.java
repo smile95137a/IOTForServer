@@ -1,4 +1,4 @@
-package src.main.java.com.frontend.req.user;
+package com.frontend.req.user;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

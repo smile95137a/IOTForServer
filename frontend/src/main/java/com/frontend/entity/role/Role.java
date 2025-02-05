@@ -1,10 +1,10 @@
-package src.main.java.com.frontend.entity.role;
+package com.frontend.entity.role;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.frontend.entity.menu.Menu;
+import com.frontend.enums.RoleName;
 import jakarta.persistence.*;
 import lombok.*;
-import src.main.java.com.frontend.entity.menu.Menu;
-import src.main.java.com.frontend.enums.RoleName;
 
 import java.util.HashSet;
 import java.util.Set;

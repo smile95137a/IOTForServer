@@ -1,4 +1,4 @@
-//package src.main.java.backend.mapper;
+//package backend.mapper;
 //
 //import java.net.URI;
 //import java.time.LocalDateTime;
@@ -7,20 +7,20 @@
 //import java.util.List;
 //import java.util.stream.Collectors;
 //
-//import src.main.java.backend.entity.menu.Menu;
-//import src.main.java.backend.entity.menu.MenuArea;
-//import src.main.java.backend.entity.menu.MenuItem;
-//import src.main.java.backend.entity.menu.MenuTabLayoutArea;
-//import src.main.java.backend.enums.AreaType;
-//import src.main.java.backend.req.menu.MenuAreaReq;
-//import src.main.java.backend.req.menu.MenuItemReq;
-//import src.main.java.backend.req.menu.MenuReq;
-//import src.main.java.backend.req.menu.MenuTabLayoutAreaReq;
-//import src.main.java.backend.res.menu.MenuAreaRes;
-//import src.main.java.backend.res.menu.MenuItemRes;
-//import src.main.java.backend.res.menu.MenuRes;
-//import src.main.java.backend.res.menu.MenuTabLayoutAreaRes;
-//import src.main.java.backend.service.UserService;
+//import backend.entity.menu.Menu;
+//import backend.entity.menu.MenuArea;
+//import backend.entity.menu.MenuItem;
+//import backend.entity.menu.MenuTabLayoutArea;
+//import backend.enums.AreaType;
+//import backend.req.menu.MenuAreaReq;
+//import backend.req.menu.MenuItemReq;
+//import backend.req.menu.MenuReq;
+//import backend.req.menu.MenuTabLayoutAreaReq;
+//import backend.res.menu.MenuAreaRes;
+//import backend.res.menu.MenuItemRes;
+//import backend.res.menu.MenuRes;
+//import backend.res.menu.MenuTabLayoutAreaRes;
+//import backend.service.UserService;
 //import org.apache.commons.lang3.StringUtils;
 //import org.springframework.beans.factory.annotation.Value;
 //import org.springframework.stereotype.Component;
@@ -40,7 +40,7 @@
 //
 //	private final UserService userService;
 //
-//	@Value("${frontend.domain}")
+//	@Value("${com.frontend.domain}")
 //	private String frontendDomain;
 //
 //	public List<RichMenuArea> mapAreas(List<MenuArea> areas) {

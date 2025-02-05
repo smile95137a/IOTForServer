@@ -1,6 +1,6 @@
-package src.main.java.com.frontend.repo;
+package com.frontend.repo;
 
-import src.main.java.com.frontend.entity.log.UserTransaction;
+import com.frontend.entity.log.UserTransaction;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

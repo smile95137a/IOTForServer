@@ -1,6 +1,6 @@
-package src.main.java.backend.repo;
+package backend.repo;
 
-import src.main.java.backend.entity.poolTable.TableEquipment;
+import backend.entity.poolTable.TableEquipment;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

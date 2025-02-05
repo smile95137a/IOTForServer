@@ -1,20 +1,20 @@
-package src.main.java.com.frontend.service;
+package com.frontend.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import src.main.java.com.frontend.entity.role.Role;
-import src.main.java.com.frontend.entity.user.User;
-import src.main.java.com.frontend.entity.verification.VerificationToken;
-import src.main.java.com.frontend.enums.RoleName;
-import src.main.java.com.frontend.repo.RoleRepository;
-import src.main.java.com.frontend.repo.UserRepository;
-import src.main.java.com.frontend.repo.VerificationTokenRepository;
-import src.main.java.com.frontend.req.user.UserReq;
-import src.main.java.com.frontend.res.user.UserRes;
-import src.main.java.com.frontend.utils.RandomUtils;
+import com.frontend.entity.role.Role;
+import com.frontend.entity.user.User;
+import com.frontend.entity.verification.VerificationToken;
+import com.frontend.enums.RoleName;
+import com.frontend.repo.RoleRepository;
+import com.frontend.repo.UserRepository;
+import com.frontend.repo.VerificationTokenRepository;
+import com.frontend.req.user.UserReq;
+import com.frontend.res.user.UserRes;
+import com.frontend.utils.RandomUtils;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -59,7 +59,7 @@ public class UserService {
 			}
 
 			// 2. 获取角色和加密密码
-			Optional<Role> memberRole = roleRepository.findByName(RoleName.ROLE_USER);
+			Optional<Role> memberRole = roleRepository.findByRoleName(RoleName.ROLE_USER);
 			String encryptedPassword = passwordEncoder.encode(userDto.getPassword());
 
 			// 3. 创建用户并保存
@@ -77,7 +77,7 @@ public class UserService {
 					.build();
 
 // 2. 查找 `ROLE_USER` 角色
-			Role userRole = roleRepository.findByName(RoleName.ROLE_USER)
+			Role userRole = roleRepository.findByRoleName(RoleName.ROLE_USER)
 					.orElseThrow(() -> new RuntimeException("Default role ROLE_USER not found"));
 
 // 3. 绑定角色

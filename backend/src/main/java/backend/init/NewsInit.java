@@ -1,8 +1,8 @@
-package src.main.java.backend.init;
+package backend.init;
 
-import src.main.java.backend.entity.news.News;
-import src.main.java.backend.enums.NewsStatus;
-import src.main.java.backend.repo.NewsRepository;
+import backend.entity.news.News;
+import backend.enums.NewsStatus;
+import backend.repo.NewsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.annotation.Order;

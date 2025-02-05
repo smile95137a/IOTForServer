@@ -1,12 +1,12 @@
-package src.main.java.backend.controller;
+package backend.controller;
 
-import src.main.java.backend.config.message.ApiResponse;
-import src.main.java.backend.entity.menu.Menu;
-import src.main.java.backend.entity.role.Role;
-import src.main.java.backend.req.MenuIdsRequest;
-import src.main.java.backend.service.MenuService;
-import src.main.java.backend.service.RoleService;
-import src.main.java.backend.utils.ResponseUtils;
+import backend.config.message.ApiResponse;
+import backend.entity.menu.Menu;
+import backend.entity.role.Role;
+import backend.req.MenuIdsRequest;
+import backend.service.MenuService;
+import backend.service.RoleService;
+import backend.utils.ResponseUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

@@ -1,4 +1,4 @@
-package src.main.java.com.frontend.req.channel;
+package com.frontend.req.channel;
 
 import java.io.Serializable;
 

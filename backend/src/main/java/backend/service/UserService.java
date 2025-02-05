@@ -1,4 +1,4 @@
-package src.main.java.backend.service;
+package backend.service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -8,17 +8,17 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import io.micrometer.common.util.StringUtils;
-import src.main.java.backend.config.service.UserPrinciple;
-import src.main.java.backend.entity.role.Role;
-import src.main.java.backend.entity.user.User;
-import src.main.java.backend.enums.RoleName;
-import src.main.java.backend.mapper.UserMapper;
-import src.main.java.backend.repo.RoleRepository;
-import src.main.java.backend.repo.UserRepository;
-import src.main.java.backend.repo.UserRoleCustomRepository;
-import src.main.java.backend.req.user.UserReq;
-import src.main.java.backend.res.user.UserRes;
-import src.main.java.backend.utils.SecurityUtils;
+import backend.config.service.UserPrinciple;
+import backend.entity.role.Role;
+import backend.entity.user.User;
+import backend.enums.RoleName;
+import backend.mapper.UserMapper;
+import backend.repo.RoleRepository;
+import backend.repo.UserRepository;
+import backend.repo.UserRoleCustomRepository;
+import backend.req.user.UserReq;
+import backend.res.user.UserRes;
+import backend.utils.SecurityUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;

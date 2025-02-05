@@ -1,10 +1,10 @@
-package src.main.java.backend.controller;
+package backend.controller;
 
-import src.main.java.backend.config.message.ApiResponse;
-import src.main.java.backend.entity.news.News;
-import src.main.java.backend.enums.NewsStatus;
-import src.main.java.backend.service.NewsService;
-import src.main.java.backend.utils.ResponseUtils;
+import backend.config.message.ApiResponse;
+import backend.entity.news.News;
+import backend.enums.NewsStatus;
+import backend.service.NewsService;
+import backend.utils.ResponseUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

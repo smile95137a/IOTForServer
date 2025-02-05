@@ -1,10 +1,10 @@
-package src.main.java.com.frontend.entity.vendor;
+package com.frontend.entity.vendor;
 
+import com.frontend.entity.store.Store;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import src.main.java.com.frontend.entity.store.Store;
 
 import java.time.LocalDateTime;
 import java.util.Set;

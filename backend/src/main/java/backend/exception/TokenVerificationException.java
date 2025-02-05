@@ -1,4 +1,4 @@
-package src.main.java.backend.exception;
+package backend.exception;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

@@ -1,15 +1,15 @@
-package src.main.java.backend.mapper;
+package backend.mapper;
 
 import java.time.LocalDateTime;
 import java.util.stream.Collectors;
 
-import src.main.java.backend.entity.role.Role;
-import src.main.java.backend.entity.user.User;
-import src.main.java.backend.repo.UserRepository;
-import src.main.java.backend.req.user.UserReq;
-import src.main.java.backend.res.user.UserRes;
-import src.main.java.backend.utils.RandomUtils;
-import src.main.java.backend.utils.SecurityUtils;
+import backend.entity.role.Role;
+import backend.entity.user.User;
+import backend.repo.UserRepository;
+import backend.req.user.UserReq;
+import backend.res.user.UserRes;
+import backend.utils.RandomUtils;
+import backend.utils.SecurityUtils;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 

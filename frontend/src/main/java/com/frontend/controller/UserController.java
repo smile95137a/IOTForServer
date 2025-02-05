@@ -1,16 +1,16 @@
-package src.main.java.com.frontend.controller;
+package com.frontend.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import src.main.java.com.frontend.config.message.ApiResponse;
-import src.main.java.com.frontend.config.security.CustomUserDetails;
-import src.main.java.com.frontend.config.security.SecurityUtils;
-import src.main.java.com.frontend.req.user.UserReq;
-import src.main.java.com.frontend.res.user.UserRes;
-import src.main.java.com.frontend.service.UserService;
-import src.main.java.com.frontend.utils.ResponseUtils;
+import com.frontend.config.message.ApiResponse;
+import com.frontend.config.security.CustomUserDetails;
+import com.frontend.config.security.SecurityUtils;
+import com.frontend.req.user.UserReq;
+import com.frontend.res.user.UserRes;
+import com.frontend.service.UserService;
+import com.frontend.utils.ResponseUtils;
 
 @RestController
 @RequestMapping("/user")

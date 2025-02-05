@@ -1,9 +1,9 @@
-package src.main.java.com.frontend.utils;
+package com.frontend.utils;
 
 import java.util.Collection;
 
-import src.main.java.com.frontend.config.service.UserPrinciple;
-import src.main.java.com.frontend.constant.AuthoritiesConstants;
+import com.frontend.config.service.UserPrinciple;
+import com.frontend.constant.AuthoritiesConstants;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;

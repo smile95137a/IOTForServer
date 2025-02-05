@@ -1,4 +1,4 @@
-package src.main.java.com.frontend.config.security;
+package com.frontend.config.security;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

@@ -1,8 +1,8 @@
-package src.main.java.backend.config;
+package backend.config;
 
-import src.main.java.backend.config.jwt.JwtAuthEntryPoint;
-import src.main.java.backend.config.jwt.JwtAuthTokenFilter;
-import src.main.java.backend.config.service.UserDetailsServiceImpl;
+import backend.config.jwt.JwtAuthEntryPoint;
+import backend.config.jwt.JwtAuthTokenFilter;
+import backend.config.service.UserDetailsServiceImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;

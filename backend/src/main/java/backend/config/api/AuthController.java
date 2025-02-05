@@ -1,14 +1,14 @@
-package src.main.java.backend.config.api;
+package backend.config.api;
 
 import java.util.stream.Collectors;
 
-import src.main.java.backend.config.jwt.JwtProvider;
-import src.main.java.backend.config.service.UserPrinciple;
-import src.main.java.backend.enums.RoleName;
-import src.main.java.backend.req.user.UserReq;
-import src.main.java.backend.res.user.UserRes;
-import src.main.java.backend.service.UserService;
-import src.main.java.backend.utils.ResponseUtils;
+import backend.config.jwt.JwtProvider;
+import backend.config.service.UserPrinciple;
+import backend.enums.RoleName;
+import backend.req.user.UserReq;
+import backend.res.user.UserRes;
+import backend.service.UserService;
+import backend.utils.ResponseUtils;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

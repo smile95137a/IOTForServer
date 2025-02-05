@@ -1,4 +1,4 @@
-package src.main.java.com.frontend.req.menu;
+package com.frontend.req.menu;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

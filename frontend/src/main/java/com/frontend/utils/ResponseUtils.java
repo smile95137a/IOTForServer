@@ -1,7 +1,7 @@
-package src.main.java.com.frontend.utils;
+package com.frontend.utils;
 
 
-import src.main.java.com.frontend.config.message.ApiResponse;
+import com.frontend.config.message.ApiResponse;
 
 public class ResponseUtils {
 

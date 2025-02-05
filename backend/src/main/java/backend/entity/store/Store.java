@@ -1,7 +1,7 @@
-package src.main.java.backend.entity.store;
+package backend.entity.store;
 
-import src.main.java.backend.entity.poolTable.PoolTable;
-import src.main.java.backend.entity.vendor.Vendor;
+import backend.entity.poolTable.PoolTable;
+import backend.entity.vendor.Vendor;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;

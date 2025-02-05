@@ -1,4 +1,4 @@
-package src.main.java.com.frontend.entity.coupon;
+package com.frontend.entity.coupon;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

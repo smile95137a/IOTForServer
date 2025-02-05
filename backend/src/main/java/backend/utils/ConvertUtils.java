@@ -1,4 +1,4 @@
-package src.main.java.backend.utils;
+package backend.utils;
 
 import lombok.Data;
 import java.lang.reflect.Field;

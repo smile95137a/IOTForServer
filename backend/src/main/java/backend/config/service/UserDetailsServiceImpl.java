@@ -1,9 +1,9 @@
-package src.main.java.backend.config.service;
+package backend.config.service;
 
 import java.util.Collection;
 import java.util.stream.Collectors;
 
-import src.main.java.backend.repo.UserRepository;
+import backend.repo.UserRepository;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;

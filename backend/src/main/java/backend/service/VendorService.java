@@ -1,10 +1,10 @@
-package src.main.java.backend.service;
+package backend.service;
 
-import src.main.java.backend.entity.store.Store;
-import src.main.java.backend.entity.vendor.Vendor;
-import src.main.java.backend.repo.StoreRepository;
-import src.main.java.backend.repo.VendorRepository;
-import src.main.java.backend.utils.RandomUtils;
+import backend.entity.store.Store;
+import backend.entity.vendor.Vendor;
+import backend.repo.StoreRepository;
+import backend.repo.VendorRepository;
+import backend.utils.RandomUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

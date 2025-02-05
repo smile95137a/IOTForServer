@@ -1,7 +1,7 @@
-package src.main.java.backend.service;
+package backend.service;
 
-import src.main.java.backend.entity.menu.Menu;
-import src.main.java.backend.repo.MenuRepository;
+import backend.entity.menu.Menu;
+import backend.repo.MenuRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

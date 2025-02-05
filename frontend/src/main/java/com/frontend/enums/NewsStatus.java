@@ -1,4 +1,4 @@
-package backend.enums;
+package com.frontend.enums;
 
 public enum NewsStatus {
     AVAILABLE("上架"),       // 奖品上架

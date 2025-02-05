@@ -1,4 +1,4 @@
-package src.main.java.backend.config.jwt;
+package backend.config.jwt;
 
 
 import java.security.Key;

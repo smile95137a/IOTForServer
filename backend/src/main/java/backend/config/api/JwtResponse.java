@@ -1,8 +1,8 @@
-package src.main.java.backend.config.api;
+package backend.config.api;
 
 import java.io.Serializable;
 
-import src.main.java.backend.res.user.UserRes;
+import backend.res.user.UserRes;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

@@ -1,4 +1,4 @@
-package src.main.java.backend.config.message;
+package backend.config.message;
 
 import java.io.Serializable;
 

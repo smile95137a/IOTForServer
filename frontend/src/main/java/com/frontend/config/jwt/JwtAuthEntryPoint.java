@@ -1,4 +1,4 @@
-package src.main.java.com.frontend.config.jwt;
+package com.frontend.config.jwt;
 
 import java.io.IOException;
 

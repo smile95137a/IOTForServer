@@ -1,4 +1,4 @@
-package src.main.java.com.frontend.entity.store;
+package com.frontend.entity.store;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

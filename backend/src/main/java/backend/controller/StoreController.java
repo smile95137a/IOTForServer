@@ -1,9 +1,9 @@
-package src.main.java.backend.controller;
+package backend.controller;
 
-import src.main.java.backend.config.message.ApiResponse;
-import src.main.java.backend.entity.store.Store;
-import src.main.java.backend.service.StoreService;
-import src.main.java.backend.utils.ResponseUtils;
+import backend.config.message.ApiResponse;
+import backend.entity.store.Store;
+import backend.service.StoreService;
+import backend.utils.ResponseUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

@@ -1,8 +1,8 @@
-package src.main.java.backend.config.jwt;
+package backend.config.jwt;
 
 import java.io.IOException;
 
-import src.main.java.backend.config.service.UserDetailsServiceImpl;
+import backend.config.service.UserDetailsServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;

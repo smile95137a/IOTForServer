@@ -1,7 +1,7 @@
-package src.main.java.com.frontend.entity.news;
+package com.frontend.entity.news;
 
-import src.main.java.backend.enums.NewsStatus;
-import src.main.java.backend.utils.StringListConverter;
+import com.frontend.enums.NewsStatus;
+import com.frontend.utils.StringListConverter;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

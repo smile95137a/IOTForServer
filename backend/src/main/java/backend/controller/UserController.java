@@ -1,13 +1,13 @@
-package src.main.java.backend.controller;
+package backend.controller;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-import src.main.java.backend.config.message.ApiResponse;
-import src.main.java.backend.req.user.UserReq;
-import src.main.java.backend.res.user.UserRes;
-import src.main.java.backend.service.UserService;
-import src.main.java.backend.utils.ResponseUtils;
+import backend.config.message.ApiResponse;
+import backend.req.user.UserReq;
+import backend.res.user.UserRes;
+import backend.service.UserService;
+import backend.utils.ResponseUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;

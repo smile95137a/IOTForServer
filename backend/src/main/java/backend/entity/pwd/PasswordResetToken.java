@@ -1,4 +1,4 @@
-package src.main.java.backend.entity.pwd;
+package backend.entity.pwd;
 
 import java.time.LocalDateTime;
 import java.util.Set;

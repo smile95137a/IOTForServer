@@ -1,4 +1,4 @@
-package src.main.java.src.main.java.backend.constant;
+package backend.constant;
 
 public class AuthoritiesConstants {
 	  public static final String ANONYMOUS = "ROLE_ANONYMOUS";

@@ -1,4 +1,4 @@
-package backend.entity.equipment;
+package com.frontend.entity.equipment;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;

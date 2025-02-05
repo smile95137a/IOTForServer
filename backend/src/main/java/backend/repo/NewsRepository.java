@@ -1,7 +1,7 @@
-package src.main.java.backend.repo;
+package backend.repo;
 
-import src.main.java.backend.entity.news.News;
-import src.main.java.backend.enums.NewsStatus;
+import backend.entity.news.News;
+import backend.enums.NewsStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

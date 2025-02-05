@@ -1,10 +1,10 @@
-package src.main.java.backend.init;
+package backend.init;
 
-import src.main.java.backend.entity.role.Role;
-import src.main.java.backend.entity.user.User;
-import src.main.java.backend.enums.RoleName;
-import src.main.java.backend.repo.RoleRepository;
-import src.main.java.backend.repo.UserRepository;
+import backend.entity.role.Role;
+import backend.entity.user.User;
+import backend.enums.RoleName;
+import backend.repo.RoleRepository;
+import backend.repo.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.annotation.Order;

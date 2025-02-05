@@ -1,14 +1,14 @@
-package src.main.java.com.frontend.config.api;
+package com.frontend.config.api;
 
 import java.util.stream.Collectors;
 
-import src.main.java.com.frontend.config.jwt.JwtProvider;
-import src.main.java.com.frontend.config.service.UserPrinciple;
-import src.main.java.com.frontend.enums.RoleName;
-import src.main.java.com.frontend.req.user.UserReq;
-import src.main.java.com.frontend.res.user.UserRes;
-import src.main.java.com.frontend.service.UserService;
-import src.main.java.com.frontend.utils.ResponseUtils;
+import com.frontend.config.jwt.JwtProvider;
+import com.frontend.config.service.UserPrinciple;
+import com.frontend.enums.RoleName;
+import com.frontend.req.user.UserReq;
+import com.frontend.res.user.UserRes;
+import com.frontend.service.UserService;
+import com.frontend.utils.ResponseUtils;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;

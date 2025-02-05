@@ -1,7 +1,7 @@
-package src.main.java.backend.init;
+package backend.init;
 
-import src.main.java.backend.entity.menu.Menu;
-import src.main.java.backend.repo.MenuRepository;
+import backend.entity.menu.Menu;
+import backend.repo.MenuRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

@@ -1,8 +1,8 @@
-package src.main.java.com.frontend.config.jwt;
+package com.frontend.config.jwt;
 
 import java.io.IOException;
 
-import src.main.java.com.frontend.config.service.UserDetailsServiceImpl;
+import com.frontend.config.service.UserDetailsServiceImpl;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;

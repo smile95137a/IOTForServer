@@ -1,4 +1,4 @@
-package src.main.java.com.frontend.entity.pwd;
+package com.frontend.entity.pwd;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

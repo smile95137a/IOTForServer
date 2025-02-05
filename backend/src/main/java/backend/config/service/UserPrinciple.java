@@ -1,4 +1,4 @@
-package src.main.java.backend.config.service;
+package backend.config.service;
 
 import java.util.Collection;
 import java.util.Objects;

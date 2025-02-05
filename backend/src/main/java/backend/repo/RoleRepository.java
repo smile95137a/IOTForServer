@@ -1,8 +1,8 @@
-package src.main.java.backend.repo;
+package backend.repo;
 
 
-import src.main.java.backend.entity.role.Role;
-import src.main.java.backend.enums.RoleName;
+import backend.entity.role.Role;
+import backend.enums.RoleName;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

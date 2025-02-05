@@ -1,4 +1,4 @@
-package src.main.java.com.common.config.message;
+package com.common.config.message;
 
 import lombok.*;
 

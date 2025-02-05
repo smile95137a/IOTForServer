@@ -1,12 +1,12 @@
-package src.main.java.com.frontend.entity.user;
+package com.frontend.entity.user;
 
+import com.frontend.entity.role.Role;
+import com.frontend.entity.vendor.Vendor;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import src.main.java.com.frontend.entity.role.Role;
-import src.main.java.com.frontend.entity.vendor.Vendor;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
