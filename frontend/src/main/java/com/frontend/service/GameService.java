@@ -52,6 +52,8 @@ public class GameService {
         gameRecord.setStatus("STARTED"); // 設置狀態為開始
         gameRecordRepository.save(gameRecord);  // 儲存遊戲紀錄
 
+        //開啟桌台使用
+
         // 返回時間戳或其他需要的資料給前端
         // 例如：gameRecord.getStartTime() 或者使用時間戳轉換
 
@@ -104,6 +106,11 @@ public class GameService {
         gameOrder.setDuration(totalHours);
 
         gameOrderRepository.save(gameOrder);  // 儲存遊戲訂單
+
+
+        //結束押金table的狀態為end
+
+        //關閉桌台使用
 
     }
 }
