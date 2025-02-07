@@ -27,6 +27,10 @@ public class UserPrinciple implements UserDetails {
 
 	private String email;
 	
+	private String countryCode;
+	
+	private String phoneNumber;
+	
 	private String password;
 
 	private String name;

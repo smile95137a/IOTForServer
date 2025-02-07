@@ -38,7 +38,7 @@ public class User implements Serializable {
 	private String username;
 
 	@Column
-	private Integer phoneNumber;
+	private String phoneNumber;
 
 	@Column
 	private String password;

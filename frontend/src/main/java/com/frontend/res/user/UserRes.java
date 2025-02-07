@@ -29,6 +29,10 @@ public class UserRes implements Serializable {
 	private String username;
 
 	private String password;
+	
+	private String countryCode;
+	
+	private String phoneNumber;
 
 	private String name;
 
@@ -45,4 +49,8 @@ public class UserRes implements Serializable {
 	private String updateUserName;
 
 	private LocalDateTime lastActiveTime;
+	
+	private Integer amount;
+
+	private Integer totalAmount;
 }

@@ -30,7 +30,7 @@ public class UserController {
 
 	@GetMapping("/getUserInfo")
 	public ResponseEntity<?> getUserInfo() {
-		CustomUserDetails userDetails = SecurityUtils.getCurrentUserPrinciple();
+		var userDetails = SecurityUtils.getSecurityUser();
 		if (userDetails == null) {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 		}
@@ -53,7 +53,7 @@ public class UserController {
 	 */
 	@PutMapping("/updateUser")
 	public ResponseEntity<?> updateUser(@RequestBody UserReq req) {
-		CustomUserDetails userDetails = SecurityUtils.getCurrentUserPrinciple();
+		var userDetails = SecurityUtils.getSecurityUser();
 		if (userDetails == null) {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 		}
@@ -91,7 +91,7 @@ public class UserController {
 
 	@PutMapping("/resetPwd")
 	public ResponseEntity<?> resetPwd(@RequestBody UserReq req) {
-		CustomUserDetails userDetails = SecurityUtils.getCurrentUserPrinciple();
+		var userDetails = SecurityUtils.getSecurityUser();
 		if (userDetails == null) {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 		}

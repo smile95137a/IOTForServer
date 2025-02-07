@@ -72,7 +72,7 @@ public class UserService {
 					.anonymousId(userDto.getAnonymousId())
 					.password(encryptedPassword)
 					.email(userDto.getEmail())
-					.phoneNumber(Integer.valueOf(userDto.getPhone()))
+					.phoneNumber(userDto.getPhone())
 					.createTime(LocalDateTime.now())
 					.name(userDto.getName())
 					.amount(0)
@@ -113,7 +113,7 @@ public class UserService {
 			Optional<User> userObj = userRepository.findById(userId);
 			User user = userObj.get();
 			user.setName(req.getName());
-			user.setPhoneNumber(Integer.valueOf(req.getPhone()));
+			user.setPhoneNumber(req.getPhone());
 			user.setUpdateTime(LocalDateTime.now());
 			userRepository.save(user);
 			return true;
@@ -156,6 +156,8 @@ public class UserService {
 					.updateTime(user.getUpdateTime())
 					.updateUserName(user.getUpdateUserId() != null ? user.getUpdateUserId().toString() : null)
 					.lastActiveTime(user.getLastActiveTime())
+					.amount(user.getAmount())
+					.totalAmount(user.getTotalAmount())
 					.build();
 	}
 }

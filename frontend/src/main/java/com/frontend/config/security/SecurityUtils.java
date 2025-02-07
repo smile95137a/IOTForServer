@@ -3,6 +3,8 @@ package com.frontend.config.security;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import com.frontend.config.service.UserPrinciple;
+
 public class SecurityUtils {
 
 	public static final String ROLE_DEFAULT = "ROLE_XXX";
@@ -11,15 +13,9 @@ public class SecurityUtils {
 		return SecurityContextHolder.getContext().getAuthentication();
 	}
 
-	public static CustomUserDetails getCurrentUserPrinciple() {
-		Authentication authentication = getAuthenticationObject();
-		if (authentication != null) {
-			Object principal = authentication.getPrincipal();
-			if (principal instanceof CustomUserDetails) {
-				return ((CustomUserDetails) principal);
-			}
-		}
-		return null;
+	public static UserPrinciple getSecurityUser() {
+		return (UserPrinciple) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 	}
+
 
 }
