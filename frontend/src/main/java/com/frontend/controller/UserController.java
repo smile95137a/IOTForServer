@@ -3,7 +3,16 @@ package com.frontend.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+
 import com.frontend.config.message.ApiResponse;
 import com.frontend.config.security.CustomUserDetails;
 import com.frontend.config.security.SecurityUtils;
@@ -80,7 +89,6 @@ public class UserController {
 //		}
 //	}
 
-
 	@PutMapping("/resetPwd")
 	public ResponseEntity<?> resetPwd(@RequestBody UserReq req) {
 		CustomUserDetails userDetails = SecurityUtils.getCurrentUserPrinciple();
@@ -99,4 +107,10 @@ public class UserController {
 			return ResponseEntity.ok(ResponseUtils.error(999, "更新失敗", false));
 		}
 	}
+
+	@PostMapping("/{userId}/upload-profile-image")
+	public ResponseEntity<?> uploadProfileImage(@PathVariable Long userId, @RequestParam("file") MultipartFile file) {
+		return ResponseEntity.ok(ResponseUtils.success(200, "更新成功", true));
+	}
+
 }
