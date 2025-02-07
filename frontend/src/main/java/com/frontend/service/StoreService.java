@@ -51,7 +51,9 @@ public class StoreService {
                 store.getAddress(),
                 store.getName(),
                 availableCount,
-                inUseCount
+                inUseCount,
+                store.getLat(),
+                store.getLon()
         );
     }
 }

@@ -1,5 +1,6 @@
 package com.frontend.res.store;
 
+import jakarta.persistence.Column;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -15,4 +16,6 @@ public class StoreRes {
     private String name;
     private Long availablesCount;
     private Long inusesCount;
+    private Long lat;
+    private Long lon;
 }
