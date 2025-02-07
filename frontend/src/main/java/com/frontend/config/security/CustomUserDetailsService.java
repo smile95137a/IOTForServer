@@ -44,7 +44,7 @@ public class CustomUserDetailsService implements UserDetailsService {
 	private CustomUserDetails mapUserToCustomUserDetails(User user, List<SimpleGrantedAuthority> authorities) {
 
 		return CustomUserDetails.builder().id(Long.valueOf(user.getId())).username(user.getUsername())
-				.password(user.getPassword()).name(user.getNickname()).email(user.getEmail()).authorities(authorities)
+				.password(user.getPassword()).name(user.getName()).email(user.getEmail()).authorities(authorities)
 				.build();
 	}
 }

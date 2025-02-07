@@ -35,7 +35,7 @@ public class AuthController {
 
 	@PostMapping("/login")
 	public ResponseEntity<?> login(@Valid @RequestBody UserReq userReq) {
-		var authToken = new UsernamePasswordAuthenticationToken(userReq.getUsername(), userReq.getPassword());
+		var authToken = new UsernamePasswordAuthenticationToken(userReq.getEmail(), userReq.getPassword());
 		var authentication = authenticationManager.authenticate(authToken);
 		SecurityContextHolder.getContext().setAuthentication(authentication);
 		var userDetails = (UserPrinciple) authentication.getPrincipal();
@@ -47,7 +47,7 @@ public class AuthController {
 		
 		var userRes = UserRes.builder()
 				.uid(userDetails.getUid())
-				.username(userDetails.getUsername())
+				.email(userDetails.getEmail())
 				.name(userDetails.getName())
 				.roles(roles)
 				.build();

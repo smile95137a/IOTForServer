@@ -28,6 +28,9 @@ public class User implements Serializable {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
+	@Column(unique = true, nullable = false)
+	private String gender;
+
 	@Column
 	private String uid;
 
@@ -35,19 +38,19 @@ public class User implements Serializable {
 	private String username;
 
 	@Column
-	private String nickname;
-
-	@Column
 	private Integer phoneNumber;
-
-	@Column
-	private String lineId;
 
 	@Column
 	private String password;
 
 	@Column
 	private String name;
+	@Column
+	private String countryCode;
+	@Column
+	private String verificationCode;
+	@Column
+	private String anonymousId;
 
 	@Column
 	private String email;

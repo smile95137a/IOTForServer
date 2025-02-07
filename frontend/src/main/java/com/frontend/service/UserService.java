@@ -53,7 +53,7 @@ public class UserService {
 	public UserRes registerUser(UserReq userDto) throws Exception {
 		try {
 			// 1. 检查用户是否存在
-			Optional<User> check = userRepository.findByEmail(userDto.getUsername());
+			Optional<User> check = userRepository.findByEmail(userDto.getEmail());
 			if (check.isPresent()) {
 				throw new Exception("帳號已存在");
 			}
@@ -66,14 +66,17 @@ public class UserService {
 			// 1. 创建 User
 			User user = User.builder()
 					.uid(RandomUtils.genRandom(32))
-					.username(userDto.getUsername())
+					.countryCode(userDto.getCountryCode())
+					.gender(userDto.getGender())
+					.verificationCode(userDto.getVerificationCode())
+					.anonymousId(userDto.getAnonymousId())
 					.password(encryptedPassword)
-					.nickname(userDto.getNickname())
-					.email(userDto.getUsername())
-					.phoneNumber(userDto.getPhoneNumber())
-					.lineId(userDto.getLineId())
+					.email(userDto.getEmail())
+					.phoneNumber(Integer.valueOf(userDto.getPhone()))
 					.createTime(LocalDateTime.now())
 					.name(userDto.getName())
+					.amount(0)
+					.totalAmount(0)
 					.build();
 
 // 2. 查找 `ROLE_USER` 角色
@@ -109,9 +112,8 @@ public class UserService {
 		try {
 			Optional<User> userObj = userRepository.findById(userId);
 			User user = userObj.get();
-			user.setNickname(req.getNickname());
-			user.setLineId(req.getLineId());
-			user.setPhoneNumber(req.getPhoneNumber());
+			user.setName(req.getName());
+			user.setPhoneNumber(Integer.valueOf(req.getPhone()));
 			user.setUpdateTime(LocalDateTime.now());
 			userRepository.save(user);
 			return true;
