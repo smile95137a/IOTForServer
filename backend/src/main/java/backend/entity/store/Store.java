@@ -56,6 +56,12 @@ public class Store {
     @Column
     private Long updateUserId;
 
+    @Column
+    private Long lat;
+
+    @Column
+    private Long lon;
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

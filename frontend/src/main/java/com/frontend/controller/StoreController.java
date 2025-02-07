@@ -24,20 +24,6 @@ public class StoreController {
     @Autowired
     private StoreService storeService;
 
-    @GetMapping("/init/{venderId}")
-    public ResponseEntity<ApiResponse<List<Store>>> initCreateStore(@PathVariable Long venderId) {
-        Vendor vendor = new Vendor();
-        vendor.setId(venderId);
-        Set<PoolTable> poolTables = new HashSet<>();
-        Long userId = 1L;
-        List<Store> stores = new ArrayList<>(Arrays.asList(
-                new Store(null, RandomUtils.genRandom(32, false), "板橋旗艦店", "新北市板橋區文化路一段280號B1", vendor, poolTables,null, LocalDateTime.now(), userId, null, null),
-                new Store(null, RandomUtils.genRandom(32, false), "台北旗艦店", "台北市中正區寶慶路一段1號2F", vendor,poolTables, null, LocalDateTime.now(), userId, null, null)
-        ));
-        List<Store> stores1 = storeService.initCreateStore(stores);
-        ApiResponse<List<Store>> success = ResponseUtils.success(stores1);
-        return ResponseEntity.ok(success);
-    }
 
     // Get a store by ID
     @GetMapping("/{uid}")
