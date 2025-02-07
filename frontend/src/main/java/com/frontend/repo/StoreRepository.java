@@ -15,7 +15,7 @@ public interface StoreRepository extends JpaRepository<Store, Long> {
 
     Optional<Store> findByUid(String uid);
 
-    @Query(value = "SELECT new com.frontend.res.store.StoreRes(s.id, s.uid, s.address, s.name, " +
+    @Query(value = "SELECT new com.frontend.res.store.StoreRes(s.id, s.uid, s.address, s.name,s.lat , s.lon, " +
             "COUNT(CASE WHEN pt.status = :status THEN 1 ELSE NULL END), " +
             "COUNT(CASE WHEN pt.status != :status THEN 1 ELSE NULL END)) " +
             "FROM Store s " +
