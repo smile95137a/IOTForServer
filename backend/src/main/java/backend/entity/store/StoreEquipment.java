@@ -1,6 +1,5 @@
 package backend.entity.store;
 
-import backend.entity.store.Store;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;

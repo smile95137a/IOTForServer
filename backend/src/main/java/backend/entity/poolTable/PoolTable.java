@@ -1,6 +1,7 @@
 package backend.entity.poolTable;
 
 import backend.entity.store.Store;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -31,6 +32,7 @@ public class PoolTable {
 
     @ManyToOne
     @JoinColumn(name = "store_id", nullable = false)
+    @JsonBackReference
     private Store store; // 所屬分店
 
     @OneToMany(mappedBy = "poolTable", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -47,4 +49,7 @@ public class PoolTable {
 
     @Column
     private Long updateUserId;
+
+    @Column
+    private Boolean isUse;
 }

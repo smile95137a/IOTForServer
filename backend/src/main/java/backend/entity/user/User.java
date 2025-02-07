@@ -1,19 +1,17 @@
 package backend.entity.user;
 
-import java.io.Serializable;
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Set;
-
-import backend.entity.vendor.Vendor;  // 引入廠商類別
 import backend.entity.role.Role;
+import backend.entity.vendor.Vendor;
 import jakarta.persistence.*;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.io.Serializable;
+import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "users")
@@ -76,6 +74,10 @@ public class User implements Serializable {
 
 	@Column
 	private LocalDateTime lastActiveTime;
+
 	@Column
-	private BigDecimal totalAmount;
+	private Integer amount;
+
+	@Column
+	private Integer totalAmount;
 }

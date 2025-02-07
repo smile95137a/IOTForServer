@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 
 @Component
 @Order(0)  // 可調整初始化順序，確保其他初始化類別已經執行
@@ -58,6 +59,7 @@ public class UserInitializer implements CommandLineRunner {
                 .name(name)
                 .email(email)
                 .roles(roleSet)
+                .uid(UUID.randomUUID().toString())
                 .createTime(LocalDateTime.now())
                 .createUserId(1L)  // 假設是由用戶ID 1創建
                 .updateTime(LocalDateTime.now())

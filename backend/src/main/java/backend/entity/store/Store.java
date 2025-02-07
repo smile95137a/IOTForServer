@@ -2,6 +2,8 @@ package backend.entity.store;
 
 import backend.entity.poolTable.PoolTable;
 import backend.entity.vendor.Vendor;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -32,9 +34,11 @@ public class Store {
 
     @ManyToOne
     @JoinColumn(name = "vendor_id", nullable = false)
+    @JsonBackReference
     private Vendor vendor; // 所屬廠商
 
     @OneToMany(mappedBy = "store", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     private Set<PoolTable> poolTables; // 分店中的桌台
 
     @OneToMany(mappedBy = "store", cascade = CascadeType.ALL, orphanRemoval = true)
