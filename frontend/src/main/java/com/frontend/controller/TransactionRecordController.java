@@ -1,21 +1,22 @@
 package com.frontend.controller;
 
-import com.frontend.config.message.ApiResponse;
-import com.frontend.config.service.UserPrinciple;
-import com.frontend.entity.transection.TransactionRecord;
-import com.frontend.res.store.StoreRes;
-import com.frontend.service.TransactionRecordService;
-import com.frontend.utils.ResponseUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import com.frontend.config.security.*;
-
-
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.frontend.config.message.ApiResponse;
+import com.frontend.config.security.SecurityUtils;
+import com.frontend.config.service.UserPrinciple;
+import com.frontend.entity.transection.TransactionRecord;
+import com.frontend.service.TransactionRecordService;
+import com.frontend.utils.ResponseUtils;
+
 @RestController
-@RequestMapping("/transactions")
+@RequestMapping("/transactionRecord")
 public class TransactionRecordController {
 
     @Autowired
