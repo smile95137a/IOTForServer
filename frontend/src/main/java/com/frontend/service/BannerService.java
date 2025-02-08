@@ -80,6 +80,7 @@ public class BannerService {
         Banner banner = new Banner();
         banner.setBannerUid(bannerReq.getBannerUid());
         banner.setStatus(status);
+        banner.setNews(news);
         banner.setCreatedAt(java.time.LocalDateTime.now());
         banner.setUpdatedAt(java.time.LocalDateTime.now());
 
@@ -90,15 +91,16 @@ public class BannerService {
         Banner banner = bannerRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Banner not found"));
 
-        // 更新 Banner 的欄位
-        banner.setBannerUid(bannerUid);
-        banner.setStatus(status);
-        banner.setUpdatedAt(java.time.LocalDateTime.now());
+
 
         // 確保新聞存在
         News news = newsRepository.findById(newsId)
                 .orElseThrow(() -> new RuntimeException("News not found"));
-
+// 更新 Banner 的欄位
+        banner.setBannerUid(bannerUid);
+        banner.setStatus(status);
+        banner.setUpdatedAt(java.time.LocalDateTime.now());
+        banner.setNews(news);
         return bannerRepository.save(banner);
     }
 
