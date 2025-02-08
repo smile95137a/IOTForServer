@@ -17,10 +17,6 @@ public class StoreService {
     @Autowired
     private StoreRepository storeRepository;
 
-    public List<Store> initCreateStore(List<Store> stores) {
-        return storeRepository.saveAll(stores);
-    }
-
     public Optional<List<StoreRes>> countAvailableAndInUseByUid(String uid){
         return storeRepository.countAvailableAndInUseByUid(uid, PoolTableStatus.AVAILABLE.name());
     }

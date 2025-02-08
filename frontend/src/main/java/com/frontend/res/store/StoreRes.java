@@ -28,5 +28,4 @@ public class StoreRes {
     private String regularTimeRange;
     private String discountTimeRange;
     private Integer deposit;
-    private Set<PoolTable> poolTableSet;
 }
