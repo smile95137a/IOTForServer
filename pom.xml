@@ -87,11 +87,6 @@
       <artifactId>spring-security-test</artifactId>
       <scope>test</scope>
     </dependency>
-    <dependency>
-    	<groupId>com.one</groupId>
-    	<artifactId>backend</artifactId>
-    	<version>0.0.1-SNAPSHOT</version>
-    </dependency>
   </dependencies>
 
   <build>
