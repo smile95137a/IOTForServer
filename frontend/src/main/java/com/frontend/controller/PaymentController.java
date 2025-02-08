@@ -28,11 +28,11 @@ public class PaymentController {
         Long userId = securityUser.getId();
         try {
             Integer newPrice = paymentService.topOp(topOpReq, userId);
-            ApiResponse<Object> success = ResponseUtils.success(200, String.format("新增金額後儲值金為%d元" , newPrice), null);
+            ApiResponse<Object> success = ResponseUtils.success(200, String.format("新增金額後儲值金為%d元" , newPrice), true);
             return ResponseEntity.ok(success);
         } catch (Exception e) {
             e.printStackTrace();
-            ApiResponse<Object> error = ResponseUtils.error(999,  e.getMessage(), null);
+            ApiResponse<Object> error = ResponseUtils.error(999,  e.getMessage(), false);
             return ResponseEntity.ok(error);
         }
     }
