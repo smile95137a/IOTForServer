@@ -1,5 +1,7 @@
 package com.frontend.controller;
 
+import com.frontend.config.security.SecurityUtils;
+import com.frontend.config.service.UserPrinciple;
 import com.frontend.entity.transection.GameTransactionRecord;
 import com.frontend.service.GameTransactionRecordService;
 import com.frontend.utils.ResponseUtils;
@@ -19,8 +21,10 @@ public class GameTransactionRecordController {
     private GameTransactionRecordService transactionRecordService;
 
     // 根據用戶 ID 查詢所有交易記錄
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<ApiResponse<List<GameTransactionRecord>>> getTransactionRecordsByUserId(@PathVariable Long userId) {
+    @GetMapping("/user")
+    public ResponseEntity<ApiResponse<List<GameTransactionRecord>>> getTransactionRecordsByUserId() {
+        UserPrinciple securityUser = SecurityUtils.getSecurityUser();
+        Long userId = securityUser.getId();
         List<GameTransactionRecord> records = transactionRecordService.getTransactionRecordsByUserId(userId);
         ApiResponse<List<GameTransactionRecord>> response = ResponseUtils.success(records);
         return ResponseEntity.ok(response);
