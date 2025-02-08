@@ -10,6 +10,9 @@ import java.util.Optional;
 @Repository
 public interface PoolTableRepository extends JpaRepository<PoolTable, Long> {
 
-    List<PoolTable> findByStoreId(Long storeId);
+	List<PoolTable> findByStoreId(Long storeId);
 
+	void deleteByUid(String uid);
+
+	Optional<PoolTable> findByUid(String uuid);
 }

@@ -17,30 +17,4 @@ import java.util.*;
 @RestController
 @RequestMapping("/vendors")
 public class VendorController {
-
-    @Autowired
-    private VendorService vendorService;
-
-    @GetMapping("/init")
-    public ResponseEntity<ApiResponse<List<Vendor>>> initCreateStore() {
-        Set<Store> stores = new HashSet<>();
-
-        List<Vendor> vendors = new ArrayList<>(Arrays.asList(
-                new Vendor(null, RandomUtils.genRandom(32, false), "廠商1", "0912345678",stores,   LocalDateTime.now(), 1L, null,null),
-                new Vendor(null, RandomUtils.genRandom(32, false), "廠商2", "0922345678",stores,   LocalDateTime.now(), 1L, null,null)
-        ));
-        List<Vendor> vendors1 = vendorService.initCreateVendor(vendors);
-        return ResponseEntity.ok(ResponseUtils.success(vendors1));
-    }
-
-    // Get a vendor by ID
-    @GetMapping("/{uid}")
-    public ResponseEntity<ApiResponse<List<VendorRes>>> countAvailablePoolTables(@PathVariable String uid) {
-        List<VendorRes> vendorRes = vendorService.countAvailablePoolTables(uid).orElse(Collections.emptyList());
-        if (vendorRes.isEmpty()) {
-            return ResponseEntity.ok(ResponseUtils.error(9999, null, null));
-        } else {
-            return ResponseEntity.ok(ResponseUtils.success(vendorRes));
-        }
-    }
 }
