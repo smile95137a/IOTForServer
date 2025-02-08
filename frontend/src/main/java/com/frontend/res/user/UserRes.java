@@ -2,11 +2,14 @@ package com.frontend.res.user;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import com.frontend.entity.role.Role;
 import jakarta.persistence.Column;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -38,7 +41,7 @@ public class UserRes implements Serializable {
 
 	private String email;
 
-	private Set<String> roles = new HashSet<>();
+	private Set<Role> roles = new HashSet<>();
 	
 	private LocalDateTime createTime;
 
@@ -53,4 +56,6 @@ public class UserRes implements Serializable {
 	private Integer amount;
 
 	private Integer totalAmount;
+
+	private Set<Long> roleIds = new HashSet<>();
 }

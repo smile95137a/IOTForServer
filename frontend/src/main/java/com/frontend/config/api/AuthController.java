@@ -3,9 +3,12 @@ package com.frontend.config.api;
 import java.util.stream.Collectors;
 import com.frontend.config.jwt.JwtProvider;
 import com.frontend.config.service.UserPrinciple;
+import com.frontend.entity.role.Role;
 import com.frontend.enums.RoleName;
+import com.frontend.repo.RoleRepository;
 import com.frontend.req.user.UserReq;
 import com.frontend.res.user.UserRes;
+import com.frontend.service.RoleService;
 import com.frontend.service.UserService;
 import com.frontend.utils.ResponseUtils;
 import jakarta.validation.Valid;
@@ -32,6 +35,7 @@ public class AuthController {
     
     private final AuthenticationManager authenticationManager;
     private final JwtProvider jwtProvider;
+    private final RoleRepository roleRepository;
 
 
     @PostMapping("/login")
@@ -67,7 +71,7 @@ public class AuthController {
         var jwt = jwtProvider.generateToken(userDetails);
 
         var roles = userDetails.getAuthorities().stream()
-                .map(x -> RoleName.valueOf(x.getAuthority()).toString())
+                .map(x -> new Role(RoleName.valueOf(x.getAuthority())))  // 轉換為 Role 物件
                 .collect(Collectors.toSet());
 
         var userRes = UserRes.builder()
@@ -77,6 +81,9 @@ public class AuthController {
                 .countryCode(userDetails.getCountryCode())
                 .phoneNumber(userDetails.getPhoneNumber())
                 .roles(roles)
+                .roleIds(roles.stream()                           // 使用 stream 將 Set 轉換為流
+                        .map(Role::getId)        // 提取每個 Role 的 id
+                        .collect(Collectors.toSet()))     // 收集為 Set
                 .build();
 
         var result = JwtResponse.builder()

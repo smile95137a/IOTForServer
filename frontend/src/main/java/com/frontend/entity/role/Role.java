@@ -38,4 +38,12 @@ public class Role {
     @JsonManagedReference // 防止序列化 role 相關的菜單循環引用
     private Set<Menu> menus = new HashSet<>();
 
+    public Role(RoleName roleName) {
+        this.roleName = roleName;
+    }
+
+    @Override
+    public String toString() {
+        return roleName.name();
+    }
 }

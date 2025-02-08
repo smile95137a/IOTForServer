@@ -23,21 +23,25 @@ public class NewsController {
     private NewsService newsService;
 
     @Autowired
-    private UserNewsService userNewsService;  // 注入 UserNewsService
+    private UserNewsService userNewsService;
 
     // 获取所有新闻并检查是否已读
     @GetMapping
-    public ResponseEntity<ApiResponse<List<News>>> getAllNews(@RequestParam(required = false) Long userId) {
+    public ResponseEntity<ApiResponse<List<News>>> getAllNews() {
+        // 获取当前登录的用户
+        UserPrinciple securityUser = SecurityUtils.getSecurityUser();
+        Long userId = (securityUser != null) ? securityUser.getId() : null;
+
         List<News> newsList = newsService.getAllNews();
 
-        // 如果是已登錄使用者，檢查每篇新聞是否已讀
         if (userId != null) {
+            // 已登录用户，检查每篇新闻是否已读
             for (News news : newsList) {
                 boolean isRead = userNewsService.isNewsReadByUser(userId, news.getId());
                 news.setIsRead(isRead);  // 设置已读状态
             }
         } else {
-            // 对于未登录用户，只显示公告，但不检查已读状态
+            // 未登录用户，默认不显示已读状态
             for (News news : newsList) {
                 news.setIsRead(false);  // 未登录用户默认为未读
             }
@@ -50,13 +54,9 @@ public class NewsController {
     // 根据 ID 获取新闻并标记为已读
     @GetMapping("/{uid}")
     public ResponseEntity<ApiResponse<News>> getNewsById(@PathVariable String uid) {
+        // 获取当前登录的用户
         UserPrinciple securityUser = SecurityUtils.getSecurityUser();
-        Long userId = null;
-
-        // 检查是否已登录，如果已登录，获取 userId
-        if (securityUser != null) {
-            userId = securityUser.getId();
-        }
+        Long userId = (securityUser != null) ? securityUser.getId() : null;
 
         Optional<News> news = newsService.getNewsById(uid);
         if (news.isEmpty()) {
@@ -84,27 +84,24 @@ public class NewsController {
         return ResponseEntity.ok(success);
     }
 
+
     // 根据状态获取新闻并检查是否已读
     @GetMapping("/status/{status}")
     public ResponseEntity<ApiResponse<List<News>>> getNewsByStatus(@PathVariable NewsStatus status) {
+        // 获取当前登录的用户
         UserPrinciple securityUser = SecurityUtils.getSecurityUser();
-        Long userId = null;
-
-        // 检查是否已登录，如果已登录，获取 userId
-        if (securityUser != null) {
-            userId = securityUser.getId();
-        }
+        Long userId = (securityUser != null) ? securityUser.getId() : null;
 
         List<News> newsList = newsService.getNewsByStatus(status);
 
-        // 如果是已登录用户，检查每篇新闻是否已读
         if (userId != null) {
+            // 已登录用户，检查每篇新闻是否已读
             for (News news : newsList) {
                 boolean isRead = userNewsService.isNewsReadByUser(userId, news.getId());
                 news.setIsRead(isRead);  // 设置已读状态
             }
         } else {
-            // 对于未登录用户，只显示公告，但不检查已读状态
+            // 未登录用户，默认不显示已读状态
             for (News news : newsList) {
                 news.setIsRead(false);  // 未登录用户默认为未读
             }
@@ -113,4 +110,6 @@ public class NewsController {
         ApiResponse<List<News>> success = ResponseUtils.success(newsList);
         return ResponseEntity.ok(success);
     }
+
+
 }
