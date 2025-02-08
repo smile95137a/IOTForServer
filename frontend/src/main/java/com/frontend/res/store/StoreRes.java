@@ -18,4 +18,11 @@ public class StoreRes {
     private Long inusesCount;
     private Long lat;
     private Long lon;
+    private Integer regularRate;
+    private Integer discountRate;
+    private String regularDateRange;
+    private String discountDateRange;
+    private String regularTimeRange;
+    private String discountTimeRange;
+    private Integer deposit;
 }
