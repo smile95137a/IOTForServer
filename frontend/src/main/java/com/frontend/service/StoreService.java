@@ -53,7 +53,14 @@ public class StoreService {
                 availableCount,
                 inUseCount,
                 store.getLat(),
-                store.getLon()
+                store.getLon(),
+                store.getRegularRate(),
+                store.getDiscountRate(),
+                store.getRegularDateRange(),
+                store.getDiscountDateRange(),
+                store.getRegularTimeRange(),
+                store.getDiscountTimeRange(),
+                store.getDeposit()
         );
     }
 }
