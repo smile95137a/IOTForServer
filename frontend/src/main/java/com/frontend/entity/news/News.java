@@ -50,4 +50,15 @@ public class News {
     @Column(name = "author", length = 100) // 作者信息，最大长度 100
     private String author;
 
+    @Transient  // 标记该字段不会映射到数据库
+    private boolean isRead;  // 用于表示该新闻是否已读
+
+    public void setIsRead(boolean isRead) {
+        this.isRead = isRead;
+    }
+
+    public boolean getIsRead() {
+        return isRead;
+    }
+
 }
