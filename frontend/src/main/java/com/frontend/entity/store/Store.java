@@ -20,12 +20,14 @@ import java.util.Set;
 @Table(name = "stores")
 public class Store {
 
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column
     private String uid;
+
     @Column(nullable = false)
     private String name; // 分店名稱
 
@@ -62,7 +64,32 @@ public class Store {
     @Column
     private Long lon;
 
+    // 新增欄位：一班時段的金額
+    @Column
+    private Integer regularRate;
 
+    // 新增欄位：優惠時段的金額
+    @Column
+    private Integer discountRate;
+
+    // 新增欄位：一班時段的日期（星期幾~星期幾）
+    @Column
+    private String regularDateRange;
+
+    // 新增欄位：優惠時段的日期（星期幾~星期幾）
+    @Column
+    private String discountDateRange;
+
+    // 新增欄位：一班時段的時間（18:00-22:00）
+    @Column
+    private String regularTimeRange;
+
+    // 新增欄位：優惠時段的時間（08:00-18:00）
+    @Column
+    private String discountTimeRange;
+
+    @Column //押金
+    private Integer deposit;
 
     @Override
     public boolean equals(Object o) {
