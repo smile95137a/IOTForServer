@@ -7,11 +7,13 @@ import com.frontend.enums.BannerStatus;
 import com.frontend.repo.BannerRepository;
 import com.frontend.repo.NewsRepository;
 import com.frontend.req.banner.BannerReq;
+import com.frontend.res.banner.BannerRes;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class BannerService {
@@ -25,14 +27,40 @@ public class BannerService {
     }
 
     // 取得所有 Banner（包含關聯的 News）
-    public List<Banner> getAllBanners() {
-        return bannerRepository.findAllWithNews();
+    public List<BannerRes> getAllBanners() {
+        // 获取所有 Banner 实体
+        List<Banner> banners = bannerRepository.findAllWithNews();
+
+        // 转换成 BannerRes 列表
+        return banners.stream()
+                .map(banner -> new BannerRes(
+                        banner.getBannerId(),
+                        banner.getBannerUid(),
+                        banner.getImageUrl(),
+                        banner.getStatus(),
+                        banner.getNews() // 如果需要，可以深度复制 news 对象
+                ))
+                .collect(Collectors.toList());
     }
 
     // 透過 ID 取得 Banner（包含關聯的 News）
-    public Optional<Banner> getBannerById(Long id) {
-        return bannerRepository.findByIdWithNews(id);
+    public Optional<BannerRes> getBannerById(Long id) {
+        Optional<Banner> banner = bannerRepository.findByIdWithNews(id);
+
+        // 如果 Banner 存在，则转换为 BannerRes
+        return banner.map(b -> {
+            // 进行手动映射
+            BannerRes bannerRes = new BannerRes(
+                    b.getBannerId(),
+                    b.getBannerUid(),
+                    b.getImageUrl(),
+                    b.getStatus(),
+                    b.getNews()  // 这里直接返回 News 对象，或者根据需要选择字段
+            );
+            return bannerRes;
+        });
     }
+
 
     // 新增 Banner
     public Banner createBanner(BannerReq bannerReq) {

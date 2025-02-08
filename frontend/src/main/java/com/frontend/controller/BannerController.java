@@ -4,6 +4,7 @@ import com.frontend.config.message.ApiResponse;
 import com.frontend.entity.banner.Banner;
 import com.frontend.enums.BannerStatus;
 import com.frontend.req.banner.BannerReq;
+import com.frontend.res.banner.BannerRes;
 import com.frontend.res.store.StoreRes;
 import com.frontend.service.BannerService;
 import com.frontend.utils.ImageUtil;
@@ -28,18 +29,21 @@ public class BannerController {
 
     // 取得所有 Banner
     @GetMapping("/banner")
-    public ResponseEntity<ApiResponse<List<Banner>>> getAllBanners() {
-        List<Banner> banners = bannerService.getAllBanners();
+    public ResponseEntity<ApiResponse<List<BannerRes>>> getAllBanners() {
+        List<BannerRes> banners = bannerService.getAllBanners();
         return ResponseEntity.ok(ResponseUtils.success(banners));
     }
 
     // 透過 ID 取得 Banner
     @GetMapping("/banner/{id}")
-    public ResponseEntity<ApiResponse<Banner>> getBannerById(@PathVariable Long id) {
-        Optional<Banner> banner = bannerService.getBannerById(id);
-        return banner.map(b -> ResponseEntity.ok(ResponseUtils.success(b)))
+    public ResponseEntity<ApiResponse<BannerRes>> getBannerById(@PathVariable Long id) {
+        Optional<BannerRes> bannerRes = bannerService.getBannerById(id);
+
+        return bannerRes
+                .map(b -> ResponseEntity.ok(ResponseUtils.success(b))) // 直接返回已转换的 BannerRes
                 .orElseGet(() -> ResponseEntity.ok(ResponseUtils.error(9999, "無此桌台", null)));
     }
+
 
     // 新增 Banner
     @PostMapping("/api/banners")

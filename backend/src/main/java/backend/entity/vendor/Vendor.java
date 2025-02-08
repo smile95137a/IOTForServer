@@ -1,6 +1,7 @@
 package backend.entity.vendor;
 
 import backend.entity.store.Store;
+import backend.entity.user.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -43,4 +44,5 @@ public class Vendor {
 
     @Column
     private Long updateUserId;
+    
 }
