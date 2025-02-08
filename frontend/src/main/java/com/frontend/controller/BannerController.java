@@ -4,6 +4,7 @@ import com.frontend.config.message.ApiResponse;
 import com.frontend.entity.banner.Banner;
 import com.frontend.enums.BannerStatus;
 import com.frontend.req.banner.BannerReq;
+import com.frontend.res.store.StoreRes;
 import com.frontend.service.BannerService;
 import com.frontend.utils.ImageUtil;
 import com.frontend.utils.ResponseUtils;
@@ -49,7 +50,7 @@ public class BannerController {
 
     // 更新 Banner
     @PutMapping("/{id}")
-    public ResponseEntity<Banner> updateBanner(
+    public ResponseEntity<ApiResponse<Banner>> updateBanner(
             @PathVariable Long id,
             @RequestBody BannerReq bannerUpdateReq) {
 
@@ -63,7 +64,7 @@ public class BannerController {
 
         // 更新 Banner
         Banner banner = bannerService.updateBanner(id, bannerUpdateReq.getBannerUid(), status, bannerUpdateReq.getNewsId());
-        return ResponseEntity.ok(banner);
+        return ResponseEntity.ok(ResponseUtils.success(banner));
     }
 
 
