@@ -3,7 +3,9 @@ package com.frontend.controller.admin;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
+import com.frontend.res.poolTable.AdminPoolTableRes;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -43,15 +45,37 @@ public class AdminPoolTableService {
     }
 
 
-    // Retrieve a pool table by ID
-    public Optional<PoolTable> getPoolTableById(String uid) {
-        return poolTableRepository.findByUid(uid);
+    public Optional<AdminPoolTableRes> getPoolTableById(String uid) {
+        Optional<PoolTable> poolTable = poolTableRepository.findByUid(uid);
+        if (poolTable.isPresent()) {
+            AdminPoolTableRes adminPoolTableRes = convertToAdminPoolTableRes(poolTable.get());
+            return Optional.of(adminPoolTableRes);
+        }
+        return Optional.empty();
     }
 
-    // Retrieve all pool tables
-    public List<PoolTable> getAllPoolTables() {
-        return poolTableRepository.findAll();
+    public List<AdminPoolTableRes> getAllPoolTables() {
+        List<PoolTable> poolTables = poolTableRepository.findAll();
+        return poolTables.stream()
+                .map(this::convertToAdminPoolTableRes)
+                .collect(Collectors.toList());
     }
+
+    private AdminPoolTableRes convertToAdminPoolTableRes(PoolTable poolTable) {
+        AdminPoolTableRes.AdminPoolTableResBuilder builder = AdminPoolTableRes.builder()
+                .uid(poolTable.getUid())
+                .tableNumber(poolTable.getTableNumber())
+                .status(poolTable.getStatus());
+
+        // 只在 tableEquipments 不为 null 时设置 tableEquipments
+        if (poolTable.getTableEquipments() != null) {
+            builder.tableEquipments(poolTable.getTableEquipments());
+        }
+
+        return builder.build();
+    }
+
+
 
     // Update a pool table
     public PoolTable updatePoolTable(String uid, PoolTableReq updatedPoolTableReq, Long id) {

@@ -3,6 +3,7 @@ package com.frontend.controller.admin;
 import java.util.List;
 import java.util.Optional;
 
+import com.frontend.res.poolTable.AdminPoolTableRes;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -46,21 +47,21 @@ public class AdminPoolTableController {
 
     // 根据 ID 获取桌台
     @GetMapping("/{uid}")
-    public ResponseEntity<ApiResponse<PoolTable>> getPoolTableById(@PathVariable String uid) {
-        Optional<PoolTable> poolTable = poolTableService.getPoolTableById(uid);
+    public ResponseEntity<ApiResponse<AdminPoolTableRes>> getPoolTableById(@PathVariable String uid) {
+        Optional<AdminPoolTableRes> poolTable = poolTableService.getPoolTableById(uid);
         if (poolTable.isEmpty()) {
-            ApiResponse<PoolTable> error = ResponseUtils.error(null);
+            ApiResponse<AdminPoolTableRes> error = ResponseUtils.error(null);
             return ResponseEntity.ok(error);
         }
-        ApiResponse<PoolTable> success = ResponseUtils.success(poolTable.get());
+        ApiResponse<AdminPoolTableRes> success = ResponseUtils.success(poolTable.get());
         return ResponseEntity.ok(success);
     }
 
     // 获取所有桌台
     @GetMapping
-    public ResponseEntity<ApiResponse<List<PoolTable>>> getAllPoolTables() {
-        List<PoolTable> poolTables = poolTableService.getAllPoolTables();
-        ApiResponse<List<PoolTable>> success = ResponseUtils.success(poolTables);
+    public ResponseEntity<ApiResponse<List<AdminPoolTableRes>>> getAllPoolTables() {
+        List<AdminPoolTableRes> poolTables = poolTableService.getAllPoolTables();
+        ApiResponse<List<AdminPoolTableRes>> success = ResponseUtils.success(poolTables);
         return ResponseEntity.ok(success);
     }
 

@@ -82,13 +82,19 @@ public class AdminStoreService {
 	}
 
 	private AdminStoreRes convertToAdminStoreRes(Store store) {
-		return AdminStoreRes.builder()
+		AdminStoreRes.AdminStoreResBuilder builder = AdminStoreRes.builder()
 				.uid(store.getUid())
 				.name(store.getName())
-				.address(store.getAddress())
-				.poolTables(store.getPoolTables())  // 假设您需要传递池桌集合
-				.build();
+				.address(store.getAddress());
+
+		// 只在 poolTables 不为 null 时设置 poolTables
+		if (store.getPoolTables() != null) {
+			builder.poolTables(store.getPoolTables());
+		}
+
+		return builder.build();
 	}
+
 
 
 	// Update a store
