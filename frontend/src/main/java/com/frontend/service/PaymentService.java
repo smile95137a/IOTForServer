@@ -4,6 +4,7 @@ import com.frontend.entity.transection.TransactionRecord;
 import com.frontend.entity.user.User;
 import com.frontend.repo.TransactionRecordRepository;
 import com.frontend.repo.UserRepository;
+import com.frontend.req.topOp.TopOpReq;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -18,9 +19,9 @@ public class PaymentService {
     @Autowired
     private TransactionRecordRepository transactionRecordRepository;
 
-    public Integer topOp(Integer price , Long userId){
+    public Integer topOp(TopOpReq topOpReq , Long userId){
         User user = userRepository.findById(userId).get();
-        Integer newPrice = user.getAmount() + price;
+        Integer newPrice = user.getAmount() + topOpReq.getPrice();
         user.setAmount(newPrice);
         userRepository.save(user);
 
@@ -28,8 +29,9 @@ public class PaymentService {
         TransactionRecord transactionRecord = new TransactionRecord();
         transactionRecord.setTransactionDate(LocalDateTime.now());
         transactionRecord.setCreatedAt(LocalDateTime.now());
-        transactionRecord.setAmount(price);
+        transactionRecord.setAmount(topOpReq.getPrice());
         transactionRecord.setTransactionType("DEPOSIT");
+        transactionRecord.setPayType(topOpReq.getPayType());
         transactionRecord.setUser(user);
         transactionRecordRepository.save(transactionRecord);
 

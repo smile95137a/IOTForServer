@@ -1,17 +1,16 @@
 package com.frontend.controller;
 
 import com.frontend.config.message.ApiResponse;
+import com.frontend.config.service.UserPrinciple;
 import com.frontend.repo.UserRepository;
+import com.frontend.req.topOp.TopOpReq;
 import com.frontend.service.PaymentService;
 import com.frontend.utils.ResponseUtils;
 import com.frontend.utils.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
 
 @RestController
 @RequestMapping("/payment")
@@ -24,12 +23,12 @@ public class PaymentController {
     private PaymentService paymentService;
 
     @PostMapping("/topOp") //儲值
-    public ResponseEntity<ApiResponse<?>> topOp(@RequestBody Integer price) throws Exception {
-        var userDetails = SecurityUtils.getSecurityUser();
-        var userId = userDetails.getId();
+    public ResponseEntity<ApiResponse<?>> topOp(@RequestBody TopOpReq topOpReq) throws Exception {
+        UserPrinciple securityUser = SecurityUtils.getSecurityUser();
+        Long userId = securityUser.getId();
         try {
-            Integer newPrice = paymentService.topOp(price, userId);
-            ApiResponse<Object> success = ResponseUtils.success(200, String.format("新增金額為%d元" , newPrice), null);
+            Integer newPrice = paymentService.topOp(topOpReq, 4L);
+            ApiResponse<Object> success = ResponseUtils.success(200, String.format("新增金額後儲值金為%d元" , newPrice), null);
             return ResponseEntity.ok(success);
         } catch (Exception e) {
             e.printStackTrace();
