@@ -3,7 +3,9 @@ package com.frontend.controller.admin;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
+import com.frontend.res.store.AdminStoreRes;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -62,16 +64,32 @@ public class AdminStoreService {
 
 		return store;
 	}
+	public List<AdminStoreRes> getAllStores() {
+		List<Store> stores = storeRepository.findAll();
+		return stores.stream()
+				.map(this::convertToAdminStoreRes)
+				.collect(Collectors.toList());
+	}
 
 	// Retrieve a store by ID
-	public Optional<Store> getStoreById(String uid) {
-		return storeRepository.findByUid(uid);
+	public Optional<AdminStoreRes> getStoreById(String uid) {
+		Optional<Store> store = storeRepository.findByUid(uid);
+		if (store.isPresent()) {
+			AdminStoreRes adminStoreRes = convertToAdminStoreRes(store.get());
+			return Optional.of(adminStoreRes);
+		}
+		return Optional.empty();
 	}
 
-	// Retrieve all stores
-	public List<Store> getAllStores() {
-		return storeRepository.findAll();
+	private AdminStoreRes convertToAdminStoreRes(Store store) {
+		return AdminStoreRes.builder()
+				.uid(store.getUid())
+				.name(store.getName())
+				.address(store.getAddress())
+				.poolTables(store.getPoolTables())  // 假设您需要传递池桌集合
+				.build();
 	}
+
 
 	// Update a store
 	public Store updateStore(String uid, StoreReq storeReq, Long id) {

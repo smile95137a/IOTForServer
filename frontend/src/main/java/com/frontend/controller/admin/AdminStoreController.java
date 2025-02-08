@@ -2,6 +2,7 @@ package com.frontend.controller.admin;
 
 import java.util.List;
 
+import com.frontend.res.store.AdminStoreRes;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -39,21 +40,21 @@ public class AdminStoreController {
 
     // Get a store by ID
     @GetMapping("/{uid}")
-    public ResponseEntity<ApiResponse<Store>> getStoreById(@PathVariable String uid) {
-        Store store = storeService.getStoreById(uid).orElse(null);
+    public ResponseEntity<ApiResponse<AdminStoreRes>> getStoreById(@PathVariable String uid) {
+        AdminStoreRes store = storeService.getStoreById(uid).orElse(null);
         if (store == null) {
-            ApiResponse<Store> error = ResponseUtils.error(null);
+            ApiResponse<AdminStoreRes> error = ResponseUtils.error(null);
             return ResponseEntity.ok(error);
         }
-        ApiResponse<Store> success = ResponseUtils.success(store);
+        ApiResponse<AdminStoreRes> success = ResponseUtils.success(store);
         return ResponseEntity.ok(success);
     }
 
     // Get all stores
     @GetMapping
-    public ResponseEntity<ApiResponse<List<Store>>> getAllStores() {
-        List<Store> stores = storeService.getAllStores();
-        ApiResponse<List<Store>> success = ResponseUtils.success(stores);
+    public ResponseEntity<ApiResponse<List<AdminStoreRes>>> getAllStores() {
+        List<AdminStoreRes> stores = storeService.getAllStores();
+        ApiResponse<List<AdminStoreRes>> success = ResponseUtils.success(stores);
         return ResponseEntity.ok(success);
     }
 
