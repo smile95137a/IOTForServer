@@ -1,10 +1,13 @@
 package backend.controller;
 
 import backend.config.message.ApiResponse;
+import backend.config.service.UserPrinciple;
 import backend.entity.store.Store;
 import backend.entity.vendor.Vendor;
+import backend.req.vendor.VendorReq;
 import backend.service.VendorService;
 import backend.utils.ResponseUtils;
+import backend.utils.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,9 +25,11 @@ public class VendorController {
 
     // Create a new vendor
     @PostMapping
-    public ResponseEntity<ApiResponse<Vendor>> createVendor(@RequestBody Vendor vendor) {
+    public ResponseEntity<ApiResponse<Vendor>> createVendor(@RequestBody VendorReq vendor) {
         try {
-            Vendor createdVendor = vendorService.createVendor(vendor);
+            UserPrinciple securityUser = SecurityUtils.getSecurityUser();
+            Long id = securityUser.getId();
+            Vendor createdVendor = vendorService.createVendor(vendor , id);
             ApiResponse<Vendor> response = ResponseUtils.success(createdVendor);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -55,7 +60,9 @@ public class VendorController {
     @PutMapping("/{uid}")
     public ResponseEntity<ApiResponse<Vendor>> updateVendor(@PathVariable String uid, @RequestBody Vendor updatedVendor) {
         try {
-            Vendor vendor = vendorService.updateVendor(uid, updatedVendor);
+            UserPrinciple securityUser = SecurityUtils.getSecurityUser();
+            Long id = securityUser.getId();
+            Vendor vendor = vendorService.updateVendor(uid, updatedVendor , id);
             return ResponseEntity.ok(ResponseUtils.success(vendor));
         } catch (RuntimeException e) {
             // Log the error and provide specific error message

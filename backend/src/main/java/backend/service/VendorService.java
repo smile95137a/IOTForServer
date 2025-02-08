@@ -4,10 +4,12 @@ import backend.entity.store.Store;
 import backend.entity.vendor.Vendor;
 import backend.repo.StoreRepository;
 import backend.repo.VendorRepository;
+import backend.req.vendor.VendorReq;
 import backend.utils.RandomUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -22,12 +24,25 @@ public class VendorService {
     private StoreRepository storeRepository;
 
     // Create a new vendor
-    public Vendor createVendor(Vendor vendor) {
+    public Vendor createVendor(VendorReq vendorReq, Long userId) {
 
+        // 生成一个唯一的UID
         String s = RandomUtils.genRandom(24);
+
+        // 创建 Vendor 实体
+        Vendor vendor = new Vendor();
+
+        // 将 VendorReq 中的数据设置到 Vendor 实体
         vendor.setUid(s);
+        vendor.setName(vendorReq.getName());
+        vendor.setContactInfo(vendorReq.getContactInfo());
+        vendor.setCreateTime(LocalDateTime.now());
+        vendor.setCreateUserId(userId);
+
+        // 保存 Vendor 实体到数据库
         return vendorRepository.save(vendor);
     }
+
 
     // Retrieve a vendor by ID
     public Optional<Vendor> getVendorById(String uid) {
@@ -40,15 +55,13 @@ public class VendorService {
     }
 
     // Update a vendor
-    public Vendor updateVendor(String uid, Vendor updatedVendor) {
+    public Vendor updateVendor(String uid, Vendor updatedVendor ,Long id) {
         return vendorRepository.findByUid(uid).map(vendor -> {
             vendor.setName(updatedVendor.getName());
             vendor.setContactInfo(updatedVendor.getContactInfo());
             vendor.setStores(updatedVendor.getStores());
-            vendor.setCreateTime(updatedVendor.getCreateTime());
-            vendor.setCreateUserId(updatedVendor.getCreateUserId());
-            vendor.setUpdateTime(updatedVendor.getUpdateTime());
-            vendor.setUpdateUserId(updatedVendor.getUpdateUserId());
+            vendor.setUpdateTime(LocalDateTime.now());
+            vendor.setUpdateUserId(id);
             return vendorRepository.save(vendor);
         }).orElseThrow(() -> new RuntimeException("Vendor not found with id: " + uid));
     }
