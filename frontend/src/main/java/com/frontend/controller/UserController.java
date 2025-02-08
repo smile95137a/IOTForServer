@@ -1,5 +1,7 @@
 package com.frontend.controller;
 
+import com.frontend.utils.ImageUtil;
+import com.frontend.utils.ImageUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +22,9 @@ import com.frontend.req.user.UserReq;
 import com.frontend.res.user.UserRes;
 import com.frontend.service.UserService;
 import com.frontend.utils.ResponseUtils;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @RestController
 @RequestMapping("/user")
@@ -110,7 +115,22 @@ public class UserController {
 
 	@PostMapping("/{userId}/upload-profile-image")
 	public ResponseEntity<?> uploadProfileImage(@PathVariable Long userId, @RequestParam("file") MultipartFile file) {
-		return ResponseEntity.ok(ResponseUtils.success(200, "更新成功", true));
+		try {
+			if (file == null || file.isEmpty()) {
+				return ResponseEntity.badRequest().body(ResponseUtils.error(400, "文件不能為空", null));
+			}
+
+			String uploadedFilePath = ImageUtil.upload(file);
+
+			userService.uploadProductImg(userId, uploadedFilePath);
+
+			ApiResponse<String> response = ResponseUtils.success(200, "文件上傳成功", uploadedFilePath);
+			return ResponseEntity.ok(response);
+		} catch (Exception e) {
+			ApiResponse<String> response = ResponseUtils.error(500, "文件上傳失敗", null);
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+		}
 	}
+
 
 }

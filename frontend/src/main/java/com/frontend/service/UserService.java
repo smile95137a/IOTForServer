@@ -18,6 +18,7 @@ import com.frontend.utils.RandomUtils;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -159,5 +160,14 @@ public class UserService {
 					.amount(user.getAmount())
 					.totalAmount(user.getTotalAmount())
 					.build();
+	}
+
+	public void uploadProductImg(Long userId, String uploadedFilePaths) {
+		User user = userRepository.findById(userId).get();
+		if (user != null) {
+			user.setUserImg(uploadedFilePaths);
+			userRepository.save(user);
+		}
+
 	}
 }
