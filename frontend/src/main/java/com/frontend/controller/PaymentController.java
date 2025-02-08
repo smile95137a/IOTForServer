@@ -27,7 +27,7 @@ public class PaymentController {
         UserPrinciple securityUser = SecurityUtils.getSecurityUser();
         Long userId = securityUser.getId();
         try {
-            Integer newPrice = paymentService.topOp(topOpReq, 4L);
+            Integer newPrice = paymentService.topOp(topOpReq, userId);
             ApiResponse<Object> success = ResponseUtils.success(200, String.format("新增金額後儲值金為%d元" , newPrice), null);
             return ResponseEntity.ok(success);
         } catch (Exception e) {
