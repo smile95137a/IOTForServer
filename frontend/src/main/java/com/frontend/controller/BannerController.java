@@ -28,24 +28,24 @@ public class BannerController {
 
     // 取得所有 Banner
     @GetMapping("/banner")
-    public ResponseEntity<List<Banner>> getAllBanners() {
-        return ResponseEntity.ok(bannerService.getAllBanners());
+    public ResponseEntity<ApiResponse<List<Banner>>> getAllBanners() {
+        List<Banner> banners = bannerService.getAllBanners();
+        return ResponseEntity.ok(ResponseUtils.success(banners));
     }
 
     // 透過 ID 取得 Banner
     @GetMapping("/banner/{id}")
-    public ResponseEntity<Banner> getBannerById(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<Banner>> getBannerById(@PathVariable Long id) {
         Optional<Banner> banner = bannerService.getBannerById(id);
-        return banner.map(ResponseEntity::ok)
-                     .orElseGet(() -> ResponseEntity.notFound().build());
+        return banner.map(b -> ResponseEntity.ok(ResponseUtils.success(b)))
+                .orElseGet(() -> ResponseEntity.ok(ResponseUtils.error(9999, "無此桌台", null)));
     }
 
     // 新增 Banner
     @PostMapping("/api/banners")
-    public ResponseEntity<Banner> createBanner(
-            @RequestBody BannerReq bannerReq) {
+    public ResponseEntity<ApiResponse<Banner>> createBanner(@RequestBody BannerReq bannerReq) {
         Banner banner = bannerService.createBanner(bannerReq);
-        return ResponseEntity.ok(banner);
+        return ResponseEntity.ok(ResponseUtils.success(banner));
     }
 
     // 更新 Banner
@@ -67,30 +67,27 @@ public class BannerController {
         return ResponseEntity.ok(ResponseUtils.success(banner));
     }
 
-
     // 刪除 Banner
     @DeleteMapping("/api/banners/{id}")
-    public ResponseEntity<Void> deleteBanner(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<Void>> deleteBanner(@PathVariable Long id) {
         bannerService.deleteBanner(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(ResponseUtils.success(null));
     }
 
+    // 上傳 Banner 圖片
     @PostMapping("/{bannerId}/upload-image")
-    public ResponseEntity<?> uploadProfileImage(@PathVariable Long bannerId, @RequestParam("file") MultipartFile file) {
+    public ResponseEntity<ApiResponse<String>> uploadProfileImage(@PathVariable Long bannerId, @RequestParam("file") MultipartFile file) {
         try {
             if (file == null || file.isEmpty()) {
-                return ResponseEntity.badRequest().body(ResponseUtils.error(400, "文件不能為空", null));
+                return ResponseEntity.ok(ResponseUtils.error(400, "文件不能為空", null));
             }
 
             String uploadedFilePath = ImageUtil.upload(file);
-
             bannerService.uploadImg(bannerId, uploadedFilePath);
 
-            ApiResponse<String> response = ResponseUtils.success(200, "文件上傳成功", uploadedFilePath);
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(ResponseUtils.success(200, "文件上傳成功", uploadedFilePath));
         } catch (Exception e) {
-            ApiResponse<String> response = ResponseUtils.error(500, "文件上傳失敗", null);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+            return ResponseEntity.ok(ResponseUtils.error(500, "文件上傳失敗", null));
         }
     }
 }
