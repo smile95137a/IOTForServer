@@ -18,10 +18,7 @@ import com.frontend.utils.RandomUtils;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -144,22 +141,21 @@ public class UserService {
 				return null;
 			}
 
-			return UserRes.builder()
-					.uid(user.getUid())
-					.username(user.getUsername())
-					.name(user.getName())
-					.email(user.getEmail())
-					.roles(user.getRoles().stream()
-							.map(role -> role.getRoleName().name()) // 顯式轉換 Enum 為 String
-							.collect(Collectors.toSet()))
-					.createTime(user.getCreateTime())
-					.createUserName(user.getCreateUserId() != null ? user.getCreateUserId().toString() : null)
-					.updateTime(user.getUpdateTime())
-					.updateUserName(user.getUpdateUserId() != null ? user.getUpdateUserId().toString() : null)
-					.lastActiveTime(user.getLastActiveTime())
-					.amount(user.getAmount())
-					.totalAmount(user.getTotalAmount())
-					.build();
+		return UserRes.builder()
+				.uid(user.getUid())
+				.username(user.getUsername())
+				.name(user.getName())
+				.email(user.getEmail())
+				.roles(new HashSet<>(user.getRoles())) // Collect to Set<Role>
+				.createTime(user.getCreateTime())
+				.createUserName(user.getCreateUserId() != null ? user.getCreateUserId().toString() : null)
+				.updateTime(user.getUpdateTime())
+				.updateUserName(user.getUpdateUserId() != null ? user.getUpdateUserId().toString() : null)
+				.lastActiveTime(user.getLastActiveTime())
+				.amount(user.getAmount())
+				.totalAmount(user.getTotalAmount())
+				.build();
+
 	}
 
 	public void uploadProductImg(Long userId, String uploadedFilePaths) {
