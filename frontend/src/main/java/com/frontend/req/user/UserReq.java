@@ -8,6 +8,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserReq {
+	
+	private String uid;
+
+	private String username;
+
+	
 	private String type;
     private String password;
     private String gender;

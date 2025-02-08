@@ -18,4 +18,16 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
 	Optional<User> findByCountryCodeAndPhoneNumber(String countryCode, String phoneNumber);
 
 	User findByUid(String userUid);
+	
+	
+
+	Optional<User> findByuid(String uid);
+
+
+	Boolean existsByUsername(String username);
+
+	Boolean existsByEmail(String email);
+
+	void deleteByuid(String uid);
+	
 }
