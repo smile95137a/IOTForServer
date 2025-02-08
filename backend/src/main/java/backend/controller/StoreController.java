@@ -1,9 +1,12 @@
 package backend.controller;
 
 import backend.config.message.ApiResponse;
+import backend.config.service.UserPrinciple;
 import backend.entity.store.Store;
+import backend.req.store.StoreReq;
 import backend.service.StoreService;
 import backend.utils.ResponseUtils;
+import backend.utils.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,8 +22,10 @@ public class StoreController {
 
     // Create a new store
     @PostMapping
-    public ResponseEntity<ApiResponse<Store>> createStore(@RequestBody Store store) {
-        Store createdStore = storeService.createStore(store);
+    public ResponseEntity<ApiResponse<Store>> createStore(@RequestBody StoreReq store) {
+        UserPrinciple securityUser = SecurityUtils.getSecurityUser();
+        Long id = securityUser.getId();
+        Store createdStore = storeService.createStore(store , id);
         ApiResponse<Store> success = ResponseUtils.success(createdStore);
         return ResponseEntity.ok(success);
     }
@@ -47,10 +52,12 @@ public class StoreController {
 
     // Update a store
     @PutMapping("/{uid}")
-    public ResponseEntity<ApiResponse<Store>> updateStore(@PathVariable String uid, @RequestBody Store updatedStore) {
+    public ResponseEntity<ApiResponse<Store>> updateStore(@PathVariable String uid, @RequestBody StoreReq store) {
         try {
-            Store store = storeService.updateStore(uid, updatedStore);
-            ApiResponse<Store> success = ResponseUtils.success(store);
+            UserPrinciple securityUser = SecurityUtils.getSecurityUser();
+            Long id = securityUser.getId();
+            Store storeObj = storeService.updateStore(uid, store , id);
+            ApiResponse<Store> success = ResponseUtils.success(storeObj);
             return ResponseEntity.ok(success);
         } catch (RuntimeException e) {
             ApiResponse<Store> error = ResponseUtils.error(null);

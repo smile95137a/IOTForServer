@@ -28,7 +28,7 @@ public class PoolTable {
     private String tableNumber; // 桌台編號
 
     @Column(nullable = false)
-    private String status; // 桌台狀態 (例如 "AVAILABLE", "IN_USE")
+    private String status;
 
     @ManyToOne
     @JoinColumn(name = "store_id", nullable = false)

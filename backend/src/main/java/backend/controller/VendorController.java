@@ -58,12 +58,12 @@ public class VendorController {
 
     // Update a vendor
     @PutMapping("/{uid}")
-    public ResponseEntity<ApiResponse<Vendor>> updateVendor(@PathVariable String uid, @RequestBody Vendor updatedVendor) {
+    public ResponseEntity<ApiResponse<Vendor>> updateVendor(@PathVariable String uid, @RequestBody VendorReq vendor) {
         try {
             UserPrinciple securityUser = SecurityUtils.getSecurityUser();
             Long id = securityUser.getId();
-            Vendor vendor = vendorService.updateVendor(uid, updatedVendor , id);
-            return ResponseEntity.ok(ResponseUtils.success(vendor));
+            Vendor vendorObj = vendorService.updateVendor(uid, vendor , id);
+            return ResponseEntity.ok(ResponseUtils.success(vendorObj));
         } catch (RuntimeException e) {
             // Log the error and provide specific error message
             return ResponseEntity.ok(ResponseUtils.error(9999, e.getMessage(), null));

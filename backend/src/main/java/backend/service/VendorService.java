@@ -55,14 +55,14 @@ public class VendorService {
     }
 
     // Update a vendor
-    public Vendor updateVendor(String uid, Vendor updatedVendor ,Long id) {
-        return vendorRepository.findByUid(uid).map(vendor -> {
-            vendor.setName(updatedVendor.getName());
-            vendor.setContactInfo(updatedVendor.getContactInfo());
-            vendor.setStores(updatedVendor.getStores());
-            vendor.setUpdateTime(LocalDateTime.now());
-            vendor.setUpdateUserId(id);
-            return vendorRepository.save(vendor);
+    public Vendor updateVendor(String uid, VendorReq vendor ,Long id) {
+        return vendorRepository.findByUid(uid).map(res -> {
+            res.setName(vendor.getName());
+            res.setContactInfo(vendor.getContactInfo());
+            res.setStores(vendor.getStore());
+            res.setUpdateTime(LocalDateTime.now());
+            res.setUpdateUserId(id);
+            return vendorRepository.save(res);
         }).orElseThrow(() -> new RuntimeException("Vendor not found with id: " + uid));
     }
 
