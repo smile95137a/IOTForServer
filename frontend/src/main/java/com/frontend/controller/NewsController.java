@@ -37,7 +37,7 @@ public class NewsController {
         if (userId != null) {
             // 已登录用户，检查每篇新闻是否已读
             for (News news : newsList) {
-                boolean isRead = userNewsService.isNewsReadByUser(userId, Long.valueOf(news.getId()));
+                boolean isRead = userNewsService.isNewsReadByUser(userId, news.getId());
                 news.setIsRead(isRead);  // 设置已读状态
             }
         } else {
@@ -68,12 +68,12 @@ public class NewsController {
 
         // 如果已登录用户，检查该新闻是否已读，如果未读，标记为已读
         if (userId != null) {
-            boolean isRead = userNewsService.isNewsReadByUser(userId, Long.valueOf(newsItem.getId()));
+            boolean isRead = userNewsService.isNewsReadByUser(userId, newsItem.getId());
             newsItem.setIsRead(isRead);
 
             if (!isRead) {
                 // 将新闻标记为已读
-                userNewsService.markNewsAsRead(userId, Long.valueOf(newsItem.getId()));
+                userNewsService.markNewsAsRead(userId, newsItem.getId());
             }
         } else {
             // 未登录用户则直接设置为未读
@@ -97,7 +97,7 @@ public class NewsController {
         if (userId != null) {
             // 已登录用户，检查每篇新闻是否已读
             for (News news : newsList) {
-                boolean isRead = userNewsService.isNewsReadByUser(userId, Long.valueOf(news.getId()));
+                boolean isRead = userNewsService.isNewsReadByUser(userId, news.getId());
                 news.setIsRead(isRead);  // 设置已读状态
             }
         } else {

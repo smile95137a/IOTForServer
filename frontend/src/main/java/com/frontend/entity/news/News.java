@@ -22,7 +22,7 @@ public class News {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id") // 自增主键
-    private String id;
+    private Long id;
 
     @Column(name = "news_uid")
     private String newsUid;

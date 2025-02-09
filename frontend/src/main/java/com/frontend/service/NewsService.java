@@ -63,7 +63,7 @@ public class NewsService {
     public void deleteNewsById(String uid) {
         News news = newsRepository.findByNewsUid(uid).get();
 
-        bannerRepository.deleteByNewsId(Long.valueOf(news.getId()));
+        bannerRepository.deleteByNewsId(news.getId());
         newsRepository.deleteByNewsUid(uid);
     }
 

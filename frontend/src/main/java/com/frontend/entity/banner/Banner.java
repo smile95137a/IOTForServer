@@ -1,6 +1,5 @@
 package com.frontend.entity.banner;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.frontend.entity.news.News;
 import com.frontend.enums.BannerStatus;
 import jakarta.persistence.*;
@@ -25,7 +24,7 @@ public class Banner {
     @Column(name = "banner_uid")
     private String bannerUid;
 
-    @Column(name = "banner_image_urls")
+    @Column(name = "banner_image_urls", nullable = false)
     private String imageUrl;
 
     @Enumerated(EnumType.STRING)
@@ -39,9 +38,7 @@ public class Banner {
     private LocalDateTime updatedAt;
 
     // 新增外鍵關聯
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "news_id", nullable = false)
-    @JsonIgnore  // 忽略该字段的序列化
+    @ManyToOne(fetch = FetchType.LAZY , cascade = CascadeType.ALL)
+    @JoinColumn(name = "news_id", nullable = false) // 讓 Banner 關聯一則 News
     private News news;
-
 }
