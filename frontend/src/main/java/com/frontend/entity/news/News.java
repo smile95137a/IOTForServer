@@ -1,5 +1,7 @@
 package com.frontend.entity.news;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.frontend.entity.banner.Banner;
 import com.frontend.enums.NewsStatus;
 import com.frontend.utils.StringListConverter;
 import jakarta.persistence.*;
@@ -10,6 +12,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 @Data
 @AllArgsConstructor
@@ -52,6 +55,10 @@ public class News {
 
     @Transient  // 标记该字段不会映射到数据库
     private boolean isRead;  // 用于表示该新闻是否已读
+
+    @OneToMany(mappedBy = "news")
+    @JsonBackReference
+    private Set<Banner> banners;
 
     public void setIsRead(boolean isRead) {
         this.isRead = isRead;

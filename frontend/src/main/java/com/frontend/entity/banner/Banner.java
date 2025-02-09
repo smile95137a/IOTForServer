@@ -1,5 +1,7 @@
 package com.frontend.entity.banner;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.frontend.entity.news.News;
 import com.frontend.enums.BannerStatus;
 import jakarta.persistence.*;
@@ -38,7 +40,7 @@ public class Banner {
     private LocalDateTime updatedAt;
 
     // 新增外鍵關聯
-    @ManyToOne(fetch = FetchType.LAZY , cascade = CascadeType.ALL)
-    @JoinColumn(name = "news_id", nullable = false) // 讓 Banner 關聯一則 News
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JsonIgnore
     private News news;
 }
