@@ -72,8 +72,8 @@ public class NewsService {
         return newsRepository.findByStatus(status);
     }
 
-    public News updateNews(Long newsId, NewsReq newsReq , Long userId) {
-        return newsRepository.findById(newsId).map(existingNews -> {
+    public News updateNews(String newsId, NewsReq newsReq , Long userId) {
+        return newsRepository.findByNewsUid(newsId).map(existingNews -> {
             existingNews.setTitle(newsReq.getTitle());
             existingNews.setContent(newsReq.getContent());
             existingNews.setStatus(newsReq.getStatus());
