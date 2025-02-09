@@ -1,6 +1,9 @@
 package com.frontend.res.store;
 
 import com.frontend.entity.poolTable.PoolTable;
+import com.frontend.entity.store.StoreEquipment;
+import com.frontend.entity.store.StorePricingSchedule;
+import com.frontend.entity.vendor.Vendor;
 import jakarta.persistence.Column;
 import lombok.*;
 
@@ -15,5 +18,11 @@ public class AdminStoreRes {
     private String uid;
     private String name;
     private String address;
+    private Vendor vendor;
+    private Set<StoreEquipment> equipments;
     private Set<PoolTable> poolTables;
+    private Set<StorePricingSchedule> pricingSchedules;
+    private Long lat;
+    private Long lon;
+    private Integer deposit;
 }

@@ -83,12 +83,16 @@ public class VendorService {
 
 		// **解除 User 关联**
 		for (User user : vendor.getUsers()) {
-			user.setVendor(null);
+			// 解除与 Vendor 的关联，确保将 vendor_id 设置为 null
+			user.setVendor(null); // 解除与 Vendor 的关联
 			userRepository.save(user);
 		}
 
+		// 删除 Vendor
 		vendorRepository.delete(vendor);
 	}
+
+
 
 	// **获取 Vendor 下的所有 Store**
 	public List<Store> getStoresByVendor(Vendor vendor) {

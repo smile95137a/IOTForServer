@@ -75,6 +75,7 @@ public class AdminVendorController {
             vendorService.deleteVendor(uid);
             return ResponseEntity.ok(ResponseUtils.error(true));
         } catch (RuntimeException e) {
+            e.printStackTrace();
             return ResponseEntity.ok(ResponseUtils.error(9999, e.getMessage(), null));
         }
     }

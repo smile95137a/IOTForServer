@@ -88,6 +88,7 @@ public class AdminPoolTableController {
             ApiResponse<Void> success = ResponseUtils.success(null);
             return ResponseEntity.ok(success);
         } catch (RuntimeException e) {
+            e.printStackTrace();
             ApiResponse<Void> error = ResponseUtils.error(null);
             return ResponseEntity.ok(error);
         }

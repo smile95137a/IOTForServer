@@ -108,7 +108,15 @@ public class AdminStoreService {
 				.id(store.getId())
 				.uid(store.getUid())
 				.name(store.getName())
-				.address(store.getAddress());
+				.address(store.getAddress())
+				.lat(store.getLat())
+				.lon(store.getLon())
+				.deposit(store.getDeposit())
+				.vendor(store.getVendor())
+				.equipments(store.getEquipments())
+				.poolTables(store.getPoolTables())
+				.pricingSchedules(store.getPricingSchedules());
+
 
 		// 只在 poolTables 不为 null 时设置 poolTables
 		if (store.getPoolTables() != null) {

@@ -6,6 +6,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import com.frontend.res.poolTable.AdminPoolTableRes;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -104,6 +105,7 @@ public class AdminPoolTableService {
 
 
     // Delete a pool table
+    @Transactional
     public void deletePoolTable(String uid) {
         poolTableRepository.deleteByUid(uid);
     }
