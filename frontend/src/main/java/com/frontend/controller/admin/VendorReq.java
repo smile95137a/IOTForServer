@@ -18,5 +18,4 @@ public class VendorReq {
 	private String name;
 	private String contactInfo;
 	private Set<Store> store;
-	private Long userId;
 }

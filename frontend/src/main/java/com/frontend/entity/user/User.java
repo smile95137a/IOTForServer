@@ -1,5 +1,6 @@
 package com.frontend.entity.user;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.frontend.entity.role.Role;
 import com.frontend.entity.vendor.Vendor;
 import jakarta.persistence.*;
@@ -63,9 +64,11 @@ public class User implements Serializable {
 	@Builder.Default
 	private Set<Role> roles = new HashSet<>();
 
-	@ManyToOne
-	@JoinColumn(name = "vendor_id")  // 外鍵指向廠商
-	private Vendor vendor;  // 用戶對應的廠商
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "vendor_id")
+	@JsonBackReference
+	private Vendor vendor;
+
 
 	@Column
 	private LocalDateTime createTime;

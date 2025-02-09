@@ -1,5 +1,6 @@
 package com.frontend.entity.vendor;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.frontend.entity.store.Store;
 import com.frontend.entity.user.User;
 import jakarta.persistence.*;
@@ -47,5 +48,6 @@ public class Vendor {
     private Long updateUserId;
 
     @OneToMany(mappedBy = "vendor", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @JsonManagedReference
     private Set<User> users = new HashSet<>(); // 這個 Vendor 管理的 Users
 }
