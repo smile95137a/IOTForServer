@@ -243,7 +243,7 @@ public class GameService {
     public void checkout(CheckoutReq checkoutReq , Long id) {
         // 获取当前用户
         User user = userRepository.findById(id).get(); // 假设有一个获取当前用户的方式
-        GameOrder game = gameOrderRepository.findGameId(checkoutReq.getGameId());
+        GameOrder game = gameOrderRepository.findByGameId(checkoutReq.getGameId());
         // 根据支付类型进行判断
         switch (checkoutReq.getPayType()) {
             case "1": // 儲值金支付
