@@ -177,14 +177,14 @@ public class GameService {
 
         LocalTime currentTime = startTime.toLocalTime();
         long elapsedMinutes = totalMinutes;
-
+        DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
         // 计算在优惠时段和普通时段内的价格
         while (elapsedMinutes > 0) {
             // 将优惠和常规时段的时间字符串转换为 LocalTime
-            LocalTime discountStartTime = LocalTime.parse(currentSchedule.getDiscountStartTime(), DateTimeFormatter.ofPattern("HH:mm:ss"));
-            LocalTime discountEndTime = LocalTime.parse(currentSchedule.getDiscountEndTime(), DateTimeFormatter.ofPattern("HH:mm:ss"));
-            LocalTime regularStartTime = LocalTime.parse(currentSchedule.getRegularStartTime(), DateTimeFormatter.ofPattern("HH:mm:ss"));
-            LocalTime regularEndTime = LocalTime.parse(currentSchedule.getRegularEndTime(), DateTimeFormatter.ofPattern("HH:mm:ss"));
+            LocalTime discountStartTime = LocalTime.parse(currentSchedule.getDiscountStartTime(), timeFormatter);
+            LocalTime discountEndTime = LocalTime.parse(currentSchedule.getDiscountEndTime(), timeFormatter);
+            LocalTime regularStartTime = LocalTime.parse(currentSchedule.getRegularStartTime(), timeFormatter);
+            LocalTime regularEndTime = LocalTime.parse(currentSchedule.getRegularEndTime(), timeFormatter);
 
             // 判断当前时间是否在优惠时段内
             if (isTimeInRange(currentTime, discountStartTime, discountEndTime)) {
