@@ -1,5 +1,6 @@
 package com.frontend.entity.vendor;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.frontend.entity.store.Store;
 import com.frontend.entity.user.User;
@@ -49,5 +50,6 @@ public class Vendor {
 
     @OneToMany(mappedBy = "vendor", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonManagedReference
+    @JsonIgnore
     private Set<User> users = new HashSet<>(); // 這個 Vendor 管理的 Users
 }
