@@ -5,17 +5,15 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @AllArgsConstructor
-@NoArgsConstructor
 @Data
-public class GameReq {
+@NoArgsConstructor
+public class CheckoutReq {
 
     private Integer price;
 
-    private String userUid;
+    private String payType;
 
-    private String gameId;
-
-    private Integer gamePrice;
+    private String userUId;
 
     private String poolTableUId;
 }

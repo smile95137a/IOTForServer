@@ -1,15 +1,12 @@
 package com.frontend.res.store;
 
-import com.frontend.entity.poolTable.PoolTable;
-import jakarta.persistence.Column;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
-import java.util.Set;
-
 @Getter
+@Setter
 @ToString
 @AllArgsConstructor
 public class StoreRes {
@@ -21,11 +18,9 @@ public class StoreRes {
     private Long inusesCount;
     private Long lat;
     private Long lon;
-    private Integer regularRate;
-    private Integer discountRate;
-    private String regularDateRange;
-    private String discountDateRange;
-    private String regularTimeRange;
-    private String discountTimeRange;
     private Integer deposit;
+    private Integer regularRate;      // 新增字段
+    private Integer discountRate;     // 新增字段
+    private String regularTimeRange;  // 新增字段
 }
+

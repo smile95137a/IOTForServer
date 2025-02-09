@@ -3,16 +3,22 @@ package com.frontend.service;
 
 import com.frontend.entity.game.GameOrder;
 import com.frontend.entity.game.GameRecord;
+import com.frontend.entity.poolTable.PoolTable;
+import com.frontend.entity.store.Store;
+import com.frontend.entity.store.StorePricingSchedule;
+import com.frontend.entity.transection.GameTransactionRecord;
 import com.frontend.entity.user.User;
-import com.frontend.repo.GameOrderRepository;
-import com.frontend.repo.GameRecordRepository;
-import com.frontend.repo.UserRepository;
+import com.frontend.entity.vendor.Vendor;
+import com.frontend.repo.*;
+import com.frontend.req.game.CheckoutReq;
 import com.frontend.req.game.GameReq;
+import com.frontend.res.game.GameResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.Duration;
-import java.time.LocalDateTime;
+import java.time.*;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -27,90 +33,261 @@ public class GameService {
     @Autowired
     private GameOrderRepository gameOrderRepository;
 
+    @Autowired
+    private PoolTableRepository poolTableRepository;
+
+    @Autowired
+    private StoreRepository storeRepository;
+
+    @Autowired
+    private VendorRepository vendorRepository;
+
+    @Autowired
+    private StorePricingScheduleRepository storePricingScheduleRepository;
+
+    @Autowired
+    private GameTransactionRecordRepository gameTransactionRecordRepository;
+
     public void startGame(GameReq gameReq) throws Exception {
         // 查詢用戶
         User byUid = userRepository.findByUid(gameReq.getUserUid());
+        PoolTable byStoreUid = poolTableRepository.findByUid(gameReq.getPoolTableUId()).get();
+        Store store = storeRepository.findById(byStoreUid.getId()).get();
+        Vendor vendor = vendorRepository.findById(store.getId()).get();
+        List<StorePricingSchedule> pricingSchedules = storePricingScheduleRepository.findByStoreId(store.getId());
+
+        // 获取当前日期对应星期几
+        DayOfWeek currentDay = LocalDate.now().getDayOfWeek();
+
+        // 查找当天对应的优惠时段和普通时段
+        StorePricingSchedule currentSchedule = null;
+        for (StorePricingSchedule schedule : pricingSchedules) {
+            if (schedule.getDayOfWeek().equals(currentDay.toString())) {
+                currentSchedule = schedule;
+                break;
+            }
+        }
+
+        if (currentSchedule == null) {
+            throw new Exception("沒找到金額");
+        }
+
+        // 計算價格
+        int regularRateAmount = 0;
+        int discountRateAmount = 0;
+
+        discountRateAmount = currentSchedule.getDiscountRate();
+        regularRateAmount = currentSchedule.getRegularRate();
 
         // 扣除押金
-        int newAmount = byUid.getAmount() - gameReq.getPrice();
+        int newAmount = byUid.getAmount() - gameReq.getGamePrice();
         if (newAmount < 0) {
-            throw new Exception("押金不足，請儲值");
+            throw new Exception("儲值金不足，請儲值");
         } else {
             byUid.setAmount(newAmount);
             userRepository.save(byUid);
         }
 
         // 計算遊戲開始時間
-        LocalDateTime startTime = LocalDateTime.now();// 獲取當前時間戳
+        LocalDateTime startTime = LocalDateTime.now(); // 獲取當前時間戳
 
         // 創建遊戲紀錄並保存
         GameRecord gameRecord = new GameRecord();
         gameRecord.setGameId(UUID.randomUUID().toString()); // 生成UUID
         gameRecord.setStartTime(startTime);
         gameRecord.setUserUid(gameReq.getUserUid());
-        gameRecord.setPrice(gameReq.getPrice());
+        gameRecord.setPrice(gameReq.getPrice()); // 設置押金
         gameRecord.setStatus("STARTED"); // 設置狀態為開始
+        gameRecord.setStoreId(store.getId());
+        gameRecord.setStoreName(store.getName());
+        gameRecord.setVendorId(vendor.getId());
+        gameRecord.setVendorName(vendor.getName());
+        gameRecord.setContactInfo(vendor.getContactInfo());
+        gameRecord.setPoolTableId(byStoreUid.getId());
+        gameRecord.setPoolTableName(byStoreUid.getTableNumber());
+
+        // 設置一般時段的金額以及優惠時段的金額
+        gameRecord.setRegularRateAmount(regularRateAmount);
+        gameRecord.setDiscountRateAmount(discountRateAmount);
+
         gameRecordRepository.save(gameRecord);  // 儲存遊戲紀錄
 
-        //開啟桌台使用
+        // 開啟桌台使用
+        byStoreUid.setIsUse(true);
+        poolTableRepository.save(byStoreUid);
 
-        // 返回時間戳或其他需要的資料給前端
-        // 例如：gameRecord.getStartTime() 或者使用時間戳轉換
-
-
+        // 返回时间戳或其他需要的資料給前端
     }
 
-    public void endGame(GameReq gameReq) throws Exception {
+    private boolean isTimeInRange(LocalTime currentTime, LocalTime startTime, LocalTime endTime) {
+        // 判断当前时间是否在开始时间和结束时间之间
+        return !currentTime.isBefore(startTime) && !currentTime.isAfter(endTime);
+    }
 
-        //計算遊玩時間
-        // Step 1: 取得遊戲的開始和結束時間
+
+
+
+    public GameResponse endGame(GameReq gameReq) throws Exception {
+        // 取得遊戲紀錄
         GameRecord byGameId = gameRecordRepository.findByGameId(gameReq.getGameId());
         LocalDateTime startTime = byGameId.getStartTime();
-        LocalDateTime endTime = gameReq.getEndTime();
+        LocalDateTime endTime = LocalDateTime.now(); // 當前時間為結束時間
 
         // 確保結束時間不早於開始時間
         if (endTime.isBefore(startTime)) {
             throw new Exception("結束時間不能早於開始時間");
         }
 
-        // Step 2: 計算兩者之間的時間差
+        // 計算遊玩時間的時間差
         Duration duration = Duration.between(startTime, endTime);  // 計算時間差
+        long totalMinutes = duration.toMinutes();  // 總分鐘數
 
-        // Step 3: 取得總分鐘數
-        long totalMinutes = duration.toMinutes();
-
-        // Step 4: 計算以小時計算的總時長
+        // 計算以小時計算的總時長，向上取整
         long totalHours = (long) Math.ceil((double) totalMinutes / 60);  // 向上取整
 
-        // Step 5: 根據總時長計算價格（假設每小時價格為 pricePerHour）
-        int pricePerHour = gameReq.getGamePrice();  // 假設每小時的價格為 100
-        double totalPrice = totalHours * pricePerHour;
+        // 計算遊戲價格 (假設每小時的價格為 pricePerHour)
+        int pricePerHour = gameReq.getGamePrice();  // 用戶提交的遊戲價格 (押金)
+        double totalPrice = totalHours * pricePerHour;  // 根據小時計算的總價格
 
-        //扣除遊玩時間算法
+        // 退還押金
         User byUid = userRepository.findByUid(gameReq.getUserUid());
-        int newAmount = byUid.getAmount() - (int)totalPrice;
-        if (newAmount < 0) {
-            throw new Exception("押金不足，請儲值");
-        } else {
-            byUid.setAmount(newAmount);
-            userRepository.save(byUid);
+        int newAmount = byUid.getAmount() + gameReq.getGamePrice();  // 退還押金
+        byUid.setAmount(newAmount);
+        userRepository.save(byUid);
+
+        // 查找 Store 的一班時段和優惠時段
+        Store store = storeRepository.findById(byGameId.getStoreId()).get();
+        List<StorePricingSchedule> pricingSchedules = storePricingScheduleRepository.findByStoreId(store.getId());
+
+        // 获取当前日期对应星期几
+        DayOfWeek currentDay = LocalDate.now().getDayOfWeek();
+
+        // 找到当天对应的所有时段
+        StorePricingSchedule currentSchedule = null;
+        for (StorePricingSchedule schedule : pricingSchedules) {
+            if (schedule.getDayOfWeek().equals(currentDay.toString())) {
+                currentSchedule = schedule;
+                break;
+            }
         }
 
-        // Step 7: 創建遊玩訂單（假設 GameOrder 是遊戲訂單實體）
+        if (currentSchedule == null) {
+            throw new Exception("今天的時段信息未找到");
+        }
+
+        // 计算根据时段调整的价格
+        double adjustedPrice = 0;
+
+        LocalTime currentTime = startTime.toLocalTime();
+        long elapsedMinutes = totalMinutes;
+
+        // 计算在优惠时段和普通时段内的价格
+        while (elapsedMinutes > 0) {
+            // 将优惠和常规时段的时间字符串转换为 LocalTime
+            LocalTime discountStartTime = LocalTime.parse(currentSchedule.getDiscountStartTime(), DateTimeFormatter.ofPattern("HH:mm:ss"));
+            LocalTime discountEndTime = LocalTime.parse(currentSchedule.getDiscountEndTime(), DateTimeFormatter.ofPattern("HH:mm:ss"));
+            LocalTime regularStartTime = LocalTime.parse(currentSchedule.getRegularStartTime(), DateTimeFormatter.ofPattern("HH:mm:ss"));
+            LocalTime regularEndTime = LocalTime.parse(currentSchedule.getRegularEndTime(), DateTimeFormatter.ofPattern("HH:mm:ss"));
+
+            // 判断当前时间是否在优惠时段内
+            if (isTimeInRange(currentTime, discountStartTime, discountEndTime)) {
+                // 优惠时段内
+                long discountMinutes = Math.min(elapsedMinutes, Duration.between(currentTime, discountEndTime).toMinutes());
+                adjustedPrice += discountMinutes * currentSchedule.getDiscountRate() / 60.0;  // 根据分钟数计算优惠时段价格
+                elapsedMinutes -= discountMinutes;
+                currentTime = currentTime.plusMinutes(discountMinutes);
+            }
+
+            // 判断当前时间是否在常规时段内
+            if (elapsedMinutes > 0 && isTimeInRange(currentTime, regularStartTime, regularEndTime)) {
+                // 常规时段内
+                long regularMinutes = Math.min(elapsedMinutes, Duration.between(currentTime, regularEndTime).toMinutes());
+                adjustedPrice += regularMinutes * currentSchedule.getRegularRate() / 60.0;  // 根据分钟数计算常规时段价格
+                elapsedMinutes -= regularMinutes;
+                currentTime = currentTime.plusMinutes(regularMinutes);
+            }
+
+            // 如果不在时段范围内，跳到下一个时段
+            if (elapsedMinutes > 0 && !isTimeInRange(currentTime, discountStartTime, discountEndTime) &&
+                    !isTimeInRange(currentTime, regularStartTime, regularEndTime)) {
+                // 计算完当前时段后，跳到下一个时段
+                currentTime = currentTime.plusMinutes(1);  // 假设时间步长为1分钟
+            }
+        }
+        // 如果有剩余分钟数，根据超时计费
+        if (elapsedMinutes > 0) {
+            adjustedPrice += elapsedMinutes * pricePerHour / 60.0;  // 超出时段后的按小时收费
+        }
+
+        // 更新遊戲訂單紀錄
         GameOrder gameOrder = new GameOrder();
         gameOrder.setUserId(gameReq.getUserUid());
         gameOrder.setGameId(gameReq.getGameId());
-        gameOrder.setTotalPrice(totalPrice);
+        gameOrder.setTotalPrice(adjustedPrice);  // 计算后的总价格
         gameOrder.setStartTime(startTime);
         gameOrder.setEndTime(endTime);
         gameOrder.setDuration(totalHours);
 
         gameOrderRepository.save(gameOrder);  // 儲存遊戲訂單
 
+        // 关闭桌台使用
+        PoolTable poolTable = poolTableRepository.findById(byGameId.getPoolTableId()).get();
+        poolTable.setIsUse(false);
+        poolTableRepository.save(poolTable);
 
-        //結束押金table的狀態為end
+        // 创建 GameResponse 对象返回总秒数和总金额
+        GameResponse response = new GameResponse();
+        response.setTotalSeconds(duration.toSeconds());
+        response.setTotalPrice(adjustedPrice);
 
-        //關閉桌台使用
+        return response;
+    }
 
+    public void checkout(CheckoutReq checkoutReq) {
+        // 获取当前用户
+        User user = userRepository.findByUid(checkoutReq.getUserUId()); // 假设有一个获取当前用户的方式
+
+        // 根据支付类型进行判断
+        switch (checkoutReq.getPayType()) {
+            case "1": // 儲值金支付
+                if (user.getAmount() >= checkoutReq.getPrice()) {
+                    // 扣除储值金
+                    user.setAmount(user.getAmount() - checkoutReq.getPrice());
+                    user.setTotalAmount(user.getTotalAmount() + checkoutReq.getPrice());
+                    userRepository.save(user); // 保存更新后的用户数据
+                } else {
+                    throw new RuntimeException("儲值金不足");
+                }
+                break;
+
+            case "2": // Apple Pay
+                // 在这里处理Apple Pay支付（可以调用第三方支付接口）
+                // 这里只是示意，实际支付处理需要集成相关支付SDK
+                break;
+
+            case "3": // Google Pay
+                // 在这里处理Google Pay支付（可以调用第三方支付接口）
+                // 这里只是示意，实际支付处理需要集成相关支付SDK
+                break;
+
+            default:
+                throw new RuntimeException("无效的支付方式");
+        }
+
+        PoolTable poolTable = poolTableRepository.findByUid(checkoutReq.getPoolTableUId()).get();
+        Store store = storeRepository.findById(poolTable.getStore().getId()).get();
+        // 创建交易记录
+        GameTransactionRecord transactionRecord = GameTransactionRecord.builder()
+                .uid(user.getUid())
+                .amount(checkoutReq.getPrice())
+                .storeName(store.getName()) // 假设有商店名
+                .tableNumber(poolTable.getTableNumber()) // 假设有桌号
+                .transactionDate(LocalDateTime.now())
+                .transactionType("CONSUME")
+                .user(user)
+                .build();
+
+        // 保存交易记录
+        gameTransactionRecordRepository.save(transactionRecord);
     }
 }

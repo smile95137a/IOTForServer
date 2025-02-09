@@ -6,6 +6,7 @@ import com.frontend.entity.poolTable.PoolTable;
 import com.frontend.entity.store.StoreEquipment;
 import com.frontend.entity.vendor.Vendor;
 
+import com.frontend.req.store.StorePricingScheduleReq;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -24,12 +25,5 @@ public class StoreReq {
     private Integer regularRate;
     private Integer discountRate;
     private Integer deposit;
-    private String regularDateRangeStart;
-    private String regularDateRangeEnd;
-    private String discountDateRangeStart;
-    private String discountDateRangeEnd;
-    private String regularTimeRangeStart;
-    private String regularTimeRangeEnd;
-    private String discountTimeRangeStart;
-    private String discountTimeRangeEnd;
+    private Set<StorePricingScheduleReq> pricingSchedules;
 }

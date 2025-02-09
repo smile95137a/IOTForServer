@@ -28,4 +28,24 @@ public class GameRecord {
     private int price;      // 押金金額
     @Column
     private String status;  // 狀態 (開始 / 結束等)
+    @Column
+    private Long storeId;
+    @Column
+    private String storeName;
+    @Column
+    private Long vendorId;
+    @Column
+    private String vendorName;
+    @Column
+    private String contactInfo;
+    @Column
+    private Long poolTableId;
+    @Column
+    private String poolTableName;
+
+    // 新增字段
+    @Column
+    private Integer regularRateAmount; // 一班时段的金额
+    @Column
+    private Integer discountRateAmount; // 优惠时段的金额
 }

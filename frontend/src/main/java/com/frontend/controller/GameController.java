@@ -1,8 +1,8 @@
 package com.frontend.controller;
 
 import com.frontend.config.message.ApiResponse;
+import com.frontend.req.game.CheckoutReq;
 import com.frontend.req.game.GameReq;
-import com.frontend.res.store.StoreRes;
 import com.frontend.service.GameService;
 import com.frontend.utils.ResponseUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -10,8 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Collections;
-import java.util.List;
 
 @Slf4j
 @RestController
@@ -38,6 +36,20 @@ public class GameController {
     public ResponseEntity<ApiResponse<?>> endGame(@RequestBody GameReq gameReq) {
         try {
             gameService.endGame(gameReq);
+        }catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.ok(ResponseUtils.error(9999, e.getMessage(), null));
+        }
+
+
+        return ResponseEntity.ok(null);
+    }
+
+
+    @PostMapping("/checkout")
+    public ResponseEntity<ApiResponse<?>> checkout(@RequestBody CheckoutReq checkoutReq) {
+        try {
+            gameService.checkout(checkoutReq);
         }catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.ok(ResponseUtils.error(9999, e.getMessage(), null));

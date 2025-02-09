@@ -7,7 +7,7 @@ import com.frontend.repo.StoreRepository;
 import com.frontend.res.store.StoreRes;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
+import com.frontend.entity.store.StorePricingSchedule;
 import java.util.List;
 import java.util.Optional;
 
@@ -41,6 +41,22 @@ public class StoreService {
                 .filter(PoolTable::getIsUse)
                 .count();
 
+        // 確保處理 regularRate 和 discountRate 等邏輯
+        Integer regularRate = store.getPricingSchedules().stream()
+                .map(StorePricingSchedule::getRegularRate)
+                .max(Integer::compareTo)
+                .orElse(0);
+
+        Integer discountRate = store.getPricingSchedules().stream()
+                .map(StorePricingSchedule::getDiscountRate)
+                .max(Integer::compareTo)
+                .orElse(0);
+
+        String regularTimeRange = store.getPricingSchedules().stream()
+                .map(schedule -> schedule.getRegularStartTime() + "-" + schedule.getRegularEndTime())
+                .findFirst()
+                .orElse("");
+
         return new StoreRes(
                 store.getId(),
                 store.getUid(),
@@ -50,13 +66,11 @@ public class StoreService {
                 inUseCount,
                 store.getLat(),
                 store.getLon(),
-                store.getRegularRate(),
-                store.getDiscountRate(),
-                store.getRegularDateRange(),
-                store.getDiscountDateRange(),
-                store.getRegularTimeRange(),
-                store.getDiscountTimeRange(),
-                store.getDeposit()
+                store.getDeposit(),
+                regularRate,
+                discountRate,
+                regularTimeRange
         );
     }
+
 }
