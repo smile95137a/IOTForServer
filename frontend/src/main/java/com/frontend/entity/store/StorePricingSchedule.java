@@ -1,5 +1,6 @@
 package com.frontend.entity.store;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -18,6 +19,7 @@ public class StorePricingSchedule {
 
     @ManyToOne
     @JoinColumn(name = "store_id", nullable = false)
+    @JsonBackReference
     private Store store; // 關聯的店家
 
     @Column(nullable = false)
