@@ -230,6 +230,9 @@ public class GameService {
         poolTable.setIsUse(false);
         poolTableRepository.save(poolTable);
 
+        byGameId.setStatus("ENDED");
+        gameRecordRepository.save(byGameId);
+
         // 创建 GameResponse 对象返回总秒数和总金额
         GameResponse response = new GameResponse();
         response.setTotalSeconds(duration.toSeconds());

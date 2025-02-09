@@ -22,7 +22,7 @@ public class GameRecordController {
     private GameRecordService gameRecordService;
 
     // 根据 userUid 和 status 查询
-    @GetMapping("/game-records/{userUid}")
+    @GetMapping("/game-records")
     public ResponseEntity<ApiResponse<List<GameRecord>>> getGameRecords() {
         UserPrinciple securityUser = SecurityUtils.getSecurityUser();
         Long id = securityUser.getId();
