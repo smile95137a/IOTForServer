@@ -38,7 +38,7 @@ public class Banner {
     private LocalDateTime updatedAt;
 
     // 新增外鍵關聯
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY , cascade = CascadeType.ALL)
     @JoinColumn(name = "news_id", nullable = false) // 讓 Banner 關聯一則 News
     private News news;
 }

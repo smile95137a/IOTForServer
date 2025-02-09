@@ -134,7 +134,7 @@ public class AdminNewsController {
 
     @PutMapping("/{uid}")
     public ResponseEntity<ApiResponse<News>> updateNews(
-            @PathVariable Long uid,
+            @PathVariable String uid,
             @RequestBody NewsReq newsReq) {
         UserPrinciple securityUser = SecurityUtils.getSecurityUser();
         Long userId = securityUser.getId();

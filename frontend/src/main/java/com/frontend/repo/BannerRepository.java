@@ -17,4 +17,6 @@ public interface BannerRepository extends JpaRepository<Banner, Long> {
     // 透過 ID 查詢 Banner，並關聯對應的 News
     @Query("SELECT b FROM Banner b LEFT JOIN FETCH b.news WHERE b.bannerId = :bannerId")
     Optional<Banner> findByIdWithNews(@Param("bannerId") Long bannerId);
+
+    void deleteByNewsId(Long id);
 }

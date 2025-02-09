@@ -3,10 +3,12 @@ package com.frontend.service;
 import com.frontend.entity.news.News;
 import com.frontend.entity.user.User;
 import com.frontend.enums.NewsStatus;
+import com.frontend.repo.BannerRepository;
 import com.frontend.repo.NewsRepository;
 import com.frontend.repo.UserRepository;
 import com.frontend.req.NewsReq;
 import com.frontend.utils.RandomUtils;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -21,6 +23,9 @@ public class NewsService {
     private NewsRepository newsRepository;
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private BannerRepository bannerRepository;
 
     // Create or Update News
     public News saveNews(NewsReq newsReq, Long userId) {
@@ -54,7 +59,11 @@ public class NewsService {
     }
 
     // Delete News by ID
+    @Transactional
     public void deleteNewsById(String uid) {
+        News news = newsRepository.findByNewsUid(uid).get();
+
+        bannerRepository.deleteByNewsId(news.getId());
         newsRepository.deleteByNewsUid(uid);
     }
 
