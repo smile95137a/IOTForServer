@@ -280,6 +280,7 @@ public class GameService {
                 .storeName(store.getName()) // 假设有商店名
                 .tableNumber(poolTable.getTableNumber()) // 假设有桌号
                 .transactionDate(LocalDateTime.now())
+                .createdAt(LocalDateTime.now())
                 .transactionType("CONSUME")
                 .user(user)
                 .build();
