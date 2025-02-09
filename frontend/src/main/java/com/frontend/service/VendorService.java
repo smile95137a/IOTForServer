@@ -1,10 +1,10 @@
 package com.frontend.service;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
+import com.frontend.entity.user.User;
+import com.frontend.repo.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,10 +24,14 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class VendorService {
 	private final VendorRepository vendorRepository;
-
 	private final StoreRepository storeRepository;
+	private final UserRepository userRepository;
 
+	// **创建Vendor并关联User**
 	public Vendor createVendor(VendorReq vendorReq, Long userId) {
+		User user = userRepository.findById(userId)
+				.orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
+
 		String s = RandomUtils.genRandom(24);
 		Vendor vendor = new Vendor();
 		vendor.setUid(s);
@@ -36,48 +40,68 @@ public class VendorService {
 		vendor.setCreateTime(LocalDateTime.now());
 		vendor.setCreateUserId(userId);
 
-		return vendorRepository.save(vendor);
+		// **将 User 关联到 Vendor**
+		user.setVendor(vendor);
+		vendor.getUsers().add(user);
+
+		// **先保存 Vendor，再保存 User**
+		Vendor savedVendor = vendorRepository.save(vendor);
+		userRepository.save(user);
+
+		return savedVendor;
 	}
 
-	// Retrieve a vendor by ID
-	public Optional<Vendor> getVendorById(String uid) {
+	// **根据 UID 获取 Vendor**
+	public Optional<Vendor> getVendorByUid(String uid) {
 		return vendorRepository.findByUid(uid);
 	}
 
-	// Retrieve all vendors
+	// **获取所有 Vendor**
 	public List<Vendor> getAllVendors() {
 		return vendorRepository.findAll();
 	}
 
-	// Update a vendor
-	public Vendor updateVendor(String uid, VendorReq vendor, Long id) {
-		return vendorRepository.findByUid(uid).map(res -> {
-			res.setName(vendor.getName());
-			res.setContactInfo(vendor.getContactInfo());
-			res.setStores(vendor.getStore());
-			res.setUpdateTime(LocalDateTime.now());
-			res.setUpdateUserId(id);
-			return vendorRepository.save(res);
+	// **更新 Vendor，并保持关联 User**
+	public Vendor updateVendor(String uid, VendorReq vendorReq, Long userId) {
+		User user = userRepository.findById(userId)
+				.orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
+		return vendorRepository.findByUid(uid).map(vendor -> {
+			vendor.setName(vendorReq.getName());
+			vendor.setContactInfo(vendorReq.getContactInfo());
+			vendor.setUpdateTime(LocalDateTime.now());
+			vendor.setUpdateUserId(userId);
+			user.setVendor(vendor);
+			vendor.getUsers().add(user);
+			return vendorRepository.save(vendor);
 		}).orElseThrow(() -> new RuntimeException("Vendor not found with id: " + uid));
 	}
 
-	// Delete a vendor
+	// **删除 Vendor，并解除所有 User 的关联**
 	public void deleteVendor(String uid) {
-		vendorRepository.deleteByUid(uid);
+		Vendor vendor = vendorRepository.findByUid(uid)
+				.orElseThrow(() -> new RuntimeException("Vendor not found with id: " + uid));
+
+		// **解除 User 关联**
+		for (User user : vendor.getUsers()) {
+			user.setVendor(null);
+			userRepository.save(user);
+		}
+
+		vendorRepository.delete(vendor);
 	}
 
-	// 創建商店並與廠商關聯
-	public Store addStoreToVendor(Vendor vendor, Store store) {
-		store.setVendor(vendor); // 設置商店的廠商關聯
-		return storeRepository.save(store); // 保存商店
-	}
-
-	// 根據廠商查詢所有商店
+	// **获取 Vendor 下的所有 Store**
 	public List<Store> getStoresByVendor(Vendor vendor) {
-		return new ArrayList<>(vendor.getStores());
+		return storeRepository.findByVendor(vendor);
 	}
 
-	// 更新商店的廠商關聯
+	// **根据 Vendor 添加 Store**
+	public Store addStoreToVendor(Vendor vendor, Store store) {
+		store.setVendor(vendor);
+		return storeRepository.save(store);
+	}
+
+	// **更新 Store 的 Vendor**
 	public Store updateStoreVendor(Long storeId, Long vendorId) {
 		Store store = storeRepository.findById(storeId)
 				.orElseThrow(() -> new RuntimeException("Store not found with id: " + storeId));
@@ -89,18 +113,11 @@ public class VendorService {
 		return storeRepository.save(store);
 	}
 
-	// 刪除商店並解除廠商關聯
+	// **删除 Store**
 	public void deleteStore(Long storeId) {
 		Store store = storeRepository.findById(storeId)
 				.orElseThrow(() -> new RuntimeException("Store not found with id: " + storeId));
-
-		store.setVendor(null); // 解除廠商與商店的關聯
-		storeRepository.delete(store); // 刪除商店
-	}
-
-	// 根據ID查詢廠商
-	public Optional<Vendor> getVendorById(Long vendorId) {
-		return vendorRepository.findById(vendorId);
+		storeRepository.delete(store);
 	}
 
 }

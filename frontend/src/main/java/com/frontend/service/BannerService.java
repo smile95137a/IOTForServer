@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -78,7 +79,7 @@ public class BannerService {
 
         // 建立 Banner
         Banner banner = new Banner();
-        banner.setBannerUid(bannerReq.getBannerUid());
+        banner.setBannerUid(UUID.randomUUID().toString());
         banner.setStatus(status);
         banner.setNews(news);
         banner.setCreatedAt(java.time.LocalDateTime.now());

@@ -1,12 +1,14 @@
 package com.frontend.entity.vendor;
 
 import com.frontend.entity.store.Store;
+import com.frontend.entity.user.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.Set;
 
 @Data
@@ -43,4 +45,7 @@ public class Vendor {
 
     @Column
     private Long updateUserId;
+
+    @OneToMany(mappedBy = "vendor", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private Set<User> users = new HashSet<>(); // 這個 Vendor 管理的 Users
 }

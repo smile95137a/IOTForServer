@@ -287,5 +287,8 @@ public class GameService {
 
         // 保存交易记录
         gameTransactionRecordRepository.save(transactionRecord);
+
+        game.setStatus("IS_PAY");
+        gameOrderRepository.save(game);
     }
 }

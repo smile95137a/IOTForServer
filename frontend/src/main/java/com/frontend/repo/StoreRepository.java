@@ -1,5 +1,6 @@
 package com.frontend.repo;
 
+import com.frontend.entity.vendor.Vendor;
 import org.springframework.data.jpa.repository.JpaRepository;
 import com.frontend.entity.store.Store;
 import com.frontend.res.store.StoreRes;
@@ -34,4 +35,5 @@ public interface StoreRepository extends JpaRepository<Store, Long> {
 
 	void deleteByUid(String uid);
 
+	List<Store> findByVendor(Vendor vendor);
 }

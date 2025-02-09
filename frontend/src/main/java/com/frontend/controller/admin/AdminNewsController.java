@@ -32,7 +32,9 @@ public class AdminNewsController {
 
     // 获取所有新闻并检查是否已读
     @GetMapping
-    public ResponseEntity<ApiResponse<List<News>>> getAllNews(@RequestParam(required = false) Long userId) {
+    public ResponseEntity<ApiResponse<List<News>>> getAllNews() {
+        UserPrinciple securityUser = SecurityUtils.getSecurityUser();
+        Long userId = securityUser.getId();
         List<News> newsList = newsService.getAllNews();
 
         // 如果是已登錄使用者，檢查每篇新聞是否已讀
