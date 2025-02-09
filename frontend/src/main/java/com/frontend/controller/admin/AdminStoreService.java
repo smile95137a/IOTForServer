@@ -105,6 +105,7 @@ public class AdminStoreService {
 
 	private AdminStoreRes convertToAdminStoreRes(Store store) {
 		AdminStoreRes.AdminStoreResBuilder builder = AdminStoreRes.builder()
+				.id(store.getId())
 				.uid(store.getUid())
 				.name(store.getName())
 				.address(store.getAddress());

@@ -11,7 +11,7 @@ import java.util.Set;
 @AllArgsConstructor
 @Builder
 public class AdminStoreRes {
-
+    private Long id;
     private String uid;
     private String name;
     private String address;

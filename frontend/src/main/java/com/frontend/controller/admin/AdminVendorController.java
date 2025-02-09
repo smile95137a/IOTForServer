@@ -26,12 +26,13 @@ public class AdminVendorController {
     @PostMapping
     public ResponseEntity<ApiResponse<Vendor>> createVendor(@RequestBody VendorReq vendor) {
         try {
-            UserPrinciple securityUser = SecurityUtils.getSecurityUser();
-            Long id = securityUser.getId();
-            Vendor createdVendor = vendorService.createVendor(vendor, id);
+//            UserPrinciple securityUser = SecurityUtils.getSecurityUser();
+//            Long id = securityUser.getId();
+            Vendor createdVendor = vendorService.createVendor(vendor, 4L);
             ApiResponse<Vendor> response = ResponseUtils.success(createdVendor);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
+            e.printStackTrace();
             return ResponseEntity.ok(ResponseUtils.error(9999, e.getMessage(), null));
         }
     }

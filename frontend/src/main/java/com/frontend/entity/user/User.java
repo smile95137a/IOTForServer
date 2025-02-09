@@ -1,6 +1,7 @@
 package com.frontend.entity.user;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.frontend.entity.role.Role;
 import com.frontend.entity.vendor.Vendor;
 import jakarta.persistence.*;
@@ -67,6 +68,7 @@ public class User implements Serializable {
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "vendor_id")
 	@JsonBackReference
+	@JsonIgnore
 	private Vendor vendor;
 
 
