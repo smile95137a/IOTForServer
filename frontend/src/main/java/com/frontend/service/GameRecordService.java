@@ -13,7 +13,7 @@ public class GameRecordService {
     @Autowired
     private GameRecordRepository gameRecordRepository;
 
-    public List<GameRecord> getGameRecordsByUserUidAndStatus(String userUid) {
-        return gameRecordRepository.findByUserUidAndStatus(userUid, "STARTED");
+    public List<GameRecord> getGameRecordsByUserUidAndStatus(Long id) {
+        return gameRecordRepository.findByIdAndStatus(id, "STARTED");
     }
 }

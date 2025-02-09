@@ -1,8 +1,13 @@
 package com.frontend.controller;
 
+import com.frontend.config.message.ApiResponse;
+import com.frontend.config.service.UserPrinciple;
 import com.frontend.entity.game.GameRecord;
 import com.frontend.service.GameRecordService;
+import com.frontend.utils.ResponseUtils;
+import com.frontend.utils.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -18,8 +23,9 @@ public class GameRecordController {
 
     // 根据 userUid 和 status 查询
     @GetMapping("/game-records/{userUid}")
-    public List<GameRecord> getGameRecords(
-            @PathVariable String userUid) {
-        return gameRecordService.getGameRecordsByUserUidAndStatus(userUid);
+    public ResponseEntity<ApiResponse<List<GameRecord>>> getGameRecords() {
+        UserPrinciple securityUser = SecurityUtils.getSecurityUser();
+        Long id = securityUser.getId();
+        return ResponseEntity.ok(ResponseUtils.success(200, "開台成功", gameRecordService.getGameRecordsByUserUidAndStatus(id)));
     }
 }
