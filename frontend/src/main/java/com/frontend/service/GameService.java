@@ -173,7 +173,7 @@ public class GameService {
         }
 
         // 计算根据时段调整的价格
-        double adjustedPrice = 0;
+        int adjustedPrice = 0;
 
         LocalTime currentTime = startTime.toLocalTime();
         long elapsedMinutes = totalMinutes;
@@ -211,7 +211,7 @@ public class GameService {
                 currentTime = currentTime.plusMinutes(1);  // 假设时间步长为1分钟
             }
         }
-
+        PoolTable poolTable = poolTableRepository.findById(byGameId.getPoolTableId()).get();
         // 更新遊戲訂單紀錄
         GameOrder gameOrder = new GameOrder();
         gameOrder.setUserId(byUid.getUid());
@@ -220,11 +220,12 @@ public class GameService {
         gameOrder.setStartTime(startTime);
         gameOrder.setEndTime(endTime);
         gameOrder.setDuration(totalHours);
-
+        gameOrder.setStatus("NO_PAY");
+        gameOrder.setPoolTableUid(poolTable.getUid());
         gameOrderRepository.save(gameOrder);  // 儲存遊戲訂單
 
         // 关闭桌台使用
-        PoolTable poolTable = poolTableRepository.findById(byGameId.getPoolTableId()).get();
+
         poolTable.setIsUse(false);
         poolTableRepository.save(poolTable);
 
@@ -239,17 +240,17 @@ public class GameService {
         return response;
     }
 
-    public void checkout(CheckoutReq checkoutReq) {
+    public void checkout(CheckoutReq checkoutReq , Long id) {
         // 获取当前用户
-        User user = userRepository.findByUid(checkoutReq.getUserUId()); // 假设有一个获取当前用户的方式
-
+        User user = userRepository.findById(id).get(); // 假设有一个获取当前用户的方式
+        GameOrder game = gameOrderRepository.findGameId(checkoutReq.getGameId());
         // 根据支付类型进行判断
         switch (checkoutReq.getPayType()) {
             case "1": // 儲值金支付
-                if (user.getAmount() >= checkoutReq.getPrice()) {
+                if (user.getAmount() >= game.getTotalPrice()) {
                     // 扣除储值金
-                    user.setAmount(user.getAmount() - checkoutReq.getPrice());
-                    user.setTotalAmount(user.getTotalAmount() + checkoutReq.getPrice());
+                    user.setAmount(user.getAmount() - game.getTotalPrice());
+                    user.setTotalAmount(user.getTotalAmount() + game.getTotalPrice());
                     userRepository.save(user); // 保存更新后的用户数据
                 } else {
                     throw new RuntimeException("儲值金不足");
@@ -270,12 +271,12 @@ public class GameService {
                 throw new RuntimeException("无效的支付方式");
         }
 
-        PoolTable poolTable = poolTableRepository.findByUid(checkoutReq.getPoolTableUId()).get();
+        PoolTable poolTable = poolTableRepository.findByUid(game.getPoolTableUid()).get();
         Store store = storeRepository.findById(poolTable.getStore().getId()).get();
         // 创建交易记录
         GameTransactionRecord transactionRecord = GameTransactionRecord.builder()
                 .uid(user.getUid())
-                .amount(checkoutReq.getPrice())
+                .amount(game.getTotalPrice())
                 .storeName(store.getName()) // 假设有商店名
                 .tableNumber(poolTable.getTableNumber()) // 假设有桌号
                 .transactionDate(LocalDateTime.now())

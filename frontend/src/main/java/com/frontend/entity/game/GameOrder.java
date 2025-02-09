@@ -25,7 +25,7 @@ public class GameOrder {
     private String gameId; // 遊戲ID
 
     @Column(nullable = false)
-    private double totalPrice; // 總價格
+    private Integer totalPrice; // 總價格
 
     @Column(nullable = false)
     private LocalDateTime startTime; // 遊戲開始時間
@@ -35,4 +35,10 @@ public class GameOrder {
 
     @Column(nullable = false)
     private long duration; // 遊玩時長（小時）
+
+    @Column(nullable = false)
+    private String status;
+
+    @Column(nullable = false)
+    private String poolTableUid;
 }

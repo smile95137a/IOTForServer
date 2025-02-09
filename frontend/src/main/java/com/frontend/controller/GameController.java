@@ -55,7 +55,9 @@ public class GameController {
     @PostMapping("/checkout")
     public ResponseEntity<ApiResponse<?>> checkout(@RequestBody CheckoutReq checkoutReq) {
         try {
-            gameService.checkout(checkoutReq);
+            UserPrinciple securityUser = SecurityUtils.getSecurityUser();
+            Long id = securityUser.getId();
+            gameService.checkout(checkoutReq , id);
         }catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.ok(ResponseUtils.error(9999, e.getMessage(), null));

@@ -9,11 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class CheckoutReq {
 
-    private Integer price;
-
     private String payType;
 
-    private String userUId;
-
-    private String poolTableUId;
+    private String gameId;
 }
