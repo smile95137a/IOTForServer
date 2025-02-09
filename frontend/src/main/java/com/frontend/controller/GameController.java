@@ -58,13 +58,13 @@ public class GameController {
             UserPrinciple securityUser = SecurityUtils.getSecurityUser();
             Long id = securityUser.getId();
             gameService.checkout(checkoutReq , id);
+            return ResponseEntity.ok(ResponseUtils.success(true));
         }catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.ok(ResponseUtils.error(9999, e.getMessage(), null));
         }
 
 
-        return ResponseEntity.ok(null);
     }
 
 }
