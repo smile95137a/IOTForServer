@@ -70,10 +70,10 @@ public class AdminVendorController {
 
     // Delete a vendor
     @DeleteMapping("/{uid}")
-    public ResponseEntity<ApiResponse<Void>> deleteVendor(@PathVariable String uid) {
+    public ResponseEntity<ApiResponse<?>> deleteVendor(@PathVariable String uid) {
         try {
             vendorService.deleteVendor(uid);
-            return ResponseEntity.noContent().build();
+            return ResponseEntity.ok(ResponseUtils.error(true));
         } catch (RuntimeException e) {
             return ResponseEntity.ok(ResponseUtils.error(9999, e.getMessage(), null));
         }
@@ -90,13 +90,4 @@ public class AdminVendorController {
         }
     }
 
-    @DeleteMapping("/{storeId}")
-    public ResponseEntity<ApiResponse<Void>> deleteStore(@PathVariable Long storeId) {
-        try {
-            vendorService.deleteStore(storeId);
-            return ResponseEntity.noContent().build();
-        } catch (Exception e) {
-            return ResponseEntity.ok(ResponseUtils.error(9999, e.getMessage(), null));
-        }
-    }
 }

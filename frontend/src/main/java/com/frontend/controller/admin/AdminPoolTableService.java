@@ -63,6 +63,7 @@ public class AdminPoolTableService {
 
     private AdminPoolTableRes convertToAdminPoolTableRes(PoolTable poolTable) {
         AdminPoolTableRes.AdminPoolTableResBuilder builder = AdminPoolTableRes.builder()
+                .storeId(poolTable.getStore().getId())
                 .uid(poolTable.getUid())
                 .tableNumber(poolTable.getTableNumber())
                 .status(poolTable.getStatus());

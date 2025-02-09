@@ -75,8 +75,8 @@ public class VendorService {
 			return vendorRepository.save(vendor);
 		}).orElseThrow(() -> new RuntimeException("Vendor not found with id: " + uid));
 	}
-
 	// **删除 Vendor，并解除所有 User 的关联**
+	@Transactional
 	public void deleteVendor(String uid) {
 		Vendor vendor = vendorRepository.findByUid(uid)
 				.orElseThrow(() -> new RuntimeException("Vendor not found with id: " + uid));
