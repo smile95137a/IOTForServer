@@ -52,26 +52,27 @@ public class GameService {
         // 查詢用戶
         User byUid = userRepository.findById(id).get();
         PoolTable byStoreUid = poolTableRepository.findByUid(gameReq.getPoolTableUId()).get();
-        Store store = storeRepository.findById(byStoreUid.getId()).get();
+        Store store = storeRepository.findById(byStoreUid.getStore().getId()).get();
         Vendor vendor = vendorRepository.findById(store.getId()).get();
         List<StorePricingSchedule> pricingSchedules = storePricingScheduleRepository.findByStoreId(store.getId());
 
-        // 获取当前日期对应星期几
-        int currentDayNumber = LocalDate.now().getDayOfWeek().getValue();  // 获取1-7的数字，1代表星期一，7代表星期天
+        // 获取当前日期对应星期几，转换为字符串
+        String currentDayString = LocalDate.now().getDayOfWeek().toString().toLowerCase();  // 获取当前星期几的英文名（全小写）
 
 // 查找当天对应的优惠时段和普通时段
         StorePricingSchedule currentSchedule = null;
         for (StorePricingSchedule schedule : pricingSchedules) {
-            // 将数据库中的 "1-7" 字符串与当前的数字进行比较
-            if (schedule.getDayOfWeek().equals(String.valueOf(currentDayNumber))) {
+            // 将数据库中的 "sunday", "monday" 等与当前的字符串进行比较
+            if (schedule.getDayOfWeek().toLowerCase().equals(currentDayString)) {
                 currentSchedule = schedule;
                 break;
             }
         }
 
         if (currentSchedule == null) {
-            throw new Exception("没找到金额");
+            throw new Exception("没有找到当天的时段信息");
         }
+
 
 
         // 計算價格
