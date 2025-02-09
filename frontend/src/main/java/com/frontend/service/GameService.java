@@ -157,21 +157,19 @@ public class GameService {
 
         // 查找 Store 的一班時段和優惠時段
         List<StorePricingSchedule> pricingSchedules = storePricingScheduleRepository.findByStoreId(store.getId());
-
-        // 获取当前日期对应星期几
-        DayOfWeek currentDay = LocalDate.now().getDayOfWeek();
-
-        // 找到当天对应的所有时段
+        String currentDayString = LocalDate.now().getDayOfWeek().toString().toLowerCase();  // 获取当前星期几的英文名（全小写）
+// 查找当天对应的优惠时段和普通时段
         StorePricingSchedule currentSchedule = null;
         for (StorePricingSchedule schedule : pricingSchedules) {
-            if (schedule.getDayOfWeek().equals(currentDay.toString())) {
+            // 将数据库中的 "sunday", "monday" 等与当前的字符串进行比较
+            if (schedule.getDayOfWeek().toLowerCase().equals(currentDayString)) {
                 currentSchedule = schedule;
                 break;
             }
         }
 
         if (currentSchedule == null) {
-            throw new Exception("今天的時段信息未找到");
+            throw new Exception("没有找到当天的时段信息");
         }
 
         // 计算根据时段调整的价格

@@ -5,6 +5,7 @@ import com.frontend.config.service.UserPrinciple;
 import com.frontend.entity.game.GameRecord;
 import com.frontend.req.game.CheckoutReq;
 import com.frontend.req.game.GameReq;
+import com.frontend.res.game.GameResponse;
 import com.frontend.service.GameService;
 import com.frontend.utils.ResponseUtils;
 import com.frontend.utils.SecurityUtils;
@@ -40,14 +41,14 @@ public class GameController {
         try {
             UserPrinciple securityUser = SecurityUtils.getSecurityUser();
             Long id = securityUser.getId();
-            gameService.endGame(gameReq , id);
+            GameResponse gameResponse = gameService.endGame(gameReq, id);
+            return ResponseEntity.ok(ResponseUtils.success(200, "開台成功", gameResponse));
         }catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.ok(ResponseUtils.error(9999, e.getMessage(), null));
         }
 
 
-        return ResponseEntity.ok(null);
     }
 
 
