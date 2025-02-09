@@ -73,7 +73,7 @@ public class AdminVendorController {
     public ResponseEntity<ApiResponse<?>> deleteVendor(@PathVariable String uid) {
         try {
             vendorService.deleteVendor(uid);
-            return ResponseEntity.ok(ResponseUtils.error(true));
+            return ResponseEntity.ok(ResponseUtils.success(true));
         } catch (RuntimeException e) {
             e.printStackTrace();
             return ResponseEntity.ok(ResponseUtils.error(9999, e.getMessage(), null));
