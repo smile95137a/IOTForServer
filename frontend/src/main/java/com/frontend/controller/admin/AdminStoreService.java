@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 
 import com.frontend.entity.store.StorePricingSchedule;
 import com.frontend.repo.StorePricingScheduleRepository;
+import com.frontend.req.store.StorePricingScheduleReq;
 import com.frontend.res.store.AdminStoreRes;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -148,32 +149,33 @@ public class AdminStoreService {
 				store.setPoolTables(storeReq.getPoolTables());
 			}
 
-			// 更新时段信息
+			// **修正 pricingSchedules 逻辑**
 			if (storeReq.getPricingSchedules() != null) {
-				// 这里将 StoreReq 中的 pricingSchedules 映射到 Store 实体中
-				store.setPricingSchedules(storeReq.getPricingSchedules().stream()
-						.map(scheduleReq -> {
-							StorePricingSchedule schedule = new StorePricingSchedule();
-							schedule.setDayOfWeek(scheduleReq.getDayOfWeek());
-							schedule.setRegularStartTime(scheduleReq.getRegularStartTime());
-							schedule.setRegularEndTime(scheduleReq.getRegularEndTime());
-							schedule.setRegularRate(scheduleReq.getRegularRate());
-							schedule.setDiscountStartTime(scheduleReq.getDiscountStartTime());
-							schedule.setDiscountEndTime(scheduleReq.getDiscountEndTime());
-							schedule.setDiscountRate(scheduleReq.getDiscountRate());
-							schedule.setStore(store); // 关联到当前的 store
-							return schedule;
-						})
-						.collect(Collectors.toSet()));
+				// **清空原集合，避免 orphanRemoval 触发异常**
+				store.getPricingSchedules().clear();
+
+				for (StorePricingScheduleReq scheduleReq : storeReq.getPricingSchedules()) {
+					StorePricingSchedule schedule = new StorePricingSchedule();
+					schedule.setDayOfWeek(scheduleReq.getDayOfWeek());
+					schedule.setRegularStartTime(scheduleReq.getRegularStartTime());
+					schedule.setRegularEndTime(scheduleReq.getRegularEndTime());
+					schedule.setRegularRate(scheduleReq.getRegularRate());
+					schedule.setDiscountStartTime(scheduleReq.getDiscountStartTime());
+					schedule.setDiscountEndTime(scheduleReq.getDiscountEndTime());
+					schedule.setDiscountRate(scheduleReq.getDiscountRate());
+					schedule.setStore(store); // 重要：确保 store 仍然关联
+					store.getPricingSchedules().add(schedule);
+				}
 			}
 
-			// 更新修改时间 & 用户
-			store.setUpdateTime(LocalDateTime.now()); // 设置当前时间
+			// **更新修改时间 & 用户**
+			store.setUpdateTime(LocalDateTime.now());
 			store.setUpdateUserId(id);
 
 			return storeRepository.save(store);
 		}).orElseThrow(() -> new RuntimeException("Store not found with uid: " + uid));
 	}
+
 
 
 

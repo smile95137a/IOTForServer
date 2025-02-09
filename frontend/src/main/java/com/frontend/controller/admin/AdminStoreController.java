@@ -62,12 +62,13 @@ public class AdminStoreController {
     @PutMapping("/{uid}")
     public ResponseEntity<ApiResponse<Store>> updateStore(@PathVariable String uid, @RequestBody StoreReq store) {
         try {
-            UserPrinciple securityUser = SecurityUtils.getSecurityUser();
-            Long id = securityUser.getId();
-            Store storeObj = storeService.updateStore(uid, store , id);
+//            UserPrinciple securityUser = SecurityUtils.getSecurityUser();
+//            Long id = securityUser.getId();
+            Store storeObj = storeService.updateStore(uid, store , 4L);
             ApiResponse<Store> success = ResponseUtils.success(storeObj);
             return ResponseEntity.ok(success);
         } catch (RuntimeException e) {
+            e.printStackTrace();
             ApiResponse<Store> error = ResponseUtils.error(null);
             return ResponseEntity.ok(error);
         }
