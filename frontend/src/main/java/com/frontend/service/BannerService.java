@@ -99,7 +99,7 @@ public class BannerService {
         News news = newsRepository.findById(newsId)
                 .orElseThrow(() -> new RuntimeException("News not found"));
 // 更新 Banner 的欄位
-        banner.setBannerUid(bannerUid);
+        banner.setBannerUid(banner.getBannerUid());
         banner.setStatus(status);
         banner.setNews(banner.getNews());
         banner.setUpdatedAt(java.time.LocalDateTime.now());
@@ -117,9 +117,7 @@ public class BannerService {
 
     public void uploadImg(Long bannerId, String uploadedFilePath) {
         Banner banner = bannerRepository.findById(bannerId).get();
-        if (banner != null) {
             banner.setImageUrl(uploadedFilePath);
             bannerRepository.save(banner);
-            }
     }
 }

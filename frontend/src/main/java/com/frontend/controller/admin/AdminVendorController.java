@@ -26,9 +26,9 @@ public class AdminVendorController {
     @PostMapping
     public ResponseEntity<ApiResponse<Vendor>> createVendor(@RequestBody VendorReq vendor) {
         try {
-//            UserPrinciple securityUser = SecurityUtils.getSecurityUser();
-//            Long id = securityUser.getId();
-            Vendor createdVendor = vendorService.createVendor(vendor, 4L);
+            UserPrinciple securityUser = SecurityUtils.getSecurityUser();
+            Long id = securityUser.getId();
+            Vendor createdVendor = vendorService.createVendor(vendor, id);
             ApiResponse<Vendor> response = ResponseUtils.success(createdVendor);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -58,9 +58,9 @@ public class AdminVendorController {
     @PutMapping("/{uid}")
     public ResponseEntity<ApiResponse<Vendor>> updateVendor(@PathVariable String uid, @RequestBody VendorReq vendor) {
         try {
-//            UserPrinciple securityUser = SecurityUtils.getSecurityUser();
-//            Long id = securityUser.getId();
-            Vendor updatedVendor = vendorService.updateVendor(uid, vendor, 4L);
+            UserPrinciple securityUser = SecurityUtils.getSecurityUser();
+            Long id = securityUser.getId();
+            Vendor updatedVendor = vendorService.updateVendor(uid, vendor, id);
             return ResponseEntity.ok(ResponseUtils.success(updatedVendor));
         } catch (RuntimeException e) {
             return ResponseEntity.ok(ResponseUtils.error(9999, e.getMessage(), null));
