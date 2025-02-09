@@ -48,29 +48,31 @@ public class GameService {
     @Autowired
     private GameTransactionRecordRepository gameTransactionRecordRepository;
 
-    public void startGame(GameReq gameReq) throws Exception {
+    public GameRecord startGame(GameReq gameReq , Long id) throws Exception {
         // 查詢用戶
-        User byUid = userRepository.findByUid(gameReq.getUserUid());
+        User byUid = userRepository.findById(id).get();
         PoolTable byStoreUid = poolTableRepository.findByUid(gameReq.getPoolTableUId()).get();
         Store store = storeRepository.findById(byStoreUid.getId()).get();
         Vendor vendor = vendorRepository.findById(store.getId()).get();
         List<StorePricingSchedule> pricingSchedules = storePricingScheduleRepository.findByStoreId(store.getId());
 
         // 获取当前日期对应星期几
-        DayOfWeek currentDay = LocalDate.now().getDayOfWeek();
+        int currentDayNumber = LocalDate.now().getDayOfWeek().getValue();  // 获取1-7的数字，1代表星期一，7代表星期天
 
-        // 查找当天对应的优惠时段和普通时段
+// 查找当天对应的优惠时段和普通时段
         StorePricingSchedule currentSchedule = null;
         for (StorePricingSchedule schedule : pricingSchedules) {
-            if (schedule.getDayOfWeek().equals(currentDay.toString())) {
+            // 将数据库中的 "1-7" 字符串与当前的数字进行比较
+            if (schedule.getDayOfWeek().equals(String.valueOf(currentDayNumber))) {
                 currentSchedule = schedule;
                 break;
             }
         }
 
         if (currentSchedule == null) {
-            throw new Exception("沒找到金額");
+            throw new Exception("没找到金额");
         }
+
 
         // 計算價格
         int regularRateAmount = 0;
@@ -80,7 +82,7 @@ public class GameService {
         regularRateAmount = currentSchedule.getRegularRate();
 
         // 扣除押金
-        int newAmount = byUid.getAmount() - gameReq.getGamePrice();
+        int newAmount = byUid.getAmount() - store.getDeposit();
         if (newAmount < 0) {
             throw new Exception("儲值金不足，請儲值");
         } else {
@@ -95,8 +97,8 @@ public class GameService {
         GameRecord gameRecord = new GameRecord();
         gameRecord.setGameId(UUID.randomUUID().toString()); // 生成UUID
         gameRecord.setStartTime(startTime);
-        gameRecord.setUserUid(gameReq.getUserUid());
-        gameRecord.setPrice(gameReq.getPrice()); // 設置押金
+        gameRecord.setUserUid(byUid.getUid());
+        gameRecord.setPrice(store.getDeposit()); // 設置押金
         gameRecord.setStatus("STARTED"); // 設置狀態為開始
         gameRecord.setStoreId(store.getId());
         gameRecord.setStoreName(store.getName());
@@ -115,7 +117,7 @@ public class GameService {
         // 開啟桌台使用
         byStoreUid.setIsUse(true);
         poolTableRepository.save(byStoreUid);
-
+        return gameRecord;
         // 返回时间戳或其他需要的資料給前端
     }
 
@@ -127,11 +129,12 @@ public class GameService {
 
 
 
-    public GameResponse endGame(GameReq gameReq) throws Exception {
+    public GameResponse endGame(GameReq gameReq , Long id) throws Exception {
         // 取得遊戲紀錄
         GameRecord byGameId = gameRecordRepository.findByGameId(gameReq.getGameId());
         LocalDateTime startTime = byGameId.getStartTime();
         LocalDateTime endTime = LocalDateTime.now(); // 當前時間為結束時間
+        Store store = storeRepository.findById(byGameId.getStoreId()).get();
 
         // 確保結束時間不早於開始時間
         if (endTime.isBefore(startTime)) {
@@ -145,18 +148,13 @@ public class GameService {
         // 計算以小時計算的總時長，向上取整
         long totalHours = (long) Math.ceil((double) totalMinutes / 60);  // 向上取整
 
-        // 計算遊戲價格 (假設每小時的價格為 pricePerHour)
-        int pricePerHour = gameReq.getGamePrice();  // 用戶提交的遊戲價格 (押金)
-        double totalPrice = totalHours * pricePerHour;  // 根據小時計算的總價格
-
         // 退還押金
-        User byUid = userRepository.findByUid(gameReq.getUserUid());
-        int newAmount = byUid.getAmount() + gameReq.getGamePrice();  // 退還押金
+        User byUid = userRepository.findById(id).get();
+        int newAmount = byUid.getAmount() + store.getDeposit();  // 退還押金
         byUid.setAmount(newAmount);
         userRepository.save(byUid);
 
         // 查找 Store 的一班時段和優惠時段
-        Store store = storeRepository.findById(byGameId.getStoreId()).get();
         List<StorePricingSchedule> pricingSchedules = storePricingScheduleRepository.findByStoreId(store.getId());
 
         // 获取当前日期对应星期几
@@ -214,14 +212,10 @@ public class GameService {
                 currentTime = currentTime.plusMinutes(1);  // 假设时间步长为1分钟
             }
         }
-        // 如果有剩余分钟数，根据超时计费
-        if (elapsedMinutes > 0) {
-            adjustedPrice += elapsedMinutes * pricePerHour / 60.0;  // 超出时段后的按小时收费
-        }
 
         // 更新遊戲訂單紀錄
         GameOrder gameOrder = new GameOrder();
-        gameOrder.setUserId(gameReq.getUserUid());
+        gameOrder.setUserId(byUid.getUid());
         gameOrder.setGameId(gameReq.getGameId());
         gameOrder.setTotalPrice(adjustedPrice);  // 计算后的总价格
         gameOrder.setStartTime(startTime);

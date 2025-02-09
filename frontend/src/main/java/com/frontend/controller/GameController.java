@@ -1,10 +1,13 @@
 package com.frontend.controller;
 
 import com.frontend.config.message.ApiResponse;
+import com.frontend.config.service.UserPrinciple;
+import com.frontend.entity.game.GameRecord;
 import com.frontend.req.game.CheckoutReq;
 import com.frontend.req.game.GameReq;
 import com.frontend.service.GameService;
 import com.frontend.utils.ResponseUtils;
+import com.frontend.utils.SecurityUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -22,20 +25,22 @@ public class GameController {
     @PostMapping("/start")
     public ResponseEntity<ApiResponse<?>> startGame(@RequestBody GameReq gameReq) {
         try {
-            gameService.startGame(gameReq);
+            UserPrinciple securityUser = SecurityUtils.getSecurityUser();
+            Long id = securityUser.getId();
+            GameRecord gameRecord = gameService.startGame(gameReq , id);
+            return ResponseEntity.ok(ResponseUtils.success(200, "開台成功", gameRecord));
         }catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.ok(ResponseUtils.error(9999, e.getMessage(), null));
         }
-
-
-        return ResponseEntity.ok(null);
     }
 
     @PostMapping("/end")
     public ResponseEntity<ApiResponse<?>> endGame(@RequestBody GameReq gameReq) {
         try {
-            gameService.endGame(gameReq);
+            UserPrinciple securityUser = SecurityUtils.getSecurityUser();
+            Long id = securityUser.getId();
+            gameService.endGame(gameReq , id);
         }catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.ok(ResponseUtils.error(9999, e.getMessage(), null));

@@ -8,14 +8,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Data
 public class GameReq {
-
-    private Integer price;
-
-    private String userUid;
-
     private String gameId;
-
-    private Integer gamePrice;
 
     private String poolTableUId;
 }
