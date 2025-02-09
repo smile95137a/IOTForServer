@@ -36,8 +36,7 @@ public class Store {
     @ManyToOne
     @JoinColumn(name = "vendor_id", nullable = false)
     @JsonBackReference
-    private Vendor vendor; // 所屬廠商
-
+    private Vendor vendor;
     @OneToMany(mappedBy = "store", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private Set<PoolTable> poolTables; // 分店中的桌台

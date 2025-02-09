@@ -59,9 +59,9 @@ public class AdminVendorController {
     @PutMapping("/{uid}")
     public ResponseEntity<ApiResponse<Vendor>> updateVendor(@PathVariable String uid, @RequestBody VendorReq vendor) {
         try {
-            UserPrinciple securityUser = SecurityUtils.getSecurityUser();
-            Long id = securityUser.getId();
-            Vendor updatedVendor = vendorService.updateVendor(uid, vendor, id);
+//            UserPrinciple securityUser = SecurityUtils.getSecurityUser();
+//            Long id = securityUser.getId();
+            Vendor updatedVendor = vendorService.updateVendor(uid, vendor, 4L);
             return ResponseEntity.ok(ResponseUtils.success(updatedVendor));
         } catch (RuntimeException e) {
             return ResponseEntity.ok(ResponseUtils.error(9999, e.getMessage(), null));
