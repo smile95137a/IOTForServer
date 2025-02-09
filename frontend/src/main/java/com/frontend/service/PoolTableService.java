@@ -7,7 +7,6 @@ import com.frontend.repo.PoolTableRepository;
 import com.frontend.repo.StorePricingScheduleRepository;
 import com.frontend.repo.StoreRepository;
 import com.frontend.res.poolTable.PoolTableRes;
-import com.frontend.res.poolTable.StorePoolTableRes;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -37,22 +36,11 @@ public class PoolTableService {
     }
 
 
-    public List<StorePoolTableRes> findByStoreUid(String storeUid) {
+    public List<PoolTable> findByStoreUid(String storeUid) {
         Store store = storeRepository.findByUid(storeUid).get();
         List<PoolTable> poolTables = poolTableRepository.findByStoreId(store.getId());
 
-        String currentDay = getDayOfWeek(); // 获取今天的星期英文名称（"MONDAY"）
-
-        // 获取今天的优惠时段
-        List<StorePricingSchedule> pricingSchedules = storePricingScheduleRepository
-                .findByStoreIdAndDayOfWeek(store.getId(), currentDay);
-
-        // 将每个桌台和其对应的优惠时段信息封装到 StorePoolTableRes 中
-        List<StorePoolTableRes> result = poolTables.stream()
-                .map(poolTable -> new StorePoolTableRes(poolTable, pricingSchedules))
-                .collect(Collectors.toList());
-
-        return result;
+        return poolTables;
     }
 
 

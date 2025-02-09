@@ -3,7 +3,6 @@ package com.frontend.controller;
 import com.frontend.config.message.ApiResponse;
 import com.frontend.entity.poolTable.PoolTable;
 import com.frontend.res.poolTable.PoolTableRes;
-import com.frontend.res.poolTable.StorePoolTableRes;
 import com.frontend.res.store.StoreRes;
 import com.frontend.service.PoolTableService;
 import com.frontend.utils.ResponseUtils;
@@ -27,8 +26,8 @@ public class PoolTableController {
     private PoolTableService poolTableService;
 
     @GetMapping("/store/{storeUid}")
-    public ResponseEntity<ApiResponse<List<StorePoolTableRes>>> countAvailableAndInUseByUid(@PathVariable String storeUid) {
-        List<StorePoolTableRes> poolTables = poolTableService.findByStoreUid(storeUid);
+    public ResponseEntity<ApiResponse<List<PoolTable>>> countAvailableAndInUseByUid(@PathVariable String storeUid) {
+        List<PoolTable> poolTables = poolTableService.findByStoreUid(storeUid);
         if (poolTables.isEmpty()) {
             return ResponseEntity.ok(ResponseUtils.error(9999, "無此桌台", null));
         }

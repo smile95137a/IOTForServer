@@ -1,9 +1,12 @@
 package com.frontend.res.store;
 
+import com.frontend.entity.store.StorePricingSchedule;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+
+import java.util.List;
 
 @Getter
 @Setter
@@ -19,8 +22,7 @@ public class StoreRes {
     private Long lat;
     private Long lon;
     private Integer deposit;
-    private Integer regularRate;      // 新增字段
-    private Integer discountRate;     // 新增字段
-    private String regularTimeRange;  // 新增字段
+    private List<StorePricingScheduleRes> pricingSchedules;
+
 }
 
