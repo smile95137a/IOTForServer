@@ -16,6 +16,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -150,29 +155,62 @@ public class AdminNewsController {
         return ResponseEntity.ok(success);
     }
 
-    @PostMapping("/{id}/upload-profile-image")
-    public ResponseEntity<?> uploadProfileImages(@PathVariable Long id, @RequestParam("file") List<MultipartFile> files) {
-        try {
-            if (files == null || files.isEmpty()) {
-                return ResponseEntity.badRequest().body(ResponseUtils.error(400, "文件不能為空", null));
-            }
+//    @PostMapping("/{id}/upload-profile-image")
+//    public ResponseEntity<?> uploadProfileImages(@PathVariable Long id, @RequestParam("file") List<MultipartFile> files) {
+//        try {
+//            if (files == null || files.isEmpty()) {
+//                return ResponseEntity.badRequest().body(ResponseUtils.error(400, "文件不能為空", null));
+//            }
+//
+//            // 上傳所有文件，並獲取文件路徑列表
+//            List<String> uploadedFilePaths = new ArrayList<>();
+//            for (MultipartFile file : files) {
+//                String uploadedFilePath = ImageUtil.upload(file);
+//                uploadedFilePaths.add(uploadedFilePath);
+//            }
+//
+//            // 存儲到數據庫
+//            newsService.uploadProductImg(id, uploadedFilePaths);
+//
+//            ApiResponse<List<String>> response = ResponseUtils.success(200, "文件上傳成功", uploadedFilePaths);
+//            return ResponseEntity.ok(response);
+//        } catch (Exception e) {
+//            ApiResponse<String> response = ResponseUtils.error(500, "文件上傳失敗", null);
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+//        }
+//    }
+    
+    
+    @PostMapping("/{newsId}/upload-image")
+	public ResponseEntity<?> uploadImage(@PathVariable String newsId, @RequestParam("file") MultipartFile file) {
 
-            // 上傳所有文件，並獲取文件路徑列表
-            List<String> uploadedFilePaths = new ArrayList<>();
-            for (MultipartFile file : files) {
-                String uploadedFilePath = ImageUtil.upload(file);
-                uploadedFilePaths.add(uploadedFilePath);
-            }
+		if (file.isEmpty()) {
+			return ResponseEntity.badRequest().body(ResponseUtils.error(400, "請選擇要上傳的圖片", null));
+		}
 
-            // 存儲到數據庫
-            newsService.uploadProductImg(id, uploadedFilePaths);
+		// 指定存儲圖片的本地文件夾
+		String uploadDir = "uploads/profile_pictures/";
+		File uploadFolder = new File(uploadDir);
+		if (!uploadFolder.exists()) {
+			uploadFolder.mkdirs(); // 確保目錄存在
+		}
 
-            ApiResponse<List<String>> response = ResponseUtils.success(200, "文件上傳成功", uploadedFilePaths);
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            ApiResponse<String> response = ResponseUtils.error(500, "文件上傳失敗", null);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
-        }
-    }
+		try {
+			// 創建文件名：profile_{userId}.jpg
+			String filename = "news_" + newsId + "_" + System.currentTimeMillis() + ".jpg";
+			Path filePath = Paths.get(uploadDir, filename);
+
+			// 保存文件到本地文件夾
+			Files.write(filePath, file.getBytes());
+
+			// 返回圖片的相對路徑
+			String imageUrl = "/static/" + filename;
+			return ResponseEntity.ok(ResponseUtils.success(200, "圖片上傳成功", imageUrl));
+
+		} catch (IOException e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body(ResponseUtils.error(500, "圖片上傳失敗", e.getMessage()));
+		}
+	}
 
 }

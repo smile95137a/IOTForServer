@@ -1,7 +1,11 @@
 package com.frontend.controller;
 
-import com.frontend.utils.ImageUtil;
-import com.frontend.utils.ImageUtils;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,15 +20,11 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.frontend.config.message.ApiResponse;
-import com.frontend.config.security.CustomUserDetails;
 import com.frontend.config.security.SecurityUtils;
 import com.frontend.req.user.UserReq;
 import com.frontend.res.user.UserRes;
 import com.frontend.service.UserService;
 import com.frontend.utils.ResponseUtils;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @RestController
 @RequestMapping("/user")
@@ -113,24 +113,55 @@ public class UserController {
 		}
 	}
 
+//	@PostMapping("/{userId}/upload-profile-image")
+//	public ResponseEntity<?> uploadProfileImage(@PathVariable Long userId, @RequestParam("file") MultipartFile file) {
+//		try {
+//			if (file == null || file.isEmpty()) {
+//				return ResponseEntity.badRequest().body(ResponseUtils.error(400, "文件不能為空", null));
+//			}
+//
+//			String uploadedFilePath = ImageUtil.upload(file);
+//
+//			userService.uploadProductImg(userId, uploadedFilePath);
+//
+//			ApiResponse<String> response = ResponseUtils.success(200, "文件上傳成功", uploadedFilePath);
+//			return ResponseEntity.ok(response);
+//		} catch (Exception e) {
+//			ApiResponse<String> response = ResponseUtils.error(500, "文件上傳失敗", null);
+//			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+//		}
+//	}
+
 	@PostMapping("/{userId}/upload-profile-image")
-	public ResponseEntity<?> uploadProfileImage(@PathVariable Long userId, @RequestParam("file") MultipartFile file) {
+	public ResponseEntity<?> uploadProfileImage(@PathVariable String userId, @RequestParam("file") MultipartFile file) {
+
+		if (file.isEmpty()) {
+			return ResponseEntity.badRequest().body(ResponseUtils.error(400, "請選擇要上傳的圖片", null));
+		}
+
+		// 指定存儲圖片的本地文件夾
+		String uploadDir = "uploads/profile_pictures/";
+		File uploadFolder = new File(uploadDir);
+		if (!uploadFolder.exists()) {
+			uploadFolder.mkdirs(); // 確保目錄存在
+		}
+
 		try {
-			if (file == null || file.isEmpty()) {
-				return ResponseEntity.badRequest().body(ResponseUtils.error(400, "文件不能為空", null));
-			}
+			// 創建文件名：profile_{userId}.jpg
+			String filename = "profile_" + userId + "_" + System.currentTimeMillis() + ".jpg";
+			Path filePath = Paths.get(uploadDir, filename);
 
-			String uploadedFilePath = ImageUtil.upload(file);
+			// 保存文件到本地文件夾
+			Files.write(filePath, file.getBytes());
 
-			userService.uploadProductImg(userId, uploadedFilePath);
+			// 返回圖片的相對路徑
+			String imageUrl = "/static/" + filename;
+			return ResponseEntity.ok(ResponseUtils.success(200, "圖片上傳成功", imageUrl));
 
-			ApiResponse<String> response = ResponseUtils.success(200, "文件上傳成功", uploadedFilePath);
-			return ResponseEntity.ok(response);
-		} catch (Exception e) {
-			ApiResponse<String> response = ResponseUtils.error(500, "文件上傳失敗", null);
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+		} catch (IOException e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body(ResponseUtils.error(500, "圖片上傳失敗", e.getMessage()));
 		}
 	}
-
 
 }
