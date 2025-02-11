@@ -83,7 +83,7 @@ public class NewsService {
         }).orElseThrow(() -> new RuntimeException("News not found with id: " + newsId));
     }
 
-    public void uploadProductImg(Long id, List<String> uploadedFilePath) {
+    public void uploadProductImg(Long id, String uploadedFilePath) {
         News news = newsRepository.findById(id).orElseThrow(() -> new RuntimeException("News not found with id: " + id));
         if(news != null){
             news.setImageUrls(uploadedFilePath);

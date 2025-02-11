@@ -38,7 +38,7 @@ public class News {
 
     @Column(name = "image_urls", columnDefinition = "JSON")
     @Convert(converter = StringListConverter.class)
-    private List<String> imageUrls;
+    private String imageUrls;
 
     @Enumerated(EnumType.STRING) // 将枚举映射为其名称，例如存储 'AVAILABLE'
     @Column(name = "status", nullable = false)
