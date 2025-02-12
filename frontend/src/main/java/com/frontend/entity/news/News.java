@@ -36,9 +36,8 @@ public class News {
     @Column(name = "content", columnDefinition = "TEXT") // 新闻详细内容，使用 TEXT 类型以支持较大文本
     private String content;
 
-    @Column(name = "image_urls", columnDefinition = "JSON")
-    @Convert(converter = StringListConverter.class)
-    private String imageUrls;
+    @Column(name = "image_url", columnDefinition = "JSON")
+    private String imageUrl;
 
     @Enumerated(EnumType.STRING) // 将枚举映射为其名称，例如存储 'AVAILABLE'
     @Column(name = "status", nullable = false)
