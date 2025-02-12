@@ -19,6 +19,7 @@ public class AdminStoreRes {
     private String name;
     private String address;
     private Vendor vendor;
+    private String imgUrl;
     private Set<StoreEquipment> equipments;
     private Set<PoolTable> poolTables;
     private Set<StorePricingSchedule> pricingSchedules;

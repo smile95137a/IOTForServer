@@ -22,6 +22,7 @@ public class StoreRes {
     private Long lat;
     private Long lon;
     private Integer deposit;
+    private String imgUrl;
     private List<StorePricingScheduleRes> pricingSchedules;
 
 }
