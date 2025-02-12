@@ -14,7 +14,12 @@ public class SecurityUtils {
 	}
 
 	public static UserPrinciple getSecurityUser() {
-		return (UserPrinciple) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		if (principal instanceof UserPrinciple) {
+			return (UserPrinciple) principal;
+		} else {
+			throw new RuntimeException("獲取當前用戶失敗，Principal 類型錯誤：" + principal.getClass().getName());
+		}
 	}
 
 

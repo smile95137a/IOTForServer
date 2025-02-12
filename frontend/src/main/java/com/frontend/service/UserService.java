@@ -143,6 +143,7 @@ public class UserService {
 			}
 
 		return UserRes.builder()
+				.id(user.getId())
 				.uid(user.getUid())
 				.username(user.getUsername())
 				.name(user.getName())
@@ -155,6 +156,7 @@ public class UserService {
 				.lastActiveTime(user.getLastActiveTime())
 				.amount(user.getAmount())
 				.totalAmount(user.getTotalAmount())
+				.imgUrl(user.getUserImg())
 				.build();
 
 	}

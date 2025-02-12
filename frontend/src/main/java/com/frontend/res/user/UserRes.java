@@ -56,5 +56,7 @@ public class UserRes implements Serializable {
 
 	private Integer totalAmount;
 
+	private String imgUrl;
+
 	private Set<Long> roleIds = new HashSet<>();
 }

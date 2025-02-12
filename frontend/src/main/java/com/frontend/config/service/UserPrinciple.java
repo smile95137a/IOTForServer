@@ -40,6 +40,11 @@ public class UserPrinciple implements UserDetails {
 	private Collection<? extends GrantedAuthority> authorities;
 
 	@Override
+	public String getUsername() {
+		return email != null ? email : phoneNumber;  // 返回 email 或 phoneNumber
+	}
+
+	@Override
 	public boolean isAccountNonExpired() {
 		return true;
 	}
