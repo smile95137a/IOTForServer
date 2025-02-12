@@ -129,7 +129,9 @@ public class StoreService {
                 store.getLat(),
                 store.getLon(),
                 store.getDeposit(),
+                store.getImgUrl(),
                 pricingScheduleResList
+
         );
     }
 
