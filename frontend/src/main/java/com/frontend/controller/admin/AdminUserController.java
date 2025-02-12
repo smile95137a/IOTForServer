@@ -48,7 +48,7 @@ public class AdminUserController {
     @GetMapping("/{id}")
     public ResponseEntity<?> getUserById(@PathVariable String id) {
         try {
-            var result = userService.getUserByuid(id);
+            var result = userService.getByUid(id);
             var res = ResponseUtils.success(0000, null, result);
             return ResponseEntity.ok(res);
         } catch (Exception e) {

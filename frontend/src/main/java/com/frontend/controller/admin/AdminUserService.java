@@ -68,6 +68,11 @@ public class AdminUserService {
         return null;
     }
 
+    public UserRes getByUid(String uid) {
+        User user = userRepository.findByuid(uid).get();
+        return userMapper.mapToUserRes(user);
+    }
+
     @Transactional(rollbackFor = {Exception.class})
     public UserRes createUser(UserReq userReq) throws Exception {
 

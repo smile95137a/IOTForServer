@@ -17,4 +17,5 @@ public class VendorReq {
 
 	private String name;
 	private String contactInfo;
+	private Long userId;
 }

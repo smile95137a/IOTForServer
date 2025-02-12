@@ -61,7 +61,7 @@ public class AdminVendorController {
         try {
             UserPrinciple securityUser = SecurityUtils.getSecurityUser();
             Long id = securityUser.getId();
-            Vendor updatedVendor = vendorService.updateVendor(uid, vendor, id);
+            Vendor updatedVendor = vendorService.updateVendor(uid, vendor, vendor.getUserId());
             return ResponseEntity.ok(ResponseUtils.success(updatedVendor));
         } catch (RuntimeException e) {
             return ResponseEntity.ok(ResponseUtils.error(9999, e.getMessage(), null));

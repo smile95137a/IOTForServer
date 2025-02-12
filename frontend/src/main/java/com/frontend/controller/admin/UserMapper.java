@@ -23,6 +23,7 @@ public class UserMapper {
 
 	private final UserRepository userRepository;
 
+
 	public User mapToUser(UserReq userReq) {
 
 		var userId = SecurityUtils.getSecurityUser().getId();
@@ -63,7 +64,11 @@ public class UserMapper {
 	                  .lastActiveTime(userEntity.getLastActiveTime())
 	                  .createUserName(createName)
 	                  .updateUserName(updateName)
+				.gender(userEntity.getGender())
+				.imgUrl(userEntity.getUserImg())
 	                  .build();
 	}
+
+
 
 }

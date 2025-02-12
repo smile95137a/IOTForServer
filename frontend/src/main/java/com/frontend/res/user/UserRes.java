@@ -54,6 +54,10 @@ public class UserRes implements Serializable {
 	
 	private Integer amount;
 
+	private String userImg;
+
+	private String gender;
+
 	private Integer totalAmount;
 
 	private String imgUrl;
