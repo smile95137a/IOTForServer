@@ -49,6 +49,9 @@ public class Store {
     private Set<StorePricingSchedule> pricingSchedules; // 店家的時段與費用設定
 
     @Column
+    private String imgUrl;
+
+    @Column
     private LocalDateTime createTime;
 
     @Column

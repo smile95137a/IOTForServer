@@ -8,8 +8,6 @@ import com.frontend.enums.RoleName;
 import com.frontend.repo.RoleRepository;
 import com.frontend.req.user.UserReq;
 import com.frontend.res.user.UserRes;
-import com.frontend.service.RoleService;
-import com.frontend.service.UserService;
 import com.frontend.utils.ResponseUtils;
 import jakarta.validation.Valid;
 import org.apache.commons.lang3.StringUtils;
@@ -70,20 +68,26 @@ public class AuthController {
         var userDetails = (UserPrinciple) authentication.getPrincipal();
         var jwt = jwtProvider.generateToken(userDetails);
 
-        var roles = userDetails.getAuthorities().stream()
-                .map(x -> new Role(RoleName.valueOf(x.getAuthority())))  // 轉換為 Role 物件
+        var roleNames = userDetails.getAuthorities().stream()
+                .map(x -> RoleName.valueOf(x.getAuthority()))  // 取得 RoleName
+                .collect(Collectors.toSet());
+
+// 查詢資料庫獲取完整的 Role 物件
+        var roles = roleRepository.findByRoleNameIn(roleNames);
+
+// 取得 roleId 集合
+        var roleIds = roles.stream()
+                .map(Role::getId)
                 .collect(Collectors.toSet());
 
         var userRes = UserRes.builder()
+                .id(userDetails.getId())
                 .uid(userDetails.getUid())
                 .email(userDetails.getEmail())
                 .name(userDetails.getName())
                 .countryCode(userDetails.getCountryCode())
                 .phoneNumber(userDetails.getPhoneNumber())
                 .roles(roles)
-                .roleIds(roles.stream()                           // 使用 stream 將 Set 轉換為流
-                        .map(Role::getId)        // 提取每個 Role 的 id
-                        .collect(Collectors.toSet()))     // 收集為 Set
                 .build();
 
         var result = JwtResponse.builder()

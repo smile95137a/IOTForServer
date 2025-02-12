@@ -128,6 +128,7 @@ public class UserController {
 			ApiResponse<String> response = ResponseUtils.success(200, "文件上傳成功", uploadedFilePath);
 			return ResponseEntity.ok(response);
 		} catch (Exception e) {
+			e.printStackTrace();
 			ApiResponse<String> response = ResponseUtils.error(500, "文件上傳失敗", null);
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
 		}

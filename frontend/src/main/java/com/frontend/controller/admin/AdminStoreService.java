@@ -6,6 +6,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.frontend.entity.news.News;
 import com.frontend.entity.store.StorePricingSchedule;
 import com.frontend.repo.StorePricingScheduleRepository;
 import com.frontend.req.store.StorePricingScheduleReq;
@@ -39,7 +40,7 @@ public class AdminStoreService {
 		store.setUid(RandomUtils.genRandom(24)); // 生成唯一 UID
 		store.setCreateTime(LocalDateTime.now());
 		store.setCreateUserId(userId);
-
+		store.setImgUrl("");
 		// 保存 Store
 		Store savedStore = storeRepository.save(store);
 
@@ -72,7 +73,7 @@ public class AdminStoreService {
 		store.setLat(req.getLat());
 		store.setLon(req.getLon());
 		store.setDeposit(req.getDeposit());
-
+		store.setImgUrl(req.getImgUrl());
 
 		if (req.getVendor() != null) {
 			store.setVendor(req.getVendor());
@@ -182,5 +183,13 @@ public class AdminStoreService {
 	// Delete a store
 	public void deleteStore(String uid) {
 		storeRepository.deleteByUid(uid);
+	}
+
+	public void uploadProductImg(Long id, String uploadedFilePath) {
+		Store store = storeRepository.findById(id).orElseThrow(() -> new RuntimeException("News not found with id: " + id));
+		if(store != null){
+			store.setImgUrl(uploadedFilePath);
+			storeRepository.save(store);
+		}
 	}
 }

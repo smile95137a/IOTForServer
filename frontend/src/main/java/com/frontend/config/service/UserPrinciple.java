@@ -2,7 +2,9 @@ package com.frontend.config.service;
 
 import java.util.Collection;
 import java.util.Objects;
+import java.util.Set;
 
+import com.frontend.entity.role.Role;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -26,13 +28,13 @@ public class UserPrinciple implements UserDetails {
 	private String username;
 
 	private String email;
-	
-	private String countryCode;
-	
-	private String phoneNumber;
-	
-	private String password;
 
+	private String countryCode;
+
+	private String phoneNumber;
+
+	private String password;
+	private Set<Role> roles;
 	private String name;
 
 	private Collection<? extends GrantedAuthority> authorities;

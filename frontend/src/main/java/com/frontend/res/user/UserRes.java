@@ -24,7 +24,6 @@ public class UserRes implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 	
-	@JsonIgnore
 	private Long id;
 	
 	private String uid;

@@ -25,5 +25,6 @@ public class StoreReq {
     private Integer regularRate;
     private Integer discountRate;
     private Integer deposit;
+    private String imgUrl;
     private Set<StorePricingScheduleReq> pricingSchedules;
 }

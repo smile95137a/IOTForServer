@@ -68,7 +68,6 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         return UserPrinciple.builder()
                 .id(userEntity.getId())
                 .uid(userEntity.getUid())
-                .username(userEntity.getEmail())
                 .email(userEntity.getEmail())
                 .countryCode(userEntity.getCountryCode())
                 .phoneNumber(userEntity.getPhoneNumber())
