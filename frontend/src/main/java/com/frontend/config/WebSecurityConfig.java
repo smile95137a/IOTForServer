@@ -72,16 +72,21 @@ public class WebSecurityConfig {
 	public SecurityFilterChain filterChain(HttpSecurity http, CorsConfigurationSource corsConfigurationSource) throws Exception {
 		http.cors(cors -> cors.configurationSource(corsConfigurationSource))
 				.csrf(AbstractHttpConfigurer::disable) // 禁用 CSRF
-				.exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler)) // 认证失败处理
-				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // 无状态会话
+				.exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler)) // 認證失敗處理
+				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // 無狀態會話
 
-				// 允许所有请求不经过身份验证
-				.authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
+				// 放行靜態資源路徑，允許不經身份驗證
+				.authorizeHttpRequests(auth ->
+						auth.requestMatchers("/img/**").permitAll() // 放行 /img/** 路徑的請求
+								.anyRequest().permitAll()); // 允許所有請求都通行
 
 		http.authenticationProvider(authenticationProvider());
 		http.addFilterBefore(jwtAuthTokenFilter, UsernamePasswordAuthenticationFilter.class);
 
 		return http.build();
 	}
+
+
+
 
 }

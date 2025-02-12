@@ -2,25 +2,15 @@ package com.frontend.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.CacheControl;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-
-import java.util.concurrent.TimeUnit;
 
 @Configuration
 public class WebMvcConfig implements WebMvcConfigurer {
 
     @Value("${pictureFile.path}")
-    private String filePath;
-
-    @Override
-    public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        registry.addResourceHandler("/**")  // 匹配所有路徑
-                .addResourceLocations("file:" + filePath + "/")  // 實際目錄
-                .setCacheControl(CacheControl.maxAge(1, TimeUnit.HOURS));
-    }
+    private String filePath; // 用來存放圖片文件的路徑
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
@@ -30,5 +20,12 @@ public class WebMvcConfig implements WebMvcConfigurer {
                 .allowCredentials(true)
                 .maxAge(3600)
                 .allowedHeaders("*");
+    }
+
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        // 使用配置中的圖片存放路徑來映射 /img/** 路徑
+        registry.addResourceHandler("/img/**")
+                .addResourceLocations("file://" + filePath + "/"); // 映射至 /home/ec2-user/img/
     }
 }
