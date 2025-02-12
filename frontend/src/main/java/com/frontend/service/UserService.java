@@ -95,7 +95,8 @@ public class UserService {
 			userRes.setUsername(user.getUsername());
 			userRes.setEmail(user.getEmail());
 			userRes.setUid(user.getUid());
-
+			userRes.setId(user.getId());
+			userRes.setRoles(user.getRoles());
 			return userRes;
 
 		} catch (Exception e) {
