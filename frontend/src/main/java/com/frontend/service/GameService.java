@@ -53,7 +53,8 @@ public class GameService {
         User byUid = userRepository.findById(id).get();
         PoolTable byStoreUid = poolTableRepository.findByUid(gameReq.getPoolTableUId()).get();
         Store store = storeRepository.findById(byStoreUid.getStore().getId()).get();
-        Vendor vendor = vendorRepository.findById(store.getId()).get();
+        var vId = store.getVendor().getId();
+        Vendor vendor = vendorRepository.findById(vId).get();
         List<StorePricingSchedule> pricingSchedules = storePricingScheduleRepository.findByStoreId(store.getId());
 
         // 获取当前日期对应星期几，转换为字符串
