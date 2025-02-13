@@ -113,7 +113,7 @@ public class AdminUserService {
             entity.setUpdateTime(LocalDateTime.now());
             entity.setUpdateUserId(principal.getId());
 
-            entity = userRepository.save(entity);
+            userRepository.save(entity);
             var res = UserRes.builder().build();
             BeanUtils.copyProperties(entity, res);
             return res;
