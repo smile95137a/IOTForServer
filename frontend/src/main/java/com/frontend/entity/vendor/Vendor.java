@@ -48,6 +48,8 @@ public class Vendor {
 
     @Column
     private Long updateUserId;
+    @Column
+    private Long userId;
 
     @OneToMany(mappedBy = "vendor", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonManagedReference
