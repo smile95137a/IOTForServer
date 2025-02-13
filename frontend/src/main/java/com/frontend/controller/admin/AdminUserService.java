@@ -112,7 +112,7 @@ public class AdminUserService {
             entity.setEmail(userReq.getEmail());
             entity.setUpdateTime(LocalDateTime.now());
             entity.setUpdateUserId(principal.getId());
-
+            entity.setPhoneNumber(userReq.getPhone());
             userRepository.save(entity);
             var res = UserRes.builder().build();
             BeanUtils.copyProperties(entity, res);
