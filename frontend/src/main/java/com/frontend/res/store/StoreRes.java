@@ -19,8 +19,8 @@ public class StoreRes {
     private String name;
     private Long availablesCount;
     private Long inusesCount;
-    private Long lat;
-    private Long lon;
+    private String lat;
+    private String lon;
     private Integer deposit;
     private String imgUrl;
     private List<StorePricingScheduleRes> pricingSchedules;

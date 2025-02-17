@@ -20,8 +20,8 @@ public class StoreReq {
     private Vendor vendor;
     private Set<PoolTable> poolTables;
     private Set<StoreEquipment> equipments;
-    private Long lat;
-    private Long lon;
+    private String lat;
+    private String lon;
     private Integer regularRate;
     private Integer discountRate;
     private Integer deposit;

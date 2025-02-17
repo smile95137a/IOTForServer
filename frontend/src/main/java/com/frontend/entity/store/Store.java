@@ -64,10 +64,10 @@ public class Store {
     private Long updateUserId;
 
     @Column
-    private Long lat;
+    private String lat;
 
     @Column
-    private Long lon;
+    private String lon;
 
     @Column // 押金
     private Integer deposit;

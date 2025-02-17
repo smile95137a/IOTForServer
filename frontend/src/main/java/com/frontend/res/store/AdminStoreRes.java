@@ -23,7 +23,7 @@ public class AdminStoreRes {
     private Set<StoreEquipment> equipments;
     private Set<PoolTable> poolTables;
     private Set<StorePricingSchedule> pricingSchedules;
-    private Long lat;
-    private Long lon;
+    private String lat;
+    private String lon;
     private Integer deposit;
 }
