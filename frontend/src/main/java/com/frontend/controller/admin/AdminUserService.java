@@ -106,13 +106,14 @@ public class AdminUserService {
             var reqPwd = userReq.getPassword();
             var ePwd = entity.getPassword();
             var pwd = reqPwd.equals(ePwd) ? ePwd : passwordEncoder.encode(reqPwd);
-
+            Set<Role> byIdIn = roleRepository.findByIdIn(userReq.getRoleIds());
             entity.setName(userReq.getName());
             entity.setPassword(pwd);
             entity.setEmail(userReq.getEmail());
             entity.setUpdateTime(LocalDateTime.now());
             entity.setUpdateUserId(principal.getId());
             entity.setPhoneNumber(userReq.getPhone());
+            entity.setRoles(byIdIn);
             userRepository.save(entity);
             var res = UserRes.builder().build();
             BeanUtils.copyProperties(entity, res);

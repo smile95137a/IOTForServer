@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Set;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -20,6 +22,7 @@ public class UserReq {
     private String countryCode;
     private String verificationCode;
     private String anonymousId;
+    private Set<Long> roleIds;
 }
 
 

@@ -13,7 +13,7 @@ import java.time.LocalTime;
 @NoArgsConstructor
 @Entity
 @Table(name = "store_equipment")
-public class StoreEquipment {
+public class StoreEquipment{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

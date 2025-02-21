@@ -19,7 +19,7 @@ public class Equipment {
     private String equipmentName;
 
     @Column
-    private String status;
+    private Boolean status;
 
     @Column
     private LocalTime autoStartTime;
@@ -44,4 +44,5 @@ public class Equipment {
 
     @Column
     private Long updateUserId;
+
 }

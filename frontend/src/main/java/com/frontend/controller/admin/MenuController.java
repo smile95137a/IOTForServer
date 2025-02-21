@@ -1,4 +1,4 @@
-package com.frontend.controller;
+package com.frontend.controller.admin;
 
 import com.frontend.config.message.ApiResponse;
 import com.frontend.entity.menu.Menu;
@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/menus")
+@RequestMapping("/api/b/menus")
 public class MenuController {
 
     @Autowired
