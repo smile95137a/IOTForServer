@@ -1,10 +1,13 @@
 package com.frontend.controller.admin;
 
 import com.frontend.config.message.ApiResponse;
+import com.frontend.config.service.UserPrinciple;
 import com.frontend.entity.poolTable.TableEquipment;
 import com.frontend.entity.store.StoreEquipment;
+import com.frontend.req.poolTable.EqReq;
 import com.frontend.service.EquipmentService;
 import com.frontend.utils.ResponseUtils;
+import com.frontend.utils.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -50,17 +53,43 @@ public class EquipmentController {
 
     // ✅ 创建/更新桌台设备
     @PostMapping("/table")
-    public ResponseEntity<ApiResponse<TableEquipment>> createTableEquipment(@RequestBody TableEquipment tableEquipment) {
-        TableEquipment createdEquipment = equipmentService.saveTableEquipment(tableEquipment);
+    public ResponseEntity<ApiResponse<TableEquipment>> createTableEquipment(@RequestBody EqReq poolTableEqReq) {
+        UserPrinciple securityUser = SecurityUtils.getSecurityUser();
+        Long id = securityUser.getId();
+        TableEquipment createdEquipment = equipmentService.saveTableEquipment(poolTableEqReq , id);
         return ResponseEntity.ok(ResponseUtils.success(createdEquipment));
     }
 
+    @PutMapping("/table/{id}")
+    public ResponseEntity<ApiResponse<TableEquipment>> updateTableEquipment(
+            @PathVariable Long id,
+            @RequestBody EqReq poolTableEqReq) {
+        UserPrinciple securityUser = SecurityUtils.getSecurityUser();
+        Long userId = securityUser.getId();
+        TableEquipment updatedEquipment = equipmentService.updateTableEquipment(id, poolTableEqReq, userId);
+        return ResponseEntity.ok(ResponseUtils.success(updatedEquipment));
+    }
+
+
     // ✅ 创建/更新店家设备
     @PostMapping("/store")
-    public ResponseEntity<ApiResponse<StoreEquipment>> createStoreEquipment(@RequestBody StoreEquipment storeEquipment) {
-        StoreEquipment createdEquipment = equipmentService.saveStoreEquipment(storeEquipment);
+    public ResponseEntity<ApiResponse<StoreEquipment>> createStoreEquipment(@RequestBody EqReq storeEquipment) {
+        UserPrinciple securityUser = SecurityUtils.getSecurityUser();
+        Long id = securityUser.getId();
+        StoreEquipment createdEquipment = equipmentService.saveStoreEquipment(storeEquipment , id);
         return ResponseEntity.ok(ResponseUtils.success(createdEquipment));
     }
+
+    @PutMapping("/store/{id}")
+    public ResponseEntity<ApiResponse<StoreEquipment>> updateStoreEquipment(
+            @PathVariable Long id,
+            @RequestBody EqReq storeEquipmentReq) {
+        UserPrinciple securityUser = SecurityUtils.getSecurityUser();
+        Long userId = securityUser.getId();
+        StoreEquipment updatedEquipment = equipmentService.updateStoreEquipment(id, storeEquipmentReq, userId);
+        return ResponseEntity.ok(ResponseUtils.success(updatedEquipment));
+    }
+
 
     // ✅ 删除桌台设备
     @DeleteMapping("/table/{id}")

@@ -63,6 +63,7 @@ public class User implements Serializable {
 	@ManyToMany(fetch = FetchType.LAZY)
 	@JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
 	@Builder.Default
+	@JsonIgnore
 	private Set<Role> roles = new HashSet<>();
 
 	@ManyToOne(fetch = FetchType.LAZY)
