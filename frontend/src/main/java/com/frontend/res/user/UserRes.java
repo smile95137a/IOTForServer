@@ -63,4 +63,6 @@ public class UserRes implements Serializable {
 	private String imgUrl;
 
 	private Set<Long> roleIds = new HashSet<>();
+	
+	private String anonymousId;
 }

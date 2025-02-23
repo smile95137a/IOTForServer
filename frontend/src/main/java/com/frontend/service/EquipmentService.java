@@ -1,18 +1,22 @@
 package com.frontend.service;
 
-import com.frontend.entity.poolTable.TableEquipment;
-import com.frontend.entity.store.StoreEquipment;
-import com.frontend.repo.StoreEquipmentRepository;
-import com.frontend.repo.TableEquipmentRepository;
-import com.frontend.req.poolTable.EqReq;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+
+import org.springframework.stereotype.Service;
+
+import com.frontend.entity.poolTable.TableEquipment;
+import com.frontend.entity.store.Store;
+import com.frontend.entity.store.StoreEquipment;
+import com.frontend.repo.StoreEquipmentRepository;
+import com.frontend.repo.StoreRepository;
+import com.frontend.repo.TableEquipmentRepository;
+import com.frontend.req.poolTable.EqReq;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -20,6 +24,8 @@ public class EquipmentService {
 
     private final TableEquipmentRepository tableEquipmentRepository;
     private final StoreEquipmentRepository storeEquipmentRepository;
+    private final StoreRepository storeRepository;
+    
 
     // ✅ 获取所有桌台设备
     public List<TableEquipment> getAllTableEquipments() {
@@ -29,6 +35,14 @@ public class EquipmentService {
     // ✅ 获取所有店家设备
     public List<StoreEquipment> getAllStoreEquipments() {
         return storeEquipmentRepository.findAll();
+    }
+    
+    public List<StoreEquipment> findStoreEquipmentsByStoreId(Long storeId) {
+        return storeEquipmentRepository.findByStoreId(storeId);
+    }
+
+    public List<TableEquipment> findTableEquipmentsByTableId(Long tableId) {
+        return tableEquipmentRepository.findByPoolTableId(tableId);
     }
 
     // ✅ 通过 ID 获取桌台设备
@@ -57,7 +71,11 @@ public class EquipmentService {
     }
 
     // ✅ 创建/更新店家设备
-    public StoreEquipment saveStoreEquipment(EqReq storeEquipmentReq , Long id) {
+    public StoreEquipment saveStoreEquipment(EqReq storeEquipmentReq, Long id) {
+        // 先從資料庫查找 store，確保它存在
+        Store store = storeRepository.findById(storeEquipmentReq.getStore().getId())
+            .orElseThrow(() -> new RuntimeException("店家不存在"));
+
         StoreEquipment storeEquipment = new StoreEquipment();
         storeEquipment.setUid(UUID.randomUUID().toString());
         storeEquipment.setStatus(false);
@@ -65,11 +83,13 @@ public class EquipmentService {
         storeEquipment.setAutoStopTime(LocalTime.now());
         storeEquipment.setDescription(storeEquipmentReq.getDescription());
         storeEquipment.setEquipmentName(storeEquipmentReq.getName());
-        storeEquipment.setStore(storeEquipmentReq.getStore());
+        storeEquipment.setStore(store); 
         storeEquipment.setCreateTime(LocalDateTime.now());
         storeEquipment.setCreateUserId(id);
+
         return storeEquipmentRepository.save(storeEquipment);
     }
+
 
     // ✅ 删除桌台设备
     public void deleteTableEquipment(Long id) {
@@ -137,5 +157,6 @@ public class EquipmentService {
 
         return storeEquipmentRepository.save(storeEquipment);
     }
+
 
 }

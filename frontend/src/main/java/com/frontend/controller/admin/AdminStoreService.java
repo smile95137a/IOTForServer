@@ -78,10 +78,6 @@ public class AdminStoreService {
 		if (req.getVendor() != null) {
 			store.setVendor(req.getVendor());
 		}
-		// 设备和桌台（如果有的话）
-		if (req.getEquipments() != null) {
-			store.setEquipments(req.getEquipments());
-		}
 		if (req.getPoolTables() != null) {
 			store.setPoolTables(req.getPoolTables());
 		}
@@ -115,7 +111,6 @@ public class AdminStoreService {
 				.lon(store.getLon())
 				.deposit(store.getDeposit())
 				.vendor(store.getVendor())
-				.equipments(store.getEquipments())
 				.poolTables(store.getPoolTables())
 				.pricingSchedules(store.getPricingSchedules());
 
@@ -142,9 +137,6 @@ public class AdminStoreService {
 			// 设备和桌台
 			if (storeReq.getVendor() != null) {
 				store.setVendor(storeReq.getVendor());
-			}
-			if (storeReq.getEquipments() != null) {
-				store.setEquipments(storeReq.getEquipments());
 			}
 			if (storeReq.getPoolTables() != null) {
 				store.setPoolTables(storeReq.getPoolTables());

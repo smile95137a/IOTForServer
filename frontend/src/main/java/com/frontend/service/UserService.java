@@ -107,15 +107,20 @@ public class UserService {
 
 
 	@Transactional
-	public boolean updateUser(UserReq req, Long userId) throws Exception {
+	public UserRes updateUser(UserReq req, Long userId) throws Exception {
 		try {
 			Optional<User> userObj = userRepository.findById(userId);
 			User user = userObj.get();
 			user.setName(req.getName());
-			user.setPhoneNumber(req.getPhone());
+			user.setEmail(req.getEmail());
 			user.setUpdateTime(LocalDateTime.now());
 			userRepository.save(user);
-			return true;
+			UserRes userRes = new UserRes();
+			userRes.setUsername(user.getUsername());
+			userRes.setEmail(user.getEmail());
+			userRes.setUid(user.getUid());
+			userRes.setId(user.getId());
+			return userRes;
 		} catch (Exception e) {
 			throw new Exception("Failed to update user with ID: " + userId, e);
 		}
@@ -144,8 +149,11 @@ public class UserService {
 
 		return UserRes.builder()
 				.id(user.getId())
+				.anonymousId(user.getAnonymousId())
 				.uid(user.getUid())
 				.username(user.getUsername())
+				.password(user.getPassword())
+				.gender(user.getGender())
 				.name(user.getName())
 				.email(user.getEmail())
 				.roles(new HashSet<>(user.getRoles())) // Collect to Set<Role>

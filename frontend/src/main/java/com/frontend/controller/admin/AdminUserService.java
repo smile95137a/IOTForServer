@@ -123,8 +123,8 @@ public class AdminUserService {
     }
 
     @Transactional(rollbackFor = {Exception.class})
-    public boolean deleteUser(String id) {
-        var entity = this.getUserByuid(id);
+    public boolean deleteUser(Long id) {
+        var entity = userRepository.findById(id).orElse(null);
         if (entity != null) {
             userRepository.delete(entity);
             return true;
@@ -165,17 +165,41 @@ public class AdminUserService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
     public void updateBlack(List<Long> userIds) {
         Role blacklistRole = roleRepository.findByRoleName(RoleName.ROLE_BLACKLIST)
                 .orElseThrow(() -> new RuntimeException("Role not found"));
 
-//        userRoleCustomRepository.batchAddToBlacklist(userIds, blacklistRole.getId());
+        List<User> users = userRepository.findAllById(userIds);
+
+        if (users.isEmpty()) {
+            throw new RuntimeException("No users found for the given IDs");
+        }
+
+        for (User user : users) {
+            user.getRoles().add(blacklistRole);
+        }
+
+        userRepository.saveAll(users);
     }
 
+
+    @Transactional
     public void removeBlackList(List<Long> userIds) {
-        Role blacklistRole = roleRepository.findByRoleName(RoleName.ROLE_USER)
-                .orElseThrow(() -> new RuntimeException("Role not found"));
+        // 取得黑名單角色
+        Role blacklistRole = roleRepository.findByRoleName(RoleName.ROLE_BLACKLIST)
+                .orElseThrow(() -> new RuntimeException("Blacklist role not found"));
+        List<User> users = userRepository.findAllById(userIds);
 
-//        userRoleCustomRepository.batchAddToBlacklist(userIds, blacklistRole.getId());
+        if (users.isEmpty()) {
+            throw new RuntimeException("No users found for the given IDs");
+        }
+
+        for (User user : users) {
+            user.getRoles().remove(blacklistRole);
+        }
+
+        userRepository.saveAll(users);
     }
+
 }

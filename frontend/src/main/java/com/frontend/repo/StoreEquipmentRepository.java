@@ -9,4 +9,5 @@ import java.util.List;
 @Repository
 public interface StoreEquipmentRepository extends JpaRepository<StoreEquipment, Long> {
     List<StoreEquipment> findByStatus(Boolean status);
+    List<StoreEquipment> findByStoreId(Long storeId);
 }

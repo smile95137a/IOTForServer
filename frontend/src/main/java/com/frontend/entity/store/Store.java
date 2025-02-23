@@ -41,8 +41,6 @@ public class Store {
     @JsonManagedReference
     private Set<PoolTable> poolTables; // 分店中的桌台
 
-    @OneToMany(mappedBy = "store", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<StoreEquipment> equipments; // 店家的設備
 
     @OneToMany(mappedBy = "store", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference

@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.frontend.config.message.ApiResponse;
 import com.frontend.config.service.UserPrinciple;
 import com.frontend.entity.poolTable.PoolTable;
+import com.frontend.entity.store.StoreEquipment;
 import com.frontend.utils.ResponseUtils;
 import com.frontend.utils.SecurityUtils;
 
@@ -42,6 +43,13 @@ public class AdminPoolTableController {
             // 處理錯誤並返回
             return ResponseEntity.ok(ResponseUtils.error(9999, e.getMessage(), null));
         }
+    }
+
+    
+    @GetMapping("/store/{storeId}")
+    public ResponseEntity<ApiResponse<List<PoolTable>>> getPoolTablesByStoreId(@PathVariable Long storeId) {
+        List<PoolTable> poolTables = poolTableService.findByStoreId(storeId);
+        return ResponseEntity.ok(ResponseUtils.success(poolTables));
     }
 
 

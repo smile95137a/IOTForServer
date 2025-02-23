@@ -9,6 +9,8 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
@@ -22,9 +24,11 @@ public class Equipment {
     private Boolean status;
 
     @Column
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm", timezone = "Asia/Taipei")
     private LocalTime autoStartTime;
 
     @Column
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm", timezone = "Asia/Taipei")
     private LocalTime autoStopTime;
 
     @Column

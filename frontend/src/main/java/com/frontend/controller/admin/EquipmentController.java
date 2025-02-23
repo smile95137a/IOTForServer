@@ -34,22 +34,16 @@ public class EquipmentController {
         List<StoreEquipment> storeEquipments = equipmentService.getAllStoreEquipments();
         return ResponseEntity.ok(ResponseUtils.success(storeEquipments));
     }
-
-    // ✅ 获取单个桌台设备
-    @GetMapping("/table/{id}")
-    public ResponseEntity<ApiResponse<TableEquipment>> getTableEquipmentById(@PathVariable Long id) {
-        return equipmentService.getTableEquipmentById(id)
-                .map(equipment -> ResponseEntity.ok(ResponseUtils.success(equipment)))
-                .orElse(ResponseEntity.ok(ResponseUtils.error(404, "Table Equipment not found", null)));
+    
+    @GetMapping("/store/{storeId}")
+    public ResponseEntity<ApiResponse<List<StoreEquipment>>> getStoreEquipmentsByStoreId(@PathVariable Long storeId) {
+        List<StoreEquipment> storeEquipments = equipmentService.findStoreEquipmentsByStoreId(storeId);
+        return ResponseEntity.ok(ResponseUtils.success(storeEquipments));
     }
 
-    // ✅ 获取单个店家设备
-    @GetMapping("/store/{id}")
-    public ResponseEntity<ApiResponse<StoreEquipment>> getStoreEquipmentById(@PathVariable Long id) {
-        return equipmentService.getStoreEquipmentById(id)
-                .map(equipment -> ResponseEntity.ok(ResponseUtils.success(equipment)))
-                .orElse(ResponseEntity.ok(ResponseUtils.error(404, "Store Equipment not found", null)));
-    }
+
+
+
 
     // ✅ 创建/更新桌台设备
     @PostMapping("/table")
@@ -70,6 +64,12 @@ public class EquipmentController {
         return ResponseEntity.ok(ResponseUtils.success(updatedEquipment));
     }
 
+    @GetMapping("/table/{tableId}")
+    public ResponseEntity<ApiResponse<List<TableEquipment>>> getTableEquipmentsByTableId(@PathVariable Long tableId) {
+        List<TableEquipment> equipments = equipmentService.findTableEquipmentsByTableId(tableId);
+        return ResponseEntity.ok(ResponseUtils.success(equipments));
+    }
+    
 
     // ✅ 创建/更新店家设备
     @PostMapping("/store")
