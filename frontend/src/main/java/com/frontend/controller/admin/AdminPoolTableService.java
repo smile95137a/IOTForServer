@@ -37,20 +37,15 @@ public class AdminPoolTableService {
             poolTable.setStore(req.getStore());
         }
         // 這裡假設 Store 是直接從 PoolTableReq 傳過來的
-        if(req.getTableEquipments() != null){
-        }
+//        if(req.getTableEquipments() != null){
+//            poolTable.setTableEquipments(req.getTableEquipments());
+//        }
         poolTable.setIsUse(false);
 
         return poolTable;
     }
 
-    public List<PoolTable> findByStoreId(Long storeId) {
-        List<PoolTable> poolTables = poolTableRepository.findByStoreId(storeId);
 
-        return poolTables;
-    }
-
-    
     public Optional<AdminPoolTableRes> getPoolTableById(String uid) {
         Optional<PoolTable> poolTable = poolTableRepository.findByUid(uid);
         if (poolTable.isPresent()) {
@@ -75,6 +70,9 @@ public class AdminPoolTableService {
                 .status(poolTable.getStatus());
 
         // 只在 tableEquipments 不为 null 时设置 tableEquipments
+//        if (poolTable.getTableEquipments() != null) {
+//            builder.tableEquipments(poolTable.getTableEquipments());
+//        }
 
         return builder.build();
     }
@@ -93,8 +91,9 @@ public class AdminPoolTableService {
                 poolTable.setStore(updatedPoolTableReq.getStore());
             }
             // 這裡假設 Store 是直接從 PoolTableReq 傳過來的
-            if(updatedPoolTableReq.getTableEquipments() != null){
-            }
+//            if(updatedPoolTableReq.getTableEquipments() != null){
+//                poolTable.setTableEquipments(updatedPoolTableReq.getTableEquipments());
+//            }
             // 設置時間和用戶信息
             poolTable.setUpdateTime(LocalDateTime.now());
             poolTable.setUpdateUserId(id);
@@ -110,4 +109,11 @@ public class AdminPoolTableService {
     public void deletePoolTable(String uid) {
         poolTableRepository.deleteByUid(uid);
     }
+    
+    public List<PoolTable> findByStoreId(Long storeId) {
+        List<PoolTable> poolTables = poolTableRepository.findByStoreId(storeId);
+
+        return poolTables;
+    }
+
 }

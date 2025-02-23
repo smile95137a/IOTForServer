@@ -35,6 +35,8 @@ public class PoolTable {
     @JsonBackReference
     private Store store; // 所屬分店
 
+//    @OneToMany(mappedBy = "poolTable", cascade = CascadeType.ALL, orphanRemoval = true)
+//    private Set<TableEquipment> tableEquipments; // 桌台設備設定
 
     @Column
     private LocalDateTime createTime;
