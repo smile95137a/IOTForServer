@@ -3,8 +3,10 @@ package com.frontend.repo;
 import com.frontend.entity.user.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -29,5 +31,8 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
 	Boolean existsByEmail(String email);
 
 	void deleteByuid(String uid);
-	
+
+	@Query("SELECT u.id, u.name, u.amount FROM User u")
+	List<Object[]> getAllUserRemainingBalance();  // 获取所有用户的剩余储值金额
+
 }

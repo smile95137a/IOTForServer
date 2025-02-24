@@ -24,6 +24,9 @@ public class GameTransactionRecord {
     private Integer amount; // 消費金額
 
     @Column
+    private String vendorName;
+
+    @Column
     private String storeName;
 
     @Column

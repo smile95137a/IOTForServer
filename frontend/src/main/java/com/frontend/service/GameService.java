@@ -274,10 +274,13 @@ public class GameService {
 
         PoolTable poolTable = poolTableRepository.findByUid(game.getPoolTableUid()).get();
         Store store = storeRepository.findById(poolTable.getStore().getId()).get();
+        Long id1 = store.getVendor().getId();
+        Vendor vendor = vendorRepository.findById(id1).get();
         // 创建交易记录
         GameTransactionRecord transactionRecord = GameTransactionRecord.builder()
                 .uid(user.getUid())
                 .amount(game.getTotalPrice())
+                .vendorName(vendor.getName())
                 .storeName(store.getName()) // 假设有商店名
                 .tableNumber(poolTable.getTableNumber()) // 假设有桌号
                 .transactionDate(LocalDateTime.now())
