@@ -22,7 +22,7 @@ public class ReportController {
         this.reportService = reportService;
     }
 
-    @GetMapping
+    @PostMapping
     public ResponseEntity<ApiResponse<Map<String, Object>>> getReportData(@RequestBody ReportRequest request) {
         // 从 request 中提取报告类型、时间范围、storeId、vendorId 和 periodType（如果有）
         UserPrinciple securityUser = SecurityUtils.getSecurityUser();
