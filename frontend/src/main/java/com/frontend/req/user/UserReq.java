@@ -1,5 +1,6 @@
 package com.frontend.req.user;
 
+import com.frontend.enums.RoleName;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -22,7 +23,7 @@ public class UserReq {
     private String countryCode;
     private String verificationCode;
     private String anonymousId;
-    private Set<Long> roleIds;
+    private Set<RoleName> roleNames;
 }
 
 

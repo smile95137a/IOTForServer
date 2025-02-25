@@ -3,6 +3,8 @@ package com.frontend.controller.admin;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.frontend.config.service.UserPrinciple;
+import com.frontend.utils.SecurityUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -88,10 +90,13 @@ public class AdminUserController {
     @PutMapping
     public ResponseEntity<?> updateUser(@RequestBody UserReq req) {
         try {
-            var result = userService.updateUser(req);
+            UserPrinciple securityUser = SecurityUtils.getSecurityUser();
+            Long id = securityUser.getId();
+            var result = userService.updateUser(req , id);
             var res = ResponseUtils.success(0000, null, result);
             return ResponseEntity.ok(res);
         } catch (Exception e) {
+            e.printStackTrace();
             log.error("UserController updateUpdate : {}", e.getMessage());
             var res = ResponseUtils.error(9999, "系統錯誤", e.getMessage());
             return ResponseEntity.badRequest().body(res);

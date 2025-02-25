@@ -99,16 +99,14 @@ public class AdminUserService {
 
 
     @Transactional(rollbackFor = {Exception.class})
-    public UserRes updateUser(UserReq userReq) {
-        var entity = this.getUserByuid(userReq.getUid());
+    public UserRes updateUser(UserReq userReq , Long id) {
+        var entity = userRepository.findById(id).get();
         if (entity != null) {
             var principal = (UserPrinciple) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            var reqPwd = userReq.getPassword();
             var ePwd = entity.getPassword();
-            var pwd = reqPwd.equals(ePwd) ? ePwd : passwordEncoder.encode(reqPwd);
-            Set<Role> byIdIn = roleRepository.findByIdIn(userReq.getRoleIds());
+            Set<Role> byIdIn = roleRepository.findByRoleNameIn(userReq.getRoleNames());
             entity.setName(userReq.getName());
-            entity.setPassword(pwd);
+            entity.setPassword(ePwd);
             entity.setEmail(userReq.getEmail());
             entity.setUpdateTime(LocalDateTime.now());
             entity.setUpdateUserId(principal.getId());
