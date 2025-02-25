@@ -31,77 +31,100 @@ public class ReportService {
     @Autowired
     private UserRepository userRepository;
 
-    public Map<String, Object> getReportData(String reportType, LocalDateTime startDate, LocalDateTime endDate, Long storeId, Long vendorId , String periodType , Long userId) {
-        Map<String, Object> response = new HashMap<>();
-        Store store = storeRepository.findById(storeId).get();
-        Vendor vendor = vendorRepository.findById(vendorId).get();
-        User user = userRepository.findById(userId).get();
-        Set<Role> roles = user.getRoles();
-        int userRole = roles.stream().anyMatch(role -> role.getId() == 1) ? 1 : 2; // 如果包含角色 1，设置为 Admin (1)，否则设置为厂商 (2)
+    public Object getReportData(String reportType, LocalDateTime startDate, LocalDateTime endDate, Long storeId, Long vendorId, String periodType, Long userId) {
+        Store store = (storeId != null) ? storeRepository.findById(storeId).orElse(null) : null;
+        Vendor vendor = (vendorId != null) ? vendorRepository.findById(vendorId).orElse(null) : null;
+        User user = userRepository.findById(userId).orElse(null);
 
-        switch (reportType) {
-            case "Deposit Amount":
-                if (periodType != null && !periodType.isEmpty()) {
-                    response.put("Deposit Amount by Period", transactionRecordRepository.getTotalDepositAmountByPeriod(periodType, startDate, endDate));
-                }
-                break;
-            case "Consumption Amount":
-                if (periodType != null && !periodType.isEmpty()) {
-                    response.put("Consumption Amount by Period", gameTransactionRecordRepository.getTotalConsumptionByPeriod(periodType, startDate, endDate));
-                }
-                break;
-            case "Store Revenue":
-                // Admin 和厂商都有权限查看，但厂商只能看到自己店铺的数据
-                if (periodType != null && !periodType.isEmpty()) {
-                    if (userRole == 1) { // Admin 可以看到所有店铺
-                        if (store.getName() == null || store.getName().isEmpty()) { // Admin 没有选择店铺
-                            response.put("Store Revenue by Period", gameTransactionRecordRepository.getStoreRevenueByPeriodForAdmin(periodType, startDate, endDate));
-                        } else { // Admin 选择了店铺
-                            response.put("Store Revenue by Period", gameTransactionRecordRepository.getStoreRevenueByPeriod(periodType, store.getName(), startDate, endDate));
-                        }
-                    } else if (userRole == 2) { // 厂商只能看到自己店铺的数据
-                        response.put("Store Revenue by Period", gameTransactionRecordRepository.getStoreRevenueByPeriod(periodType, store.getName(), startDate, endDate));
-                    }
-                }
-                break;
-            case "Vendor Revenue":
-                if (periodType != null && !periodType.isEmpty()) {
-                    // Admin 和厂商都有权限查看，但厂商只能看到自己厂商的数据
-                    if (userRole == 1) { // Admin 可以看到所有厂商
-                        if (vendor.getName() == null || vendor.getName().isEmpty()) { // Admin 没有选择厂商
-                            response.put("Vendor Revenue by Period", gameTransactionRecordRepository.getVendorRevenueByPeriodForAdmin(periodType, startDate, endDate));
-                        } else { // Admin 选择了厂商
-                            response.put("Vendor Revenue by Period", gameTransactionRecordRepository.getVendorRevenueByPeriod(periodType, vendor.getName(), startDate, endDate));
-                        }
-                    } else if (userRole == 2) { // 厂商只能看到自己厂商的数据
-                        response.put("Vendor Revenue by Period", gameTransactionRecordRepository.getVendorRevenueByPeriod(periodType, vendor.getName(), startDate, endDate));
-                    }
-                }
-                break;
-            case "Remaining Balance":
-                // 获取所有用户的剩余储值金额
-                List<Object[]> userBalances = userRepository.getAllUserRemainingBalance();
-                BigDecimal totalRemainingBalance = BigDecimal.ZERO;
-
-                // 把每个用户的余额和总和一起返回
-                List<UserRemainingBalanceDTO> balanceDetails = new ArrayList<>();
-                for (Object[] userBalance : userBalances) {
-                    Long userid = (Long) userBalance[0];
-                    String userName = (String) userBalance[1];
-                    BigDecimal remainingBalance = (BigDecimal) userBalance[2];
-                    balanceDetails.add(new UserRemainingBalanceDTO(userid, userName, remainingBalance));
-                    totalRemainingBalance = totalRemainingBalance.add(remainingBalance);  // 计算总余额
-                }
-
-                response.put("Remaining Balance Details", balanceDetails);
-                response.put("Total Remaining Balance", totalRemainingBalance);  // 返回总余额
-                break;
-            default:
-                response.put("error", "Invalid report type");
-                break;
+        if (user == null) {
+            return Collections.singletonMap("error", "User not found");
         }
 
-        return response;
+        Set<Role> roles = user.getRoles();
+        int userRole = roles.stream().anyMatch(role -> role.getId() == 1) ? 1 : 2; // 1=Admin, 2=Vendor
+
+        switch (reportType) {
+            case "DepositAmount":
+                return (periodType != null && !periodType.isEmpty())
+                        ? convertToPeriodData(transactionRecordRepository.getTotalDepositAmountByPeriod(periodType, startDate, endDate))
+                        : new ArrayList<>();
+
+            case "ConsumptionAmount":
+                return (periodType != null && !periodType.isEmpty())
+                        ? convertToPeriodData(gameTransactionRecordRepository.getTotalConsumptionByPeriod(periodType, startDate, endDate))
+                        : new ArrayList<>();
+
+            case "StoreRevenue":
+                if (periodType != null && !periodType.isEmpty()) {
+                    List<Object[]> storeRevenueData;
+                    if (userRole == 1) { // Admin
+                        storeRevenueData = (store != null && store.getName() != null)
+                                ? gameTransactionRecordRepository.getStoreRevenueByPeriod(periodType, store.getName(), startDate, endDate)
+                                : gameTransactionRecordRepository.getStoreRevenueByPeriodForAdmin(periodType, startDate, endDate);
+                    } else { // Vendor
+                        storeRevenueData = (store != null)
+                                ? gameTransactionRecordRepository.getStoreRevenueByPeriod(periodType, store.getName(), startDate, endDate)
+                                : new ArrayList<>();
+                    }
+                    return convertToPeriodData(storeRevenueData);
+                }
+                return new ArrayList<>();
+
+            case "VendorRevenue":
+                if (periodType != null && !periodType.isEmpty()) {
+                    List<Object[]> vendorRevenueData;
+                    if (userRole == 1) { // Admin
+                        vendorRevenueData = (vendor != null && vendor.getName() != null)
+                                ? gameTransactionRecordRepository.getVendorRevenueByPeriod(periodType, vendor.getName(), startDate, endDate)
+                                : gameTransactionRecordRepository.getVendorRevenueByPeriodForAdmin(periodType, startDate, endDate);
+                    } else { // Vendor
+                        vendorRevenueData = (vendor != null)
+                                ? gameTransactionRecordRepository.getVendorRevenueByPeriod(periodType, vendor.getName(), startDate, endDate)
+                                : new ArrayList<>();
+                    }
+                    return convertToPeriodData(vendorRevenueData);
+                }
+                return new ArrayList<>();
+
+            case "RemainingBalance":
+                List<Object[]> userBalances = userRepository.getAllUserRemainingBalance();
+                int totalRemainingBalance = 0;
+                List<Map<String, Object>> balanceDetails = new ArrayList<>();
+
+                for (Object[] userBalance : userBalances) {
+                    Long userIdBalance = (Long) userBalance[0];
+                    String userName = (String) userBalance[1];
+                    int remainingBalance = (int) userBalance[2];
+
+                    Map<String, Object> balanceEntry = new HashMap<>();
+                    balanceEntry.put("userId", userIdBalance);
+                    balanceEntry.put("userName", userName);
+                    balanceEntry.put("remainingBalance", remainingBalance);
+                    balanceDetails.add(balanceEntry);
+
+                    totalRemainingBalance = remainingBalance;
+                }
+
+                return balanceDetails;
+
+            default:
+                return Collections.singletonMap("error", "Invalid report type");
+        }
+    }
+
+
+    /**
+     * 转换数据库查询结果为标准 JSON 格式
+     */
+    private List<Map<String, Object>> convertToPeriodData(List<Object[]> data) {
+        List<Map<String, Object>> formattedList = new ArrayList<>();
+        for (Object[] record : data) {
+            Map<String, Object> entry = new HashMap<>();
+            entry.put("dateTime", record[0]);  // 日期
+            entry.put("amount", record[1]);    // 金额
+            formattedList.add(entry);
+        }
+        return formattedList;
     }
 
 }

@@ -27,7 +27,7 @@ public interface TransactionRecordRepository extends JpaRepository<TransactionRe
             "  END AS period, " +
             "  SUM(t.amount) AS total_deposit " +
             "FROM TransactionRecord t " +
-            "WHERE t.transactionType = '儲值' AND t.transactionDate BETWEEN :startDate AND :endDate " +
+            "WHERE t.transactionType = 'DEPOSIT' AND t.transactionDate BETWEEN :startDate AND :endDate " +
             "GROUP BY period ")
     List<Object[]> getTotalDepositAmountByPeriod(
             @Param("type") String type,
