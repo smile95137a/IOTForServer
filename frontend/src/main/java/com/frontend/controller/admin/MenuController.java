@@ -1,9 +1,11 @@
 package com.frontend.controller.admin;
 
 import com.frontend.config.message.ApiResponse;
+import com.frontend.config.service.UserPrinciple;
 import com.frontend.entity.menu.Menu;
 import com.frontend.service.MenuService;
 import com.frontend.utils.ResponseUtils;
+import com.frontend.utils.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,7 +22,9 @@ public class MenuController {
     // 1. 查询所有菜单（支持树形结构）
     @GetMapping
     public ResponseEntity<ApiResponse<List<Menu>>> getAllMenus() {
-        List<Menu> allMenus = menuService.findAllMenus();
+        UserPrinciple securityUser = SecurityUtils.getSecurityUser();
+        Long id = securityUser.getId();
+        List<Menu> allMenus = menuService.findAllMenus(id);
         if (allMenus.isEmpty()) {
             ApiResponse<List<Menu>> error = ResponseUtils.error(List.of());
             return ResponseEntity.ok(error);
