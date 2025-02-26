@@ -3,6 +3,7 @@ package com.frontend.controller.admin;
 import java.util.List;
 
 import com.frontend.res.store.AdminStoreRes;
+import com.frontend.res.store.StoreRes;
 import com.frontend.utils.ImageUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -45,6 +46,16 @@ public class AdminStoreController {
         ApiResponse<AdminStoreRes> success = ResponseUtils.success(store);
         return ResponseEntity.ok(success);
     }
+
+    @GetMapping("/{vendorId}/stores")
+    public ResponseEntity<ApiResponse<List<StoreRes>>> getStoresByVendorId(@PathVariable Long vendorId) {
+        List<StoreRes> stores = storeService.getStoresByVendorId(vendorId);
+        if (stores.isEmpty()) {
+            return ResponseEntity.ok(ResponseUtils.error(null));
+        }
+        return ResponseEntity.ok(ResponseUtils.success(stores));
+    }
+
 
     // Get all stores
     @GetMapping

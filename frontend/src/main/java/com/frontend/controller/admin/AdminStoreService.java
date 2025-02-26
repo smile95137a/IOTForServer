@@ -11,6 +11,8 @@ import com.frontend.entity.store.StorePricingSchedule;
 import com.frontend.repo.StorePricingScheduleRepository;
 import com.frontend.req.store.StorePricingScheduleReq;
 import com.frontend.res.store.AdminStoreRes;
+import com.frontend.res.store.StoreRes;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -184,4 +186,16 @@ public class AdminStoreService {
 			storeRepository.save(store);
 		}
 	}
+
+	public List<StoreRes> getStoresByVendorId(Long vendorId) {
+		List<Store> stores = storeRepository.findByVendorId(vendorId);
+		return stores.stream().map(this::convertToRes).collect(Collectors.toList());
+	}
+
+	private StoreRes convertToRes(Store store) {
+		StoreRes res = new StoreRes();
+		BeanUtils.copyProperties(store, res);
+		return res;
+	}
+
 }

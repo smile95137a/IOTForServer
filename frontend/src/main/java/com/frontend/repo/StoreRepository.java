@@ -36,4 +36,6 @@ public interface StoreRepository extends JpaRepository<Store, Long> {
 	void deleteByUid(String uid);
 
 	List<Store> findByVendor(Vendor vendor);
+
+    List<Store> findByVendorId(Long vendorId);
 }

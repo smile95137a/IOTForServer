@@ -37,7 +37,7 @@ public class StoreService {
         storeResList.ifPresent(storeResListResult -> {
             storeResListResult.forEach(storeRes -> {
                 // 查询每个 StoreRes 的 pricingSchedules
-                List<StorePricingScheduleRes> pricingSchedules = getPricingSchedulesForStore(storeRes.getStoreId(), currentDay);
+                List<StorePricingScheduleRes> pricingSchedules = getPricingSchedulesForStore(storeRes.getId(), currentDay);
                 storeRes.setPricingSchedules(pricingSchedules);
             });
         });

@@ -1,10 +1,7 @@
 package com.frontend.res.store;
 
 import com.frontend.entity.store.StorePricingSchedule;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 
 import java.util.List;
 
@@ -12,8 +9,9 @@ import java.util.List;
 @Setter
 @ToString
 @AllArgsConstructor
+@NoArgsConstructor
 public class StoreRes {
-    private Long storeId;
+    private Long id;
     private String uid;
     private String address;
     private String name;
