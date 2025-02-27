@@ -1,6 +1,7 @@
 package com.frontend.repo;
 
 import com.frontend.entity.transection.GameTransactionRecord;
+import com.frontend.res.report.TransactionSummary;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -25,10 +26,10 @@ public interface GameTransactionRecordRepository extends JpaRepository<GameTrans
     List<GameTransactionRecord> findByAmountGreaterThan(Integer amount);
 
     @Query("SELECT " +
-            "  CASE WHEN :type = 'DAY' THEN DATE(g.transactionDate) " +
+            "  CASE WHEN :type = 'DAY' THEN CAST(DATE(g.transactionDate) AS string) " +
             "       WHEN :type = 'WEEK' THEN CONCAT(YEAR(g.transactionDate), '-', WEEK(g.transactionDate)) " +
             "       WHEN :type = 'MONTH' THEN CONCAT(YEAR(g.transactionDate), '-', MONTH(g.transactionDate)) " +
-            "       WHEN :type = 'YEAR' THEN YEAR(g.transactionDate) " +
+            "       WHEN :type = 'YEAR' THEN CAST(YEAR(g.transactionDate) AS string) " +
             "  END AS period, " +
             "  SUM(g.amount) AS total_amount " +
             "FROM GameTransactionRecord g " +
@@ -41,10 +42,10 @@ public interface GameTransactionRecordRepository extends JpaRepository<GameTrans
 
 
     @Query("SELECT " +
-            "  CASE WHEN :type = 'DAY' THEN DATE(g.transactionDate) " +
+            "  CASE WHEN :type = 'DAY' THEN CAST(DATE(g.transactionDate) AS string) " +
             "       WHEN :type = 'WEEK' THEN CONCAT(YEAR(g.transactionDate), '-', WEEK(g.transactionDate)) " +
             "       WHEN :type = 'MONTH' THEN CONCAT(YEAR(g.transactionDate), '-', MONTH(g.transactionDate)) " +
-            "       WHEN :type = 'YEAR' THEN YEAR(g.transactionDate) " +
+            "       WHEN :type = 'YEAR' THEN CAST(YEAR(g.transactionDate) AS string) " +
             "  END AS period, " +
             "  SUM(g.amount) AS total_revenue " +
             "FROM GameTransactionRecord g " +
@@ -57,10 +58,10 @@ public interface GameTransactionRecordRepository extends JpaRepository<GameTrans
             @Param("endDate") LocalDateTime endDate);
 
     @Query("SELECT " +
-            "  CASE WHEN :type = 'DAY' THEN DATE(g.transactionDate) " +
+            "  CASE WHEN :type = 'DAY' THEN CAST(DATE(g.transactionDate) AS string) " +
             "       WHEN :type = 'WEEK' THEN CONCAT(YEAR(g.transactionDate), '-', WEEK(g.transactionDate)) " +
             "       WHEN :type = 'MONTH' THEN CONCAT(YEAR(g.transactionDate), '-', MONTH(g.transactionDate)) " +
-            "       WHEN :type = 'YEAR' THEN YEAR(g.transactionDate) " +
+            "       WHEN :type = 'YEAR' THEN CAST(YEAR(g.transactionDate) AS string) " +
             "  END AS period, " +
             "  SUM(g.amount) AS total_revenue " +
             "FROM GameTransactionRecord g " +
@@ -75,10 +76,10 @@ public interface GameTransactionRecordRepository extends JpaRepository<GameTrans
 
     // Admin 查询所有店铺或厂商的营收数据
     @Query("SELECT " +
-            "  CASE WHEN :type = 'DAY' THEN DATE(g.transactionDate) " +
+            "  CASE WHEN :type = 'DAY' THEN CAST(DATE(g.transactionDate) AS string) " +
             "       WHEN :type = 'WEEK' THEN CONCAT(YEAR(g.transactionDate), '-', WEEK(g.transactionDate)) " +
             "       WHEN :type = 'MONTH' THEN CONCAT(YEAR(g.transactionDate), '-', MONTH(g.transactionDate)) " +
-            "       WHEN :type = 'YEAR' THEN YEAR(g.transactionDate) " +
+            "       WHEN :type = 'YEAR' THEN CAST(YEAR(g.transactionDate) AS string) " +
             "  END AS period, " +
             "  SUM(g.amount) AS total_revenue " +
             "FROM GameTransactionRecord g " +
@@ -90,10 +91,10 @@ public interface GameTransactionRecordRepository extends JpaRepository<GameTrans
             @Param("endDate") LocalDateTime endDate);
 
     @Query("SELECT " +
-            "  CASE WHEN :type = 'DAY' THEN DATE(g.transactionDate) " +
+            "  CASE WHEN :type = 'DAY' THEN CAST(DATE(g.transactionDate) AS string) " +
             "       WHEN :type = 'WEEK' THEN CONCAT(YEAR(g.transactionDate), '-', WEEK(g.transactionDate)) " +
             "       WHEN :type = 'MONTH' THEN CONCAT(YEAR(g.transactionDate), '-', MONTH(g.transactionDate)) " +
-            "       WHEN :type = 'YEAR' THEN YEAR(g.transactionDate) " +
+            "       WHEN :type = 'YEAR' THEN CAST(YEAR(g.transactionDate) AS string) " +
             "  END AS period, " +
             "  SUM(g.amount) AS total_revenue " +
             "FROM GameTransactionRecord g " +
@@ -103,4 +104,7 @@ public interface GameTransactionRecordRepository extends JpaRepository<GameTrans
             @Param("type") String type,
             @Param("startDate") LocalDateTime startDate,
             @Param("endDate") LocalDateTime endDate);
+
+
+
 }

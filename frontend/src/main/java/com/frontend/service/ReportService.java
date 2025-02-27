@@ -5,6 +5,7 @@ import com.frontend.entity.store.Store;
 import com.frontend.entity.user.User;
 import com.frontend.entity.vendor.Vendor;
 import com.frontend.repo.*;
+import com.frontend.res.report.TransactionSummary;
 import com.frontend.res.user.UserRemainingBalanceDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -46,12 +47,12 @@ public class ReportService {
         switch (reportType) {
             case "DepositAmount":
                 return (periodType != null && !periodType.isEmpty())
-                        ? convertToPeriodData(transactionRecordRepository.getTotalDepositAmountByPeriod(periodType, startDate, endDate))
+                        ? convertToPeriodData2(transactionRecordRepository.getTotalDepositAmountByPeriod(periodType, startDate, endDate))
                         : new ArrayList<>();
 
             case "ConsumptionAmount":
                 return (periodType != null && !periodType.isEmpty())
-                        ? convertToPeriodData(gameTransactionRecordRepository.getTotalConsumptionByPeriod(periodType, startDate, endDate))
+                        ? convertToPeriodData2(gameTransactionRecordRepository.getTotalConsumptionByPeriod(periodType, startDate, endDate))
                         : new ArrayList<>();
 
             case "StoreRevenue":
@@ -66,7 +67,7 @@ public class ReportService {
                                 ? gameTransactionRecordRepository.getStoreRevenueByPeriod(periodType, store.getName(), startDate, endDate)
                                 : new ArrayList<>();
                     }
-                    return convertToPeriodData(storeRevenueData);
+                    return convertToPeriodData2(storeRevenueData);
                 }
                 return new ArrayList<>();
 
@@ -82,7 +83,7 @@ public class ReportService {
                                 ? gameTransactionRecordRepository.getVendorRevenueByPeriod(periodType, vendor.getName(), startDate, endDate)
                                 : new ArrayList<>();
                     }
-                    return convertToPeriodData(vendorRevenueData);
+                    return convertToPeriodData2(vendorRevenueData);
                 }
                 return new ArrayList<>();
 
@@ -116,7 +117,19 @@ public class ReportService {
     /**
      * 转换数据库查询结果为标准 JSON 格式
      */
-    private List<Map<String, Object>> convertToPeriodData(List<Object[]> data) {
+    private List<Map<String, Object>> convertToPeriodData(List<TransactionSummary> data) {
+        List<Map<String, Object>> formattedList = new ArrayList<>();
+        for (TransactionSummary record : data) {
+            Map<String, Object> entry = new HashMap<>();
+            entry.put("dateTime", record.getPeriod());  // 日期
+            entry.put("amount", record.getTotalAmount());    // 金额
+            formattedList.add(entry);
+        }
+        return formattedList;
+    }
+
+
+    private List<Map<String, Object>> convertToPeriodData2(List<Object[]> data) {
         List<Map<String, Object>> formattedList = new ArrayList<>();
         for (Object[] record : data) {
             Map<String, Object> entry = new HashMap<>();

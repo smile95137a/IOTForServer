@@ -2,6 +2,7 @@ package com.frontend.repo;
 
 import com.frontend.entity.transection.TransactionRecord;
 import com.frontend.entity.user.User;
+import com.frontend.res.report.TransactionSummary;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -20,10 +21,10 @@ public interface TransactionRecordRepository extends JpaRepository<TransactionRe
     List<TransactionRecord> findByUserId(Long userId);
 
     @Query("SELECT " +
-            "  CASE WHEN :type = 'DAY' THEN DATE(t.transactionDate) " +
+            "  CASE WHEN :type = 'DAY' THEN CAST(DATE(t.transactionDate) AS string) " +
             "       WHEN :type = 'WEEK' THEN CONCAT(YEAR(t.transactionDate), '-', WEEK(t.transactionDate)) " +
             "       WHEN :type = 'MONTH' THEN CONCAT(YEAR(t.transactionDate), '-', MONTH(t.transactionDate)) " +
-            "       WHEN :type = 'YEAR' THEN YEAR(t.transactionDate) " +
+            "       WHEN :type = 'YEAR' THEN CAST(YEAR(t.transactionDate) AS string) " +
             "  END AS period, " +
             "  SUM(t.amount) AS total_deposit " +
             "FROM TransactionRecord t " +
