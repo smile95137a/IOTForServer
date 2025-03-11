@@ -41,9 +41,9 @@ public class MonitorController {
     }
 
     // 取得某商店的所有監視器
-    @GetMapping("/store/{storeUid}")
-    public ResponseEntity<ApiResponse<List<Monitor>>> getMonitorsByStoreId(@PathVariable String storeUid) {
-        List<Monitor> monitors = monitorService.getMonitorsByStoreUid(storeUid);
+    @GetMapping("/store/{id}")
+    public ResponseEntity<ApiResponse<List<Monitor>>> getMonitorsByStoreId(@PathVariable Long id) {
+        List<Monitor> monitors = monitorService.getMonitorsByStoreUid(id);
         return ResponseEntity.ok(ResponseUtils.success(monitors));
     }
 

@@ -64,9 +64,8 @@ public class MonitorService {
 
 
     // 取得特定商店的所有監視器
-    public List<Monitor> getMonitorsByStoreUid(String storeUid) {
-        Store store = storeRepository.findByUid(storeUid).get();
-        return monitorRepository.findByStoreId(store.getId());
+    public List<Monitor> getMonitorsByStoreUid(Long id) {
+        return monitorRepository.findByStoreId(id);
     }
 
 
