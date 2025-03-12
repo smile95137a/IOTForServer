@@ -27,7 +27,7 @@ public class Monitor {
     private String name; // 監視器名稱
 
     @Column(nullable = false)
-    private String status; // 狀態 (e.g., ACTIVE, INACTIVE, ERROR)
+    private boolean status; // 狀態 (e.g., ACTIVE, INACTIVE, ERROR)
 
     @Column
     private LocalDateTime createTime;

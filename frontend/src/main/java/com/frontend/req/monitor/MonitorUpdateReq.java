@@ -6,7 +6,7 @@ import lombok.Data;
 @Data
 public class MonitorUpdateReq {
     private String uid;
-    private String status; // 監視器狀態
+    private Boolean status; // 監視器狀態
     private String name;
     private Long storeId;
 }

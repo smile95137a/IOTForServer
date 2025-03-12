@@ -31,7 +31,7 @@ public class MonitorService {
         Monitor monitor = new Monitor();
         monitor.setUid(UUID.randomUUID().toString());
         monitor.setName(req.getName());
-        monitor.setStatus("ACTIVE"); // 預設狀態為 ACTIVE
+        monitor.setStatus(false); // 預設狀態為 ACTIVE
         monitor.setCreateTime(LocalDateTime.now());
         monitor.setCreateUserId(userId);
         monitor.setStore(store);
