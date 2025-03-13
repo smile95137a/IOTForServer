@@ -26,4 +26,11 @@ public class GameRecordController {
         Long id = securityUser.getId();
         return ResponseEntity.ok(ResponseUtils.success(200, "開台成功", gameRecordService.getGameRecordsByUserUidAndStatus(id)));
     }
+
+    @GetMapping("/game-records/user")
+    public ResponseEntity<ApiResponse<List<GameRecord>>> getGameRecordsUser() {
+        UserPrinciple securityUser = SecurityUtils.getSecurityUser();
+        Long id = securityUser.getId();
+        return ResponseEntity.ok(ResponseUtils.success(200, "開台成功", gameRecordService.getGameRecordsByUserUid(id)));
+    }
 }
