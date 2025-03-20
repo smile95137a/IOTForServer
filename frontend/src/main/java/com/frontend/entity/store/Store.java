@@ -2,6 +2,7 @@ package com.frontend.entity.store;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.frontend.entity.equipment.Router;
 import com.frontend.entity.poolTable.PoolTable;
 import com.frontend.entity.vendor.Vendor;
 import jakarta.persistence.*;
@@ -69,6 +70,11 @@ public class Store {
 
     @Column // 押金
     private Integer deposit;
+
+    @OneToMany(mappedBy = "store", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private Set<Router> routers; // 商店中的路由器（各種設備）
+
 
     @Override
     public boolean equals(Object o) {
