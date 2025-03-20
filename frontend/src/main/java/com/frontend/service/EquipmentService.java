@@ -60,8 +60,8 @@ public class EquipmentService {
         TableEquipment tableEquipment = new TableEquipment();
         tableEquipment.setUid(UUID.randomUUID().toString());
         tableEquipment.setStatus(false);
-        tableEquipment.setAutoStartTime(LocalTime.now());
-        tableEquipment.setAutoStopTime(LocalTime.now());
+        tableEquipment.setAutoStartTime(poolTableEqReq.getAutoStartTime());
+        tableEquipment.setAutoStopTime(poolTableEqReq.getAutoStopTime());
         tableEquipment.setDescription(poolTableEqReq.getDescription());
         tableEquipment.setEquipmentName(poolTableEqReq.getName());
         tableEquipment.setPoolTable(poolTableEqReq.getPoolTable());
@@ -79,8 +79,8 @@ public class EquipmentService {
         StoreEquipment storeEquipment = new StoreEquipment();
         storeEquipment.setUid(UUID.randomUUID().toString());
         storeEquipment.setStatus(false);
-        storeEquipment.setAutoStartTime(LocalTime.now());
-        storeEquipment.setAutoStopTime(LocalTime.now());
+        storeEquipment.setAutoStartTime(storeEquipmentReq.getAutoStartTime());
+        storeEquipment.setAutoStopTime(storeEquipmentReq.getAutoStopTime());
         storeEquipment.setDescription(storeEquipmentReq.getDescription());
         storeEquipment.setEquipmentName(storeEquipmentReq.getName());
         storeEquipment.setStore(store); 
