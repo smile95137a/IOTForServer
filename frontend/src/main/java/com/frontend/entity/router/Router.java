@@ -1,6 +1,7 @@
-package com.frontend.entity.equipment;
+package com.frontend.entity.router;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.frontend.entity.equipment.Equipment;
 import com.frontend.entity.store.Store;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
