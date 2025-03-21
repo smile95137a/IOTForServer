@@ -1,6 +1,6 @@
 package com.frontend.service;
 
-import com.frontend.entity.equipment.Router;
+import com.frontend.entity.router.Router;
 import com.frontend.entity.store.Store;
 import com.frontend.factory.RouterFactory;
 import com.frontend.repo.RouterRepository;

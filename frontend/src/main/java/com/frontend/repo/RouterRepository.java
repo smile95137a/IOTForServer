@@ -1,6 +1,6 @@
 package com.frontend.repo;
 
-import com.frontend.entity.equipment.Router;
+import com.frontend.entity.router.Router;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

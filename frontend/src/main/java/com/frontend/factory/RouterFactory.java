@@ -1,6 +1,6 @@
 package com.frontend.factory;
 
-import com.frontend.entity.equipment.Router;
+import com.frontend.entity.router.Router;
 import com.frontend.entity.iot.AirConditioner;
 import com.frontend.entity.iot.Camera;
 import com.frontend.entity.iot.DeskLamp;

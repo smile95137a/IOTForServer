@@ -1,6 +1,6 @@
 package com.frontend.entity.iot;
 
-import com.frontend.entity.equipment.Router;
+import com.frontend.entity.router.Router;
 import jakarta.persistence.Entity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;

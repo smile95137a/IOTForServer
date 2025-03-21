@@ -1,6 +1,6 @@
 package com.frontend.controller.admin;
 
-import com.frontend.entity.equipment.Router;
+import com.frontend.entity.router.Router;
 import com.frontend.enums.RouterType;
 import com.frontend.req.router.AddRouterRequest;
 import com.frontend.req.router.UpdateRouterRequest;
