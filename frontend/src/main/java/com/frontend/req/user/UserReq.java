@@ -11,7 +11,7 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserReq {
-	
+	private Long id;
 	private String uid;
 	private String username;
 	private String type;
