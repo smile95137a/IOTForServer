@@ -92,7 +92,7 @@ public class AdminUserController {
         try {
             UserPrinciple securityUser = SecurityUtils.getSecurityUser();
             Long id = securityUser.getId();
-            var result = userService.updateUser(req , id);
+            var result = userService.updateUser(req , req.getId());
             var res = ResponseUtils.success(0000, null, result);
             return ResponseEntity.ok(res);
         } catch (Exception e) {
