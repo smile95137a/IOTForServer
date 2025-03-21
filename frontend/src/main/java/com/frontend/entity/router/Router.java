@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 @Inheritance(strategy = InheritanceType.JOINED) // 使用 JOINED 策略，讓子類別建立獨立的表
 @Table(name = "routers")
 public abstract class Router extends Equipment {
-
+////////////給碩哥
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
