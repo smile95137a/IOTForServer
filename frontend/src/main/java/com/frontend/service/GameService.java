@@ -57,6 +57,12 @@ public class GameService {
         Vendor vendor = vendorRepository.findById(vId).get();
         List<StorePricingSchedule> pricingSchedules = storePricingScheduleRepository.findByStoreId(store.getId());
 
+        List<GameRecord> started = gameRecordRepository.findByUserUidAndStatus(byUid.getUid(), "STARTED");
+        if(!started.isEmpty()){
+           throw new Exception("已經有開放中的球局");
+        }
+
+
         // 获取当前日期对应星期几，转换为字符串
         String currentDayString = LocalDate.now().getDayOfWeek().toString().toLowerCase();  // 获取当前星期几的英文名（全小写）
 
@@ -71,7 +77,7 @@ public class GameService {
         }
 
         if (currentSchedule == null) {
-            throw new Exception("没有找到当天的时段信息");
+            throw new Exception("沒有找到當天的訊息");
         }
 
 

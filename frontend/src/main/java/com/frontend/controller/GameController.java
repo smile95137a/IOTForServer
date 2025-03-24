@@ -32,7 +32,7 @@ public class GameController {
             return ResponseEntity.ok(ResponseUtils.success(200, "開台成功", gameRecord));
         }catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.ok(ResponseUtils.error(9999, e.getMessage(), null));
+            return ResponseEntity.ok(ResponseUtils.success(9999, e.getMessage(), false));
         }
     }
 

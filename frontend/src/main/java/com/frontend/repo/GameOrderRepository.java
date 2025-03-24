@@ -11,6 +11,6 @@ import java.util.List;
 public interface GameOrderRepository extends JpaRepository<GameOrder, Long> {
     GameOrder findByGameId(String gameId);
 
-    List<GameOrder> findByUserUid(String uid);
+    List<GameOrder> findByUserId(String uid);
 }
 

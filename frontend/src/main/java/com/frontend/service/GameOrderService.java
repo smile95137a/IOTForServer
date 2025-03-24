@@ -4,7 +4,6 @@ import com.frontend.entity.game.GameOrder;
 import com.frontend.entity.game.GameRecord;
 import com.frontend.entity.user.User;
 import com.frontend.repo.GameOrderRepository;
-import com.frontend.repo.GameRecordRepository;
 import com.frontend.repo.UserRepository;
 import com.frontend.res.game.GameOrderRes;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +22,7 @@ public class GameOrderService {
 
     public List<GameOrderRes> getOrderByUserId(Long id) {
         User user = userRepository.findById(id).get();
-        List<GameOrder> byUserUid = gameOrderRepository.findByUserUid(user.getUid());
+        List<GameOrder> byUserUid = gameOrderRepository.findByUserId(user.getUid());
         List<GameOrderRes> gameOrderResList = toGameOrderResList(byUserUid);
         return gameOrderResList;
     }
