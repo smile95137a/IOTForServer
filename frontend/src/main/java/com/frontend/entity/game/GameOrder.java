@@ -1,11 +1,13 @@
 package com.frontend.entity.game;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 @Data
 @NoArgsConstructor
@@ -28,9 +30,11 @@ public class GameOrder {
     private Integer totalPrice; // 總價格
 
     @Column(nullable = false)
+    @JsonFormat(pattern = "yyyy/MM/dd HH.mm.ss")
     private LocalDateTime startTime; // 遊戲開始時間
 
     @Column(nullable = false)
+    @JsonFormat(pattern = "yyyy/MM/dd HH.mm.ss")
     private LocalDateTime endTime; // 遊戲結束時間
 
     @Column(nullable = false)

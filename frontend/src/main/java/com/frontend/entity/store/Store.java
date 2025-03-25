@@ -72,6 +72,12 @@ public class Store {
     @Column // 押金
     private Integer deposit;
 
+    @Column
+    private Integer bookTime;
+
+    @Column
+    private Integer cancelBookTime;
+
     @OneToMany(mappedBy = "store", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private Set<Router> routers; // 商店中的路由器（各種設備）
