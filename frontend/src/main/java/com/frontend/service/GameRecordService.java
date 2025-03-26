@@ -25,7 +25,7 @@ public class GameRecordService {
 
     public List<GameRecord> getGameRecordsByUserUidAndStatus(Long id) {
         User user = userRepository.findById(id).get();
-        List<GameRecord> started = gameRecordRepository.findByUserUidAndStatus(user.getUid(), "STARTED");
+        List<GameRecord> started = gameRecordRepository.findByUserUid(user.getUid());
         GameRecord gameRecord = started.get(0);
         Long storeId = gameRecord.getStoreId();
         Store store = storeRepository.findById(storeId).get();

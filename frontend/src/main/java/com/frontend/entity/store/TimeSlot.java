@@ -23,13 +23,14 @@ public class TimeSlot {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "regular_schedule_id")
-    @JsonBackReference(value = "regularTimeSlotReference")
     private StorePricingSchedule regularSchedule;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "discount_schedule_id")
-    @JsonBackReference(value = "discountTimeSlotReference")
     private StorePricingSchedule discountSchedule;
+
+    @Column(nullable = false)
+    private Boolean isDiscount;
 
     @Column(nullable = false)
     @JsonFormat(pattern = "HH:mm")
@@ -39,8 +40,6 @@ public class TimeSlot {
     @Column(nullable = false)
     private LocalTime endTime;
 
-    @Column(nullable = false)
-    private Boolean isDiscount;
 
     public TimeSlot(LocalTime startTime, LocalTime endTime, Boolean isDiscount) {
         this.startTime = startTime;

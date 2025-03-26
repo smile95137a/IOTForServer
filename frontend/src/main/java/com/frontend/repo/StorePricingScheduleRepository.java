@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface StorePricingScheduleRepository extends JpaRepository<StorePricingSchedule, Long> {
@@ -19,6 +20,19 @@ public interface StorePricingScheduleRepository extends JpaRepository<StorePrici
 
     @Query("SELECT s FROM StorePricingSchedule s " +
             "LEFT JOIN FETCH s.regularTimeSlots " +
+            "LEFT JOIN FETCH s.discountTimeSlots " +
             "WHERE s.store.id = :storeId")
-    List<StorePricingSchedule> findByStoreIdWithRegular(@Param("storeId") Long storeId);
+    List<StorePricingSchedule> findByStoreIdWithSlots(@Param("storeId") Long storeId);
+
+
+    @Query("SELECT s FROM StorePricingSchedule s " +
+            "LEFT JOIN FETCH s.regularTimeSlots " +
+            "LEFT JOIN FETCH s.discountTimeSlots " +
+            "WHERE s.store.id = :storeId AND s.dayOfWeek = :dayOfWeek")
+    List<StorePricingSchedule> findScheduleWithTimeSlots(
+            @Param("storeId") Long storeId,
+            @Param("dayOfWeek") String dayOfWeek
+    );
+
+
 }

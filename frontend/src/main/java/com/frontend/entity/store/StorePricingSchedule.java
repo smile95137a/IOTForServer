@@ -5,9 +5,7 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Data
@@ -33,15 +31,12 @@ public class StorePricingSchedule {
 
     // 增加查询方法，帮助关联和查询
     public List<TimeSlot> getAllTimeSlots() {
-        List<TimeSlot> allTimeSlots = new ArrayList<>();
-        if (regularTimeSlots != null) {
-            allTimeSlots.addAll(regularTimeSlots);
-        }
-        if (discountTimeSlots != null) {
-            allTimeSlots.addAll(discountTimeSlots);
-        }
-        return allTimeSlots;
+        List<TimeSlot> all = new ArrayList<>();
+        if (regularTimeSlots != null) all.addAll(regularTimeSlots);
+        if (discountTimeSlots != null) all.addAll(discountTimeSlots);
+        return all;
     }
+
 
     // 根据是否折扣获取对应时间段
     public List<TimeSlot> getTimeSlotsByDiscountStatus(boolean isDiscount) {
@@ -52,11 +47,11 @@ public class StorePricingSchedule {
 
     @OneToMany(mappedBy = "regularSchedule", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonManagedReference(value = "regularTimeSlotReference")
-    private List<TimeSlot> regularTimeSlots = new ArrayList<>();
+    private Set<TimeSlot> regularTimeSlots = new HashSet<>();
 
     @OneToMany(mappedBy = "discountSchedule", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonManagedReference(value = "discountTimeSlotReference")
-    private List<TimeSlot> discountTimeSlots = new ArrayList<>();
+    private Set<TimeSlot> discountTimeSlots = new HashSet<>();
 
     @Column(nullable = false)
     private Integer regularRate;

@@ -68,8 +68,8 @@ public class AdminStoreService {
 				List<TimeSlot> regularTimeSlots = splitTimeSlots(scheduleReq.getRegularTimeSlots(), scheduleReq.getDiscountTimeSlots(), false, schedule);
 				List<TimeSlot> discountTimeSlots = splitTimeSlots(scheduleReq.getDiscountTimeSlots(), scheduleReq.getRegularTimeSlots(), true, schedule);
 
-				schedule.setRegularTimeSlots(regularTimeSlots);
-				schedule.setDiscountTimeSlots(discountTimeSlots);
+				schedule.setRegularTimeSlots((Set<TimeSlot>) regularTimeSlots);
+				schedule.setDiscountTimeSlots((Set<TimeSlot>) discountTimeSlots);
 
 				return schedule;
 			}).collect(Collectors.toSet());
@@ -298,8 +298,8 @@ public class AdminStoreService {
 					}
 
 // 设定 schedule 的时间段
-					schedule.setRegularTimeSlots(regularTimeSlots);
-					schedule.setDiscountTimeSlots(discountTimeSlots);
+					schedule.setRegularTimeSlots((Set<TimeSlot>) regularTimeSlots);
+					schedule.setDiscountTimeSlots((Set<TimeSlot>) discountTimeSlots);
 
 					// 关联 Store 实体
 					schedule.setStore(store);
