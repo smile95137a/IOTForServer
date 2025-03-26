@@ -13,6 +13,7 @@ import com.frontend.entity.store.StorePricingSchedule;
 import com.frontend.entity.store.TimeSlot;
 import com.frontend.repo.StorePricingScheduleRepository;
 import com.frontend.req.store.StorePricingScheduleReq;
+import com.frontend.req.store.TimeSlotReq;
 import com.frontend.res.store.AdminStoreRes;
 import com.frontend.res.store.StoreRes;
 import org.springframework.beans.BeanUtils;
@@ -55,28 +56,28 @@ public class AdminStoreService {
 				StorePricingSchedule schedule = new StorePricingSchedule();
 				schedule.setDayOfWeek(scheduleReq.getDayOfWeek());
 				schedule.setStore(savedStore); // 设置关联关系
-				schedule.setRegularRate(storeReq.getRegularRate()); // 设置普通时段价格
-				schedule.setDiscountRate(storeReq.getDiscountRate()); // 设置优惠时段价格
+				schedule.setRegularRate(scheduleReq.getRegularRate()); // 设置普通时段价格
+				schedule.setDiscountRate(scheduleReq.getDiscountRate()); // 设置优惠时段价格
 
-				// 创建并设置一般时段
-				List<TimeSlot> regularTimeSlots = new ArrayList<>();
-				TimeSlot regularSlot = new TimeSlot();
-				regularSlot.setStartTime(LocalTime.parse(scheduleReq.getRegularStartTime()));
-				regularSlot.setEndTime(LocalTime.parse(scheduleReq.getRegularEndTime()));
-				regularSlot.setIsDiscount(false); // 一般时段标记为非优惠时段
-				regularSlot.setSchedule(schedule);
-				regularTimeSlots.add(regularSlot);
+				// 创建并设置普通时段
+				List<TimeSlot> regularTimeSlots = scheduleReq.getRegularTimeSlots().stream().map(timeSlotReq -> {
+					TimeSlot regularSlot = new TimeSlot();
+					regularSlot.setStartTime(timeSlotReq.getStartTime());
+					regularSlot.setEndTime(timeSlotReq.getEndTime());
+					regularSlot.setIsDiscount(false); // 一般时段标记为非优惠时段
+					regularSlot.setSchedule(schedule);
+					return regularSlot;
+				}).collect(Collectors.toList());
 
 				// 创建并设置优惠时段
-				List<TimeSlot> discountTimeSlots = new ArrayList<>();
-				if (scheduleReq.getDiscountStartTime() != null && scheduleReq.getDiscountEndTime() != null) {
+				List<TimeSlot> discountTimeSlots = scheduleReq.getDiscountTimeSlots().stream().map(timeSlotReq -> {
 					TimeSlot discountSlot = new TimeSlot();
-					discountSlot.setStartTime(LocalTime.parse(scheduleReq.getDiscountStartTime()));
-					discountSlot.setEndTime(LocalTime.parse(scheduleReq.getDiscountEndTime()));
+					discountSlot.setStartTime(timeSlotReq.getStartTime());
+					discountSlot.setEndTime(timeSlotReq.getEndTime());
 					discountSlot.setIsDiscount(true); // 优惠时段标记为优惠时段
 					discountSlot.setSchedule(schedule);
-					discountTimeSlots.add(discountSlot);
-				}
+					return discountSlot;
+				}).collect(Collectors.toList());
 
 				// 设置时间段列表
 				schedule.setRegularTimeSlots(regularTimeSlots);
@@ -174,7 +175,7 @@ public class AdminStoreService {
 			store.setHint(storeReq.getHint());
 			store.setContactPhone(storeReq.getContactPhone());
 
-			// 设备和桌台
+			// 更新供应商和池桌信息
 			if (storeReq.getVendor() != null) {
 				store.setVendor(storeReq.getVendor());
 			}
@@ -182,32 +183,35 @@ public class AdminStoreService {
 				store.setPoolTables(storeReq.getPoolTables());
 			}
 
-			// **修正 pricingSchedules 逻辑**
+			// 处理定价计划更新
 			if (storeReq.getPricingSchedules() != null) {
-				// **清空原集合，避免 orphanRemoval 触发异常**
+				// 清空原有定价计划，避免 orphanRemoval 异常
 				store.getPricingSchedules().clear();
 
 				for (StorePricingScheduleReq scheduleReq : storeReq.getPricingSchedules()) {
+					// 更新或创建新的定价计划
 					StorePricingSchedule schedule = new StorePricingSchedule();
 					schedule.setDayOfWeek(scheduleReq.getDayOfWeek());
 
-					// 一般时段设置
+					// 创建并设置普通时段
 					List<TimeSlot> regularTimeSlots = new ArrayList<>();
-					TimeSlot regularSlot = new TimeSlot();
-					regularSlot.setStartTime(LocalTime.parse(scheduleReq.getRegularStartTime()));
-					regularSlot.setEndTime(LocalTime.parse(scheduleReq.getRegularEndTime()));
-					regularSlot.setIsDiscount(false); // 一般时段标记为非优惠时段
-					regularSlot.setSchedule(schedule); // 设置关联
-					regularTimeSlots.add(regularSlot);
+					for (TimeSlotReq timeSlotReq : scheduleReq.getRegularTimeSlots()) {
+						TimeSlot regularSlot = new TimeSlot();
+						regularSlot.setStartTime(timeSlotReq.getStartTime());
+						regularSlot.setEndTime(timeSlotReq.getEndTime());
+						regularSlot.setIsDiscount(false); // 标记为普通时段
+						regularSlot.setSchedule(schedule); // 设置关联关系
+						regularTimeSlots.add(regularSlot);
+					}
 
-					// 优惠时段设置
+					// 创建并设置优惠时段
 					List<TimeSlot> discountTimeSlots = new ArrayList<>();
-					if (scheduleReq.getDiscountStartTime() != null && scheduleReq.getDiscountEndTime() != null) {
+					for (TimeSlotReq timeSlotReq : scheduleReq.getDiscountTimeSlots()) {
 						TimeSlot discountSlot = new TimeSlot();
-						discountSlot.setStartTime(LocalTime.parse(scheduleReq.getDiscountStartTime()));
-						discountSlot.setEndTime(LocalTime.parse(scheduleReq.getDiscountEndTime()));
-						discountSlot.setIsDiscount(true); // 优惠时段标记为优惠时段
-						discountSlot.setSchedule(schedule); // 设置关联
+						discountSlot.setStartTime(timeSlotReq.getStartTime());
+						discountSlot.setEndTime(timeSlotReq.getEndTime());
+						discountSlot.setIsDiscount(true); // 标记为优惠时段
+						discountSlot.setSchedule(schedule); // 设置关联关系
 						discountTimeSlots.add(discountSlot);
 					}
 
@@ -215,16 +219,16 @@ public class AdminStoreService {
 					schedule.setRegularTimeSlots(regularTimeSlots);
 					schedule.setDiscountTimeSlots(discountTimeSlots);
 
-					schedule.setStore(store); // 确保 store 仍然关联
-					store.getPricingSchedules().add(schedule);
+					schedule.setStore(store); // 关联 Store 实体
+					store.getPricingSchedules().add(schedule); // 添加到 Store 的定价计划中
 				}
 			}
 
-			// **更新修改时间 & 用户**
+			// 更新修改时间和修改用户
 			store.setUpdateTime(LocalDateTime.now());
 			store.setUpdateUserId(id);
 
-			// 返回保存后的 store 实体
+			// 保存并返回更新后的 store 实体
 			return storeRepository.save(store);
 		}).orElseThrow(() -> new RuntimeException("Store not found with uid: " + uid));
 	}
