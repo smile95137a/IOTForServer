@@ -26,4 +26,6 @@ public class AdminStoreRes {
     private String lat;
     private String lon;
     private Integer deposit;
+    private String hint;
+    private String contactPhone;
 }

@@ -115,7 +115,9 @@ public class AdminStoreService {
 				.deposit(store.getDeposit())
 				.vendor(store.getVendor())
 				.poolTables(store.getPoolTables())
-				.pricingSchedules(store.getPricingSchedules());
+				.pricingSchedules(store.getPricingSchedules())
+						.hint(store.getHint())
+						.contactPhone(store.getContactPhone());
 
 
 		// 只在 poolTables 不为 null 时设置 poolTables
