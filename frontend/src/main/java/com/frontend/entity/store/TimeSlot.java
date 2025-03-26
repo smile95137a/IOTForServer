@@ -13,8 +13,6 @@ import java.util.Objects;
 @AllArgsConstructor
 @Entity
 @Table(name = "time_slots")
-@EqualsAndHashCode(exclude = {"regularSchedule", "discountSchedule"})
-@ToString(exclude = {"regularSchedule", "discountSchedule"})
 public class TimeSlot {
 
     @Id
@@ -23,7 +21,10 @@ public class TimeSlot {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "schedule_id", nullable = false)
+    @JsonBackReference // 避免 TimeSlot -> Schedule -> TimeSlot 無限循環
     private StorePricingSchedule schedule;
+
+
 
     @Column(nullable = false)
     private Boolean isDiscount;

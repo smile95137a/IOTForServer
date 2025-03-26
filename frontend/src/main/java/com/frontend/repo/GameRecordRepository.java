@@ -2,6 +2,7 @@ package com.frontend.repo;
 
 import com.frontend.entity.game.GameOrder;
 import com.frontend.entity.game.GameRecord;
+import com.frontend.entity.store.StorePricingSchedule;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -31,4 +33,15 @@ public interface GameRecordRepository extends CrudRepository<GameRecord, Long> {
     Optional<List<GameRecord>> findByPoolTableId(Long poolTableId);
 
     List<GameRecord> findByUserUid(String uid);
+
+    // GameRecordRepository.java
+    List<GameRecord> findByStoreIdAndPoolTableIdAndStatus(Long storeId, Long poolTableId, String status);
+
+    // GameOrderRepository.java
+    List<GameOrder> findByGameIdAndStartTimeBetween(String gameId, LocalDateTime start, LocalDateTime end);
+
+    // StorePricingScheduleRepository.java
+    @Query("SELECT s FROM StorePricingSchedule s JOIN FETCH s.timeSlots t WHERE s.store.id = :storeId AND s.dayOfWeek = :dayOfWeek")
+    Optional<StorePricingSchedule>  findScheduleWithMergedTimeSlots(@Param("storeId") Long storeId, @Param("dayOfWeek") String dayOfWeek);
+
 }

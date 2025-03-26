@@ -20,12 +20,11 @@ public interface StorePricingScheduleRepository extends JpaRepository<StorePrici
     List<StorePricingSchedule> findByStoreIdAndDayOfWeek(@Param("storeId") Long storeId,
                                                          @Param("dayOfWeek") String dayOfWeek);
 
-    @Query("SELECT DISTINCT s FROM StorePricingSchedule s " +
-            "LEFT JOIN FETCH s.timeSlots " +
-            "WHERE s.store.id = :storeId AND s.dayOfWeek = :dayOfWeek")
-    Optional<StorePricingSchedule> findScheduleWithMergedTimeSlots(@Param("storeId") Long storeId, @Param("dayOfWeek") String dayOfWeek);
-
     @Query("SELECT s FROM StorePricingSchedule s LEFT JOIN FETCH s.timeSlots WHERE s.store.id = :storeId AND s.dayOfWeek = :dayOfWeek")
     Optional<StorePricingSchedule> findScheduleWithTimeSlots(@Param("storeId") Long storeId, @Param("dayOfWeek") String dayOfWeek);
+
+    @Query("SELECT s FROM StorePricingSchedule s LEFT JOIN FETCH s.timeSlots WHERE s.store.id = :storeId AND s.dayOfWeek = :dayOfWeek")
+    Optional<StorePricingSchedule> findScheduleWithMergedTimeSlots(@Param("storeId") Long storeId,
+                                                                   @Param("dayOfWeek") String dayOfWeek);
 
 }

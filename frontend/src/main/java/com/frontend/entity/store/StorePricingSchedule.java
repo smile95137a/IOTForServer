@@ -6,7 +6,6 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Data
 @AllArgsConstructor
@@ -30,7 +29,6 @@ public class StorePricingSchedule {
     @OneToMany(mappedBy = "schedule", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private Set<TimeSlot> timeSlots = new HashSet<>();
-
 
     @Column(nullable = false)
     private Integer regularRate;
