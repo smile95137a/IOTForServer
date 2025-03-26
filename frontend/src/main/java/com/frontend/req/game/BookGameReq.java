@@ -15,7 +15,7 @@ import java.time.*;
 @AllArgsConstructor
 public class BookGameReq {
     private String poolTableUId; // 桌球桌的 ID
-    @JsonFormat(pattern = "yyyy/MM/dd HH:mm")
+    @JsonFormat(pattern = "yyyy/MM/dd")
     private LocalDate bookDate; // 預約日期
     // 使用 ZonedDateTime 並指定日期格式，包括時區偏移
     @JsonFormat(pattern = "yyyy/MM/dd HH:mm")
