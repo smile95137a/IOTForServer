@@ -22,10 +22,12 @@ public class AdminStoreRes {
     private String imgUrl;
     private Set<StoreEquipment> equipments;
     private Set<PoolTable> poolTables;
-    private Set<StorePricingSchedule> pricingSchedules;
+    private Set<StorePricingScheduleRes> pricingSchedules;
     private String lat;
     private String lon;
     private Integer deposit;
     private String hint;
     private String contactPhone;
+    private Integer bookTime;
+    private Integer cancelBookTime;
 }

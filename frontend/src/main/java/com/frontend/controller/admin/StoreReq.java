@@ -31,4 +31,6 @@ public class StoreReq {
     private Set<StorePricingScheduleReq> pricingSchedules;
     private String hint; // 提示信息
     private String contactPhone; // 联系电话
+    private Integer bookTime;
+    private Integer cancelBookTime;
 }

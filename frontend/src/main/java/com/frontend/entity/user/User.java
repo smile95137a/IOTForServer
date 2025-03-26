@@ -1,6 +1,7 @@
 package com.frontend.entity.user;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.frontend.entity.role.Role;
 import com.frontend.entity.vendor.Vendor;
@@ -75,12 +76,14 @@ public class User implements Serializable {
 
 
 	@Column
+	@JsonFormat(pattern = "yyyy/MM/dd HH:mm")
 	private LocalDateTime createTime;
 
 	@Column
 	private Long createUserId;
 
 	@Column
+	@JsonFormat(pattern = "yyyy/MM/dd HH:mm")
 	private LocalDateTime updateTime;
 
 	@Column

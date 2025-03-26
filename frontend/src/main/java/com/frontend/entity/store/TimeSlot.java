@@ -1,6 +1,7 @@
 package com.frontend.entity.store;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
@@ -31,8 +32,9 @@ public class TimeSlot {
     private StorePricingSchedule discountSchedule;
 
     @Column(nullable = false)
+    @JsonFormat(pattern = "HH:mm")
     private LocalTime startTime;
-
+    @JsonFormat(pattern = "HH:mm")
     @Column(nullable = false)
     private LocalTime endTime;
 

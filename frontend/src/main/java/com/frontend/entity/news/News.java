@@ -1,6 +1,7 @@
 package com.frontend.entity.news;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.frontend.entity.banner.Banner;
 import com.frontend.enums.NewsStatus;
 import com.frontend.utils.StringListConverter;
@@ -44,9 +45,11 @@ public class News {
     private NewsStatus status;
 
     @Column(name = "created_date") // 创建时间，不能为空
+    @JsonFormat(pattern = "yyyy/MM/dd HH:mm")
     private LocalDateTime createdDate;
 
     @Column(name = "updated_date") // 最后更新时间，可为空
+    @JsonFormat(pattern = "yyyy/MM/dd HH:mm")
     private LocalDateTime updatedDate;
 
     @Column(name = "author", length = 100) // 作者信息，最大长度 100

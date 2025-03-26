@@ -1,6 +1,7 @@
 package com.frontend.res.store;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.ToString;
 
@@ -9,6 +10,7 @@ import java.util.List;
 @Data
 @ToString
 @AllArgsConstructor
+@Builder
 public class StorePricingScheduleRes {
 
     private String dayOfWeek;            // 星期几
@@ -17,5 +19,4 @@ public class StorePricingScheduleRes {
     private Integer regularRate;         // 普通时段价格
     private Integer discountRate;        // 优惠时段价格
 
-    // 如果需要，可以在这里添加更多字段，比如是否为特殊节假日定价等
 }

@@ -15,7 +15,9 @@ import com.frontend.repo.StorePricingScheduleRepository;
 import com.frontend.req.store.StorePricingScheduleReq;
 import com.frontend.req.store.TimeSlotReq;
 import com.frontend.res.store.AdminStoreRes;
+import com.frontend.res.store.StorePricingScheduleRes;
 import com.frontend.res.store.StoreRes;
+import com.frontend.res.store.TimeSlotRes;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -44,6 +46,8 @@ public class AdminStoreService {
 	public Store createStore(StoreReq storeReq, Long userId) {
 		// 创建并保存 Store 实体
 		Store store = convertToEntity(storeReq);
+		store.setBookTime(storeReq.getBookTime() == null ? 0 : storeReq.getBookTime());
+		store.setCancelBookTime(storeReq.getCancelBookTime() == null ? 0 : storeReq.getCancelBookTime());
 		store.setUid(RandomUtils.genRandom(24)); // 生成唯一 UID
 		store.setCreateTime(LocalDateTime.now());
 		store.setCreateUserId(userId);
@@ -198,26 +202,45 @@ public class AdminStoreService {
 				.lon(store.getLon())
 				.deposit(store.getDeposit())
 				.vendor(store.getVendor())
-				.poolTables(store.getPoolTables())
-				.pricingSchedules(store.getPricingSchedules())
-						.hint(store.getHint())
-						.contactPhone(store.getContactPhone());
+				.poolTables(store.getPoolTables()) // 如果 poolTables 不会导致循环引用，保持这个字段
+				.hint(store.getHint())
+				.contactPhone(store.getContactPhone())
+				.bookTime(store.getBookTime())
+				.cancelBookTime(store.getCancelBookTime());
 
-
-		// 只在 poolTables 不为 null 时设置 poolTables
-		if (store.getPoolTables() != null) {
-			builder.poolTables(store.getPoolTables());
-		}
-
-		// 處理 pricingSchedules，這裡可以加上一些額外邏輯來過濾或處理
+		// 将 pricingSchedules 转换为 StorePricingScheduleRes
 		if (store.getPricingSchedules() != null) {
-			builder.pricingSchedules(store.getPricingSchedules());
+			builder.pricingSchedules(store.getPricingSchedules().stream()
+					.map(pricingSchedule -> convertToStorePricingScheduleRes(pricingSchedule)) // 转换为 StorePricingScheduleRes
+					.collect(Collectors.toSet()));
 		} else {
-			builder.pricingSchedules(Set.of()); // 如果為 null，可以設置為空集合
+			builder.pricingSchedules(Set.of()); // 如果为 null，设为空集合
 		}
 
 		return builder.build();
 	}
+
+	// 将 StorePricingSchedule 转换为 StorePricingScheduleRes 的方法
+	private StorePricingScheduleRes convertToStorePricingScheduleRes(StorePricingSchedule pricingSchedule) {
+		return StorePricingScheduleRes.builder()
+				.dayOfWeek(pricingSchedule.getDayOfWeek())
+				.regularTimeSlots(pricingSchedule.getRegularTimeSlots().stream()
+						.map(this::convertToTimeSlotRes) // 转换 regularTimeSlots
+						.collect(Collectors.toList()))
+				.discountTimeSlots(pricingSchedule.getDiscountTimeSlots().stream()
+						.map(this::convertToTimeSlotRes) // 转换 discountTimeSlots
+						.collect(Collectors.toList()))
+				.regularRate(pricingSchedule.getRegularRate())
+				.discountRate(pricingSchedule.getDiscountRate())
+				.build();
+	}
+
+	// 将 TimeSlot 转换为 TimeSlotRes 的方法
+	private TimeSlotRes convertToTimeSlotRes(TimeSlot timeSlot) {
+		return new TimeSlotRes(timeSlot.getStartTime(), timeSlot.getEndTime(), timeSlot.getIsDiscount());
+	}
+
+
 
 
 
@@ -232,7 +255,8 @@ public class AdminStoreService {
 			store.setDeposit(storeReq.getDeposit());
 			store.setHint(storeReq.getHint());
 			store.setContactPhone(storeReq.getContactPhone());
-
+			store.setBookTime(storeReq.getBookTime() == null ? 0 : storeReq.getBookTime());
+			store.setCancelBookTime(storeReq.getCancelBookTime() == null ? 0 : storeReq.getCancelBookTime());
 			// 更新供应商和池桌信息
 			if (storeReq.getVendor() != null) {
 				store.setVendor(storeReq.getVendor());

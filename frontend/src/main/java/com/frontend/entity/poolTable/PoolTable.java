@@ -1,6 +1,7 @@
 package com.frontend.entity.poolTable;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.frontend.entity.store.Store;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -39,12 +40,14 @@ public class PoolTable {
 //    private Set<TableEquipment> tableEquipments; // 桌台設備設定
 
     @Column
+    @JsonFormat(pattern = "yyyy/MM/dd HH:mm")
     private LocalDateTime createTime;
 
     @Column
     private Long createUserId;
 
     @Column
+    @JsonFormat(pattern = "yyyy/MM/dd HH:mm")
     private LocalDateTime updateTime;
 
     @Column

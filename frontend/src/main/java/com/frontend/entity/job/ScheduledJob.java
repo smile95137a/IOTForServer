@@ -1,5 +1,6 @@
 package com.frontend.entity.job;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -43,12 +44,14 @@ public class ScheduledJob {
 	private String jobDataMap;
 
 	@Column
+	@JsonFormat(pattern = "yyyy/MM/dd HH:mm")
 	private LocalDateTime createTime;
 
 	@Column
 	private Long createUserId;
 
 	@Column
+	@JsonFormat(pattern = "yyyy/MM/dd HH:mm")
 	private LocalDateTime updateTime;
 
 	@Column

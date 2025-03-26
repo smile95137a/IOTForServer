@@ -1,5 +1,6 @@
 package com.frontend.entity.payment;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.nimbusds.jose.shaded.gson.annotations.SerializedName;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -36,6 +37,7 @@ public class PaymentResponse {
     private String amount;     // 金额
 
     @Column
+    @JsonFormat(pattern = "yyyy/MM/dd HH:mm")
     private LocalDateTime createTime;
 
     @Column(name = "order_no")
