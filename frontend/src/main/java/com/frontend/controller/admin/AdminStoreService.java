@@ -40,51 +40,67 @@ public class AdminStoreService {
 	private StorePricingScheduleRepository storePricingScheduleRepository;
 
 	// Create a new store
+	@Transactional
 	public Store createStore(StoreReq storeReq, Long userId) {
-		// 转换并保存 Store 实体
+		// 创建并保存 Store 实体
 		Store store = convertToEntity(storeReq);
 		store.setUid(RandomUtils.genRandom(24)); // 生成唯一 UID
 		store.setCreateTime(LocalDateTime.now());
 		store.setCreateUserId(userId);
 		store.setImgUrl(storeReq.getImgUrl() != null ? storeReq.getImgUrl() : ""); // 确保图片 URL
-		// 保存 Store
 		Store savedStore = storeRepository.save(store);
 
-		// 处理并保存 StorePricingSchedule
+		// 处理并保存 StorePricingSchedule 实体
 		if (storeReq.getPricingSchedules() != null && !storeReq.getPricingSchedules().isEmpty()) {
 			Set<StorePricingSchedule> schedules = storeReq.getPricingSchedules().stream().map(scheduleReq -> {
 				StorePricingSchedule schedule = new StorePricingSchedule();
+				schedule.setDiscountRate(storeReq.getDiscountRate());
+				schedule.setRegularRate(storeReq.getRegularRate());
 				schedule.setDayOfWeek(scheduleReq.getDayOfWeek());
-				schedule.setStore(savedStore); // 设置关联关系
-				schedule.setRegularRate(scheduleReq.getRegularRate()); // 设置普通时段价格
-				schedule.setDiscountRate(scheduleReq.getDiscountRate()); // 设置优惠时段价格
+				schedule.setStore(savedStore); // 关联 Store
 
-				// 拆分并保存普通时段和优惠时段
-				List<TimeSlot> regularTimeSlots = splitTimeSlots(scheduleReq.getRegularTimeSlots(), scheduleReq.getDiscountTimeSlots(), false);
-				List<TimeSlot> discountTimeSlots = splitTimeSlots(scheduleReq.getDiscountTimeSlots(), scheduleReq.getRegularTimeSlots(), true);
+				// 处理时段
+				List<TimeSlot> regularTimeSlots = splitTimeSlots(scheduleReq.getRegularTimeSlots(), scheduleReq.getDiscountTimeSlots(), false, schedule);
+				List<TimeSlot> discountTimeSlots = splitTimeSlots(scheduleReq.getDiscountTimeSlots(), scheduleReq.getRegularTimeSlots(), true, schedule);
 
-				// 设置时间段列表
 				schedule.setRegularTimeSlots(regularTimeSlots);
 				schedule.setDiscountTimeSlots(discountTimeSlots);
 
 				return schedule;
 			}).collect(Collectors.toSet());
 
-			// 保存所有定价计划
-			storePricingScheduleRepository.saveAll(schedules); // 保存所有定价计划
+			// 保存 StorePricingSchedule 实体
+			storePricingScheduleRepository.saveAll(schedules);
 		}
 
 		return savedStore;
 	}
 
-	// 拆分时段方法：将普通时段拆分成不重叠的子时段
-	private List<TimeSlot> splitTimeSlots(List<TimeSlotReq> timeSlots, List<TimeSlotReq> overlappingTimeSlots, boolean isDiscount) {
+	// 修改方法签名，增加 StorePricingSchedule 参数
+	private List<TimeSlot> splitTimeSlots(List<TimeSlotReq> timeSlots, List<TimeSlotReq> overlappingTimeSlots, boolean isDiscount, StorePricingSchedule schedule) {
 		List<TimeSlot> result = new ArrayList<>();
+
+		// 如果没有时段，直接返回空列表
+		if (timeSlots == null || timeSlots.isEmpty()) {
+			return result;
+		}
+
+		// 如果没有重叠时段，直接创建原始时段
+		if (overlappingTimeSlots == null || overlappingTimeSlots.isEmpty()) {
+			return timeSlots.stream()
+					.map(slot -> {
+						TimeSlot timeSlot = new TimeSlot(slot.getStartTime(), slot.getEndTime(), isDiscount);
+						timeSlot.setSchedule(schedule); // 设置关联的 StorePricingSchedule
+						return timeSlot;
+					})
+					.collect(Collectors.toList());
+		}
 
 		// 遍历所有时段
 		for (TimeSlotReq timeSlotReq : timeSlots) {
 			LocalTime start = timeSlotReq.getStartTime();
 			LocalTime end = timeSlotReq.getEndTime();
+			boolean hasOverlap = false;
 
 			// 遍历所有重叠的时段，拆分重叠部分
 			for (TimeSlotReq overlappingSlot : overlappingTimeSlots) {
@@ -93,30 +109,43 @@ public class AdminStoreService {
 
 				// 如果当前时段与重叠时段有交集
 				if (start.isBefore(overlappingEnd) && end.isAfter(overlappingStart)) {
+					hasOverlap = true;
 					// 拆分并去除重叠部分
 
 					// 如果普通时段开始时间在重叠部分之前，加入剩余部分
 					if (start.isBefore(overlappingStart)) {
-						result.add(new TimeSlot(start, overlappingStart, isDiscount));
+						TimeSlot timeSlot = new TimeSlot(start, overlappingStart, isDiscount);
+						timeSlot.setSchedule(schedule);
+						result.add(timeSlot);
 					}
 
 					// 添加优惠时段
-					result.add(new TimeSlot(overlappingStart, overlappingEnd, true));
+					TimeSlot discountSlot = new TimeSlot(overlappingStart, overlappingEnd, true);
+					discountSlot.setSchedule(schedule);
+					result.add(discountSlot);
 
 					// 如果普通时段结束时间在重叠部分之后，加入剩余部分
 					if (end.isAfter(overlappingEnd)) {
-						result.add(new TimeSlot(overlappingEnd, end, isDiscount));
+						TimeSlot timeSlot = new TimeSlot(overlappingEnd, end, isDiscount);
+						timeSlot.setSchedule(schedule);
+						result.add(timeSlot);
 					}
-				} else {
-					// 没有重叠的部分直接添加
-					result.add(new TimeSlot(start, end, isDiscount));
+
+					// 更新起始时间
+					start = end;
 				}
+			}
+
+			// 如果没有重叠，直接添加原始时段
+			if (!hasOverlap) {
+				TimeSlot timeSlot = new TimeSlot(timeSlotReq.getStartTime(), timeSlotReq.getEndTime(), isDiscount);
+				timeSlot.setSchedule(schedule);
+				result.add(timeSlot);
 			}
 		}
 
 		return result;
 	}
-
 
 
 

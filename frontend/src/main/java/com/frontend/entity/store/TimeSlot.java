@@ -1,17 +1,19 @@
 package com.frontend.entity.store;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalTime;
+import java.util.Objects;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
 @Table(name = "time_slots")
+@EqualsAndHashCode(exclude = "schedule") // 避免雙向調用
+@ToString(exclude = "schedule") // 避免循環輸出
 public class TimeSlot {
 
     @Id
@@ -20,6 +22,7 @@ public class TimeSlot {
 
     @ManyToOne
     @JoinColumn(name = "schedule_id", nullable = false)
+    @JsonManagedReference
     private StorePricingSchedule schedule; // 關聯的定價時段
 
     @Column(nullable = false)
@@ -35,5 +38,21 @@ public class TimeSlot {
         this.startTime = startTime;
         this.endTime = endTime;
         this.isDiscount = isDiscount;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(startTime, endTime, isDiscount);
+    }
+
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        TimeSlot timeSlot = (TimeSlot) o;
+        return Objects.equals(startTime, timeSlot.startTime) &&
+                Objects.equals(endTime, timeSlot.endTime) &&
+                Objects.equals(isDiscount, timeSlot.isDiscount);
     }
 }
