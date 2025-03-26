@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface GameRecordRepository extends CrudRepository<GameRecord, Long> {
@@ -25,4 +26,7 @@ public interface GameRecordRepository extends CrudRepository<GameRecord, Long> {
     @Query("SELECT g.gameId FROM GameRecord g WHERE g.poolTableId = :poolTableId AND g.status = :status")
     List<String> findGameIdByPoolTableIdAndStatus(@Param("poolTableId") Long poolTableId, @Param("status") String status);
 
+    List<GameRecord> findByStoreId(Long storeId);
+
+    Optional<List<GameRecord>> findByPoolTableId(Long poolTableId);
 }

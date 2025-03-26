@@ -18,5 +18,7 @@ public interface GameOrderRepository extends JpaRepository<GameOrder, Long> {
     List<GameOrder> findByUserId(String uid);
 
     List<GameOrder> findByGameIdInAndStartTimeBetween(List<String> gameIds, LocalDateTime startOfDay, LocalDateTime  endOfDay);
+
+    List<GameOrder> findByGameIdAndStartTimeBetween(String gameId, LocalDateTime startOfDay, LocalDateTime endOfDay);
 }
 

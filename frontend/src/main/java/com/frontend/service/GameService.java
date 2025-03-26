@@ -28,9 +28,8 @@ import java.time.chrono.ChronoLocalDateTime;
 import java.time.chrono.ChronoZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class GameService {
@@ -557,7 +556,9 @@ public class GameService {
         gameOrderRepository.save(gameOrder); // 儲存取消訂單
     }
 
-    public List<String> getAvailableTimes(Long storeId, LocalDate bookingDate, int timeSlotHours) {
+    public Map<String, List<String>> getAvailableTimes(Long storeId, LocalDate bookingDate) {
+        int timeSlotHours = 1; // 每個時段的時長為1小時
+
         // 1. 查詢店家的營業時段
         StorePricingSchedule schedule = storePricingScheduleRepository.findByStoreId(storeId)
                 .stream()
@@ -568,64 +569,90 @@ public class GameService {
         LocalTime openingTime = LocalTime.parse(schedule.getRegularStartTime());
         LocalTime closingTime = LocalTime.parse(schedule.getRegularEndTime());
 
+        // 處理跨日情況
         if (closingTime.isBefore(openingTime)) {
-            closingTime = closingTime.plusHours(24); // 🔥 處理跨日情況
+            closingTime = closingTime.plusHours(24); // 跨日情況處理
         }
 
-        // 2. 查詢當天的預約記錄
-        LocalDateTime  startOfDay = bookingDate.atStartOfDay(); // 當天 00:00
-        LocalDateTime  endOfDay = bookingDate.atTime(LocalTime.MAX); // 當天 23:59:59
+        // 2. 查詢所有桌台和遊戲資料
+        List<PoolTable> poolTables = poolTableRepository.findByStoreId(storeId);
+        List<String> gameRecords = gameRecordRepository.findGameIdByStoreIdAndStatus(storeId, "BOOK");
 
-        // 查詢 "BOOK" 狀態的 Game ID
-        List<String> gameIds = gameRecordRepository.findGameIdByStoreIdAndStatus(
-                storeId,
-                "BOOK"
-        );
+        // 用來存儲每個桌台的可用時段
+        Map<String, List<String>> availableTimesMap = new HashMap<>();
 
-        List<GameOrder> existingBookings = new ArrayList<>();
-        if (!gameIds.isEmpty()) {
-            existingBookings = gameOrderRepository.findByGameIdInAndStartTimeBetween(
-                    gameIds,
-                    startOfDay,
-                    endOfDay
-            );
-        }
+        // 3. 遍歷每個桌台
+        for (PoolTable poolTable : poolTables) {
+            Long poolTableId = poolTable.getId();
 
-        // 3. 生成所有時段區間
-        List<String> availableTimes = new ArrayList<>();
-        LocalTime currentTime = openingTime;
+            // 用來存儲當前桌台的可用時段
+            List<String> availableTimes = new ArrayList<>();
+            LocalTime currentTime = openingTime;
 
-        while (currentTime.plusHours(timeSlotHours).isBefore(closingTime) ||
-                currentTime.plusHours(timeSlotHours).equals(closingTime)) {
+            // 4. 查找該桌台是否有預約的遊戲
+            List<String> relevantGameIds = gameRecords.stream()
+                    .filter(gameId -> {
+                        // 假設每個 gameRecord 對應一個 poolTableId，查找這個遊戲記錄是否與當前桌台相關
+                        GameRecord gameRecord = gameRecordRepository.findByGameId(gameId);
+                        return gameRecord != null && gameRecord.getPoolTableId().equals(poolTableId);
+                    })
+                    .collect(Collectors.toList());
 
-            LocalTime endTime = currentTime.plusHours(timeSlotHours);  // 計算結束時間
+            if (!relevantGameIds.isEmpty()) {
+                // 5. 如果桌台有遊戲預約，處理有預約的情況
+                for (String gameId : relevantGameIds) {
+                    // 查詢該遊戲的預約紀錄
+                    GameRecord game = gameRecordRepository.findByGameId(gameId);
 
-            boolean isAvailable = true;
+                    // 查詢該遊戲當日的預約紀錄
+                    LocalDateTime startOfDay = bookingDate.atStartOfDay();
+                    LocalDateTime endOfDay = bookingDate.atTime(LocalTime.MAX);
+                    List<GameOrder> existingBookings = gameOrderRepository.findByGameIdAndStartTimeBetween(
+                            gameId, startOfDay, endOfDay);
 
-            // 檢查該時段是否和預約衝突
-            for (GameOrder order : existingBookings) {
-                LocalTime bookedStart = order.getStartTime().toLocalTime();
-                LocalTime bookedEnd = order.getEndTime().toLocalTime();
+                    // 如果當日有預約，檢查時段是否有衝突
+                    currentTime = openingTime;
+                    while (!currentTime.plusHours(timeSlotHours).isAfter(closingTime)) {
+                        LocalTime endTime = currentTime.plusHours(timeSlotHours);
+                        LocalDateTime slotStart = bookingDate.atTime(currentTime);
+                        LocalDateTime slotEnd = bookingDate.atTime(endTime);
 
-                // 檢查時段衝突
-                if ((currentTime.isBefore(bookedEnd) && endTime.isAfter(bookedStart)) ||
-                        currentTime.equals(bookedStart) ||
-                        endTime.equals(bookedEnd)) {
-                    isAvailable = false;
-                    break;
+                        boolean isAvailable = true;
+
+                        // 檢查這個時段是否與現有預約有衝突
+                        for (GameOrder order : existingBookings) {
+                            LocalDateTime restrictedStart = order.getStartTime().minusHours(1); // 前1小時保護期
+                            LocalDateTime restrictedEnd = order.getEndTime().plusHours(1); // 後1小時保護期
+
+                            if (slotStart.isBefore(restrictedEnd) && slotEnd.isAfter(restrictedStart)) {
+                                isAvailable = false;
+                                break; // 找到衝突的預約後，退出檢查
+                            }
+                        }
+
+                        // 如果該時段可用，則加入可用時段
+                        if (isAvailable) {
+                            availableTimes.add(currentTime + " - " + endTime);
+                        }
+
+                        currentTime = endTime;
+                    }
+                }
+            } else {
+                // 6. 如果桌台未綁定遊戲，顯示所有時段
+                currentTime = openingTime;
+                while (!currentTime.plusHours(timeSlotHours).isAfter(closingTime)) {
+                    LocalTime endTime = currentTime.plusHours(timeSlotHours);
+                    availableTimes.add(currentTime + " - " + endTime);
+                    currentTime = endTime;
                 }
             }
 
-            if (isAvailable) {
-                // 將可用的時段區間加入結果列表
-                availableTimes.add(currentTime.toString() + " - " + endTime.toString());
-            }
-
-            // 更新為下一個時段
-            currentTime = currentTime.plusHours(timeSlotHours);
+            // 7. 將該桌台的可用時段加入到 availableTimesMap 中
+            availableTimesMap.put(String.valueOf(poolTableId), availableTimes);
         }
 
-        return availableTimes;
+        return availableTimesMap;
     }
 
 

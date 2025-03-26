@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Map;
 
 
 @Slf4j
@@ -76,15 +77,19 @@ public class GameController {
 
 
     @GetMapping("/available-times")
-    public ResponseEntity<List<String>> getAvailableTimes(
+    public ResponseEntity<Map<String, List<String>>> getAvailableTimes(
             @RequestParam Long storeId,
-            @RequestParam String bookingDate,
-            @RequestParam int timeSlotHours) {
+            @RequestParam String bookingDate
+            ) {
+try {
+    LocalDate date = LocalDate.parse(bookingDate);
+    Map<String, List<String>> availableTimes = gameService.getAvailableTimes(storeId, date);
 
-        LocalDate date = LocalDate.parse(bookingDate);
-        List<String> availableTimes = gameService.getAvailableTimes(storeId, date, timeSlotHours);
-
-        return ResponseEntity.ok(availableTimes);
+    return ResponseEntity.ok(availableTimes);
+}catch (Exception e){
+    e.printStackTrace();
+}
+return null;
     }
 
 
