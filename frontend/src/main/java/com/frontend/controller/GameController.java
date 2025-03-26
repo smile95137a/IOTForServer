@@ -74,24 +74,20 @@ public class GameController {
 
 
     }
-
-
     @GetMapping("/available-times")
-    public ResponseEntity<Map<String, List<Map<String, Object>>>> getAvailableTimes(
+    public ResponseEntity<ApiResponse<?>> getAvailableTimes(
             @RequestParam Long storeId,
             @RequestParam String bookingDate
-            ) {
-try {
-    LocalDate date = LocalDate.parse(bookingDate);
-    Map<String, List<Map<String, Object>>> availableTimes = gameService.getAvailableTimes(storeId, date);
-
-    return ResponseEntity.ok(availableTimes);
-}catch (Exception e){
-    e.printStackTrace();
-}
-return null;
+    ) {
+        try {
+            LocalDate date = LocalDate.parse(bookingDate);
+            Map<String, List<Map<String, Object>>> availableTimes = gameService.getAvailableTimes(storeId, date);
+            return ResponseEntity.ok(ResponseUtils.success(availableTimes));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.ok(ResponseUtils.error(9999, e.getMessage(), null));
+        }
     }
-
 
     /**
      * 預約遊戲
@@ -101,13 +97,13 @@ return null;
      * @throws Exception 當有錯誤發生時
      */
     @PostMapping("/book")
-    public ResponseEntity<GameRecord> bookGame(@RequestBody BookGameReq gameReq) throws Exception {
+    public ResponseEntity<ApiResponse<?>> bookGame(@RequestBody BookGameReq gameReq) {
         try {
             GameRecord gameRecord = gameService.bookGame(gameReq);
-            return ResponseEntity.status(HttpStatus.CREATED).body(gameRecord);
+            return ResponseEntity.status(HttpStatus.CREATED).body(ResponseUtils.success(gameRecord));
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseUtils.error(9999, e.getMessage(), null));
         }
     }
 
@@ -119,25 +115,26 @@ return null;
      * @throws Exception 當有錯誤發生時
      */
     @PostMapping("/cancel")
-    public ResponseEntity<String> cancelBook(@RequestBody GameReq gameReq) throws Exception {
+    public ResponseEntity<ApiResponse<?>> cancelBook(@RequestBody GameReq gameReq) {
         try {
             gameService.cancelBook(gameReq);
-            return ResponseEntity.ok("預約已取消");
+            return ResponseEntity.ok(ResponseUtils.success("預約已取消"));
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("取消預約失敗：" + e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseUtils.error(9999, "取消預約失敗：" + e.getMessage(), null));
         }
     }
 
     // 啟動遊戲
     @PostMapping("/bookStart")
-    public ResponseEntity<GameRecord> bookStart(@RequestBody GameReq gameReq) {
+    public ResponseEntity<ApiResponse<?>> bookStart(@RequestBody GameReq gameReq) {
         try {
             GameRecord gameRecord = gameService.bookStartGame(gameReq);
-            return ResponseEntity.ok(gameRecord);
+            return ResponseEntity.ok(ResponseUtils.success(gameRecord));
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.status(400).body(null);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseUtils.error(9999, e.getMessage(), null));
         }
     }
+
 }

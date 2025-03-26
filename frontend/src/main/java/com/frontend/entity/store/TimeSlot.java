@@ -30,4 +30,10 @@ public class TimeSlot {
 
     @Column(nullable = false)
     private Boolean isDiscount; // 是否是優惠時段
+
+    public TimeSlot(LocalTime startTime, LocalTime endTime, Boolean isDiscount) {
+        this.startTime = startTime;
+        this.endTime = endTime;
+        this.isDiscount = isDiscount;
+    }
 }

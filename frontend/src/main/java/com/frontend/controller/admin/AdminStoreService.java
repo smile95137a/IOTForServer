@@ -59,25 +59,9 @@ public class AdminStoreService {
 				schedule.setRegularRate(scheduleReq.getRegularRate()); // 设置普通时段价格
 				schedule.setDiscountRate(scheduleReq.getDiscountRate()); // 设置优惠时段价格
 
-				// 创建并设置普通时段
-				List<TimeSlot> regularTimeSlots = scheduleReq.getRegularTimeSlots().stream().map(timeSlotReq -> {
-					TimeSlot regularSlot = new TimeSlot();
-					regularSlot.setStartTime(timeSlotReq.getStartTime());
-					regularSlot.setEndTime(timeSlotReq.getEndTime());
-					regularSlot.setIsDiscount(false); // 一般时段标记为非优惠时段
-					regularSlot.setSchedule(schedule);
-					return regularSlot;
-				}).collect(Collectors.toList());
-
-				// 创建并设置优惠时段
-				List<TimeSlot> discountTimeSlots = scheduleReq.getDiscountTimeSlots().stream().map(timeSlotReq -> {
-					TimeSlot discountSlot = new TimeSlot();
-					discountSlot.setStartTime(timeSlotReq.getStartTime());
-					discountSlot.setEndTime(timeSlotReq.getEndTime());
-					discountSlot.setIsDiscount(true); // 优惠时段标记为优惠时段
-					discountSlot.setSchedule(schedule);
-					return discountSlot;
-				}).collect(Collectors.toList());
+				// 拆分并保存普通时段和优惠时段
+				List<TimeSlot> regularTimeSlots = splitTimeSlots(scheduleReq.getRegularTimeSlots(), scheduleReq.getDiscountTimeSlots(), false);
+				List<TimeSlot> discountTimeSlots = splitTimeSlots(scheduleReq.getDiscountTimeSlots(), scheduleReq.getRegularTimeSlots(), true);
 
 				// 设置时间段列表
 				schedule.setRegularTimeSlots(regularTimeSlots);
@@ -92,6 +76,47 @@ public class AdminStoreService {
 
 		return savedStore;
 	}
+
+	// 拆分时段方法：将普通时段拆分成不重叠的子时段
+	private List<TimeSlot> splitTimeSlots(List<TimeSlotReq> timeSlots, List<TimeSlotReq> overlappingTimeSlots, boolean isDiscount) {
+		List<TimeSlot> result = new ArrayList<>();
+
+		// 遍历所有时段
+		for (TimeSlotReq timeSlotReq : timeSlots) {
+			LocalTime start = timeSlotReq.getStartTime();
+			LocalTime end = timeSlotReq.getEndTime();
+
+			// 遍历所有重叠的时段，拆分重叠部分
+			for (TimeSlotReq overlappingSlot : overlappingTimeSlots) {
+				LocalTime overlappingStart = overlappingSlot.getStartTime();
+				LocalTime overlappingEnd = overlappingSlot.getEndTime();
+
+				// 如果当前时段与重叠时段有交集
+				if (start.isBefore(overlappingEnd) && end.isAfter(overlappingStart)) {
+					// 拆分并去除重叠部分
+
+					// 如果普通时段开始时间在重叠部分之前，加入剩余部分
+					if (start.isBefore(overlappingStart)) {
+						result.add(new TimeSlot(start, overlappingStart, isDiscount));
+					}
+
+					// 添加优惠时段
+					result.add(new TimeSlot(overlappingStart, overlappingEnd, true));
+
+					// 如果普通时段结束时间在重叠部分之后，加入剩余部分
+					if (end.isAfter(overlappingEnd)) {
+						result.add(new TimeSlot(overlappingEnd, end, isDiscount));
+					}
+				} else {
+					// 没有重叠的部分直接添加
+					result.add(new TimeSlot(start, end, isDiscount));
+				}
+			}
+		}
+
+		return result;
+	}
+
 
 
 
@@ -167,6 +192,7 @@ public class AdminStoreService {
 	// Update a store
 	public Store updateStore(String uid, StoreReq storeReq, Long id) {
 		return storeRepository.findByUid(uid).map(store -> {
+			// 更新店铺基本信息
 			store.setName(storeReq.getName());
 			store.setAddress(storeReq.getAddress());
 			store.setLat(storeReq.getLat());
@@ -183,13 +209,13 @@ public class AdminStoreService {
 				store.setPoolTables(storeReq.getPoolTables());
 			}
 
-			// 处理定价计划更新
+			// 更新定价计划
 			if (storeReq.getPricingSchedules() != null) {
 				// 清空原有定价计划，避免 orphanRemoval 异常
 				store.getPricingSchedules().clear();
 
 				for (StorePricingScheduleReq scheduleReq : storeReq.getPricingSchedules()) {
-					// 更新或创建新的定价计划
+					// 创建或更新定价计划
 					StorePricingSchedule schedule = new StorePricingSchedule();
 					schedule.setDayOfWeek(scheduleReq.getDayOfWeek());
 
@@ -219,7 +245,8 @@ public class AdminStoreService {
 					schedule.setRegularTimeSlots(regularTimeSlots);
 					schedule.setDiscountTimeSlots(discountTimeSlots);
 
-					schedule.setStore(store); // 关联 Store 实体
+					// 关联 Store 实体
+					schedule.setStore(store);
 					store.getPricingSchedules().add(schedule); // 添加到 Store 的定价计划中
 				}
 			}
@@ -232,6 +259,7 @@ public class AdminStoreService {
 			return storeRepository.save(store);
 		}).orElseThrow(() -> new RuntimeException("Store not found with uid: " + uid));
 	}
+
 
 
 
