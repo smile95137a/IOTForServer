@@ -72,7 +72,7 @@ public class Store {
     @Column // 押金
     private Integer deposit;
 
-    @Column
+    @Column(columnDefinition = "LONGTEXT")
     private String hint;
 
     @Column
