@@ -13,10 +13,11 @@ import java.util.List;
 @Builder
 public class StorePricingScheduleRes {
 
-    private String dayOfWeek;            // 星期几
-    private List<TimeSlotRes> regularTimeSlots;   // 普通时段列表
-    private List<TimeSlotRes> discountTimeSlots;  // 优惠时段列表
-    private Integer regularRate;         // 普通时段价格
-    private Integer discountRate;        // 优惠时段价格
+    private String dayOfWeek;
+    private List<TimeSlotRes> regularTimeSlots;
+    private List<TimeSlotRes> discountTimeSlots;
+    private Integer regularRate;
+    private Integer discountRate;
 
 }
+

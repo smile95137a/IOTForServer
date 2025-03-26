@@ -13,8 +13,6 @@ import java.util.stream.Collectors;
 @NoArgsConstructor
 @Entity
 @Table(name = "store_pricing_schedules")
-@EqualsAndHashCode(exclude = {"regularTimeSlots", "discountTimeSlots"})
-@ToString(exclude = {"regularTimeSlots", "discountTimeSlots"})
 public class StorePricingSchedule {
 
     @Id
@@ -29,29 +27,10 @@ public class StorePricingSchedule {
     @Column(nullable = false)
     private String dayOfWeek;
 
-    // 增加查询方法，帮助关联和查询
-    public List<TimeSlot> getAllTimeSlots() {
-        List<TimeSlot> all = new ArrayList<>();
-        if (regularTimeSlots != null) all.addAll(regularTimeSlots);
-        if (discountTimeSlots != null) all.addAll(discountTimeSlots);
-        return all;
-    }
+    @OneToMany(mappedBy = "schedule", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private Set<TimeSlot> timeSlots = new HashSet<>();
 
-
-    // 根据是否折扣获取对应时间段
-    public List<TimeSlot> getTimeSlotsByDiscountStatus(boolean isDiscount) {
-        return getAllTimeSlots().stream()
-                .filter(slot -> slot.getIsDiscount() == isDiscount)
-                .collect(Collectors.toList());
-    }
-
-    @OneToMany(mappedBy = "regularSchedule", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JsonManagedReference(value = "regularTimeSlotReference")
-    private Set<TimeSlot> regularTimeSlots = new HashSet<>();
-
-    @OneToMany(mappedBy = "discountSchedule", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JsonManagedReference(value = "discountTimeSlotReference")
-    private Set<TimeSlot> discountTimeSlots = new HashSet<>();
 
     @Column(nullable = false)
     private Integer regularRate;

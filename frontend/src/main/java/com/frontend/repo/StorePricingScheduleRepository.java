@@ -16,23 +16,16 @@ public interface StorePricingScheduleRepository extends JpaRepository<StorePrici
     List<StorePricingSchedule> findByStoreId(Long id);
 
     // 根据店铺 ID 和星期几查询优惠时段
-    List<StorePricingScheduleRes> findByStoreIdAndDayOfWeek(Long storeId, String dayOfWeek);
+    @Query("SELECT s FROM StorePricingSchedule s WHERE s.store.id = :storeId AND s.dayOfWeek = :dayOfWeek")
+    List<StorePricingSchedule> findByStoreIdAndDayOfWeek(@Param("storeId") Long storeId,
+                                                         @Param("dayOfWeek") String dayOfWeek);
 
-    @Query("SELECT s FROM StorePricingSchedule s " +
-            "LEFT JOIN FETCH s.regularTimeSlots " +
-            "LEFT JOIN FETCH s.discountTimeSlots " +
-            "WHERE s.store.id = :storeId")
-    List<StorePricingSchedule> findByStoreIdWithSlots(@Param("storeId") Long storeId);
-
-
-    @Query("SELECT s FROM StorePricingSchedule s " +
-            "LEFT JOIN FETCH s.regularTimeSlots " +
-            "LEFT JOIN FETCH s.discountTimeSlots " +
+    @Query("SELECT DISTINCT s FROM StorePricingSchedule s " +
+            "LEFT JOIN FETCH s.timeSlots " +
             "WHERE s.store.id = :storeId AND s.dayOfWeek = :dayOfWeek")
-    List<StorePricingSchedule> findScheduleWithTimeSlots(
-            @Param("storeId") Long storeId,
-            @Param("dayOfWeek") String dayOfWeek
-    );
+    Optional<StorePricingSchedule> findScheduleWithMergedTimeSlots(@Param("storeId") Long storeId, @Param("dayOfWeek") String dayOfWeek);
 
+    @Query("SELECT s FROM StorePricingSchedule s LEFT JOIN FETCH s.timeSlots WHERE s.store.id = :storeId AND s.dayOfWeek = :dayOfWeek")
+    Optional<StorePricingSchedule> findScheduleWithTimeSlots(@Param("storeId") Long storeId, @Param("dayOfWeek") String dayOfWeek);
 
 }

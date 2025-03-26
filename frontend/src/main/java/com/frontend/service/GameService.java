@@ -290,40 +290,33 @@ public class GameService {
         long elapsedMinutes = totalMinutes;
         DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
 
-        // 计算在优惠时段和普通时段内的价格
+        Set<TimeSlot> timeSlots = currentSchedule.getTimeSlots(); // ← 要補上這行
+
         while (elapsedMinutes > 0) {
-            // 获取普通时段和优惠时段的时间
-            Optional<TimeSlot> discountSlotOpt = currentSchedule.getDiscountTimeSlots().stream().findFirst();
-            Optional<TimeSlot> regularSlotOpt = currentSchedule.getRegularTimeSlots().stream().findFirst();
+            // 找出目前時間落在哪個 slot
+            LocalTime finalCurrentTime = currentTime;
+            Optional<TimeSlot> matchedSlotOpt = timeSlots.stream()
+                    .filter(slot -> isTimeInRange(finalCurrentTime, slot.getStartTime(), slot.getEndTime()))
+                    .findFirst();
 
-            LocalTime discountStartTime = discountSlotOpt.map(TimeSlot::getStartTime).orElse(null);
-            LocalTime discountEndTime = discountSlotOpt.map(TimeSlot::getEndTime).orElse(null);
-            LocalTime regularStartTime = regularSlotOpt.map(TimeSlot::getStartTime).orElse(null);
-            LocalTime regularEndTime = regularSlotOpt.map(TimeSlot::getEndTime).orElse(null);
+            if (matchedSlotOpt.isPresent()) {
+                TimeSlot slot = matchedSlotOpt.get();
+                LocalTime slotEnd = slot.getEndTime();
+                long minutesInSlot = Math.min(elapsedMinutes, Duration.between(currentTime, slotEnd).toMinutes());
 
+                int rate = slot.getIsDiscount() ? currentSchedule.getDiscountRate() : currentSchedule.getRegularRate();
+                adjustedPrice += minutesInSlot * rate / 60.0;
 
-            // 判断当前时间是否在优惠时段内
-            if (isTimeInRange(currentTime, discountStartTime, discountEndTime)) {
-                long discountMinutes = Math.min(elapsedMinutes, Duration.between(currentTime, discountEndTime).toMinutes());
-                adjustedPrice += discountMinutes * currentSchedule.getDiscountRate() / 60.0;
-                elapsedMinutes -= discountMinutes;
-                currentTime = currentTime.plusMinutes(discountMinutes);
-            }
-
-            // 判断当前时间是否在常规时段内
-            if (elapsedMinutes > 0 && isTimeInRange(currentTime, regularStartTime, regularEndTime)) {
-                long regularMinutes = Math.min(elapsedMinutes, Duration.between(currentTime, regularEndTime).toMinutes());
-                adjustedPrice += regularMinutes * currentSchedule.getRegularRate() / 60.0;
-                elapsedMinutes -= regularMinutes;
-                currentTime = currentTime.plusMinutes(regularMinutes);
-            }
-
-            // 如果不在时段范围内，跳到下一个时段
-            if (elapsedMinutes > 0 && !isTimeInRange(currentTime, discountStartTime, discountEndTime) &&
-                    !isTimeInRange(currentTime, regularStartTime, regularEndTime)) {
+                currentTime = currentTime.plusMinutes(minutesInSlot);
+                elapsedMinutes -= minutesInSlot;
+            } else {
+                // 若不落在任何 slot，就跳過該分鐘
                 currentTime = currentTime.plusMinutes(1);
+                elapsedMinutes--;
             }
         }
+
+
 
         PoolTable poolTable = poolTableRepository.findById(byGameId.getPoolTableId()).orElseThrow(() -> new Exception("桌台信息未找到"));
 
@@ -353,6 +346,8 @@ public class GameService {
 
         return response;
     }
+
+
 
     public void checkout(CheckoutReq checkoutReq , Long id) {
         // 获取当前用户
@@ -565,41 +560,37 @@ public class GameService {
 
     public List<Map<String, Object>> getAvailableTimesByTableUid(String poolTableUid, LocalDate bookingDate) {
         int stepHours = 1;
+
         PoolTable poolTable = poolTableRepository.findByUid(poolTableUid)
                 .orElseThrow(() -> new RuntimeException("找不到對應的桌台"));
         Long poolTableId = poolTable.getId();
         Long storeId = poolTable.getStore().getId();
 
         StorePricingSchedule schedule = storePricingScheduleRepository
-                .findScheduleWithTimeSlots(storeId, bookingDate.getDayOfWeek().toString())
-                .stream()
-                .findFirst()
+                .findScheduleWithMergedTimeSlots(storeId, bookingDate.getDayOfWeek().toString())
                 .orElseThrow(() -> new RuntimeException("未找到對應日期的時段"));
 
-
-        // 一次查出所有當日對應桌台的預約
-        List<GameOrder> allOrders = gameOrderRepository.findOrdersByStoreAndTableAndDateWithBuffer(
-                storeId, String.valueOf(poolTableId), bookingDate.atStartOfDay(), bookingDate.atTime(LocalTime.MAX)
+        // 查出所有當日該桌台的訂單（含保護期）
+        List<GameOrder> allOrders = gameOrderRepository.findByGameIdAndStartTimeBetweenWithBuffer(
+                storeId, poolTableId, bookingDate.atStartOfDay(), bookingDate.atTime(LocalTime.MAX)
         );
 
         List<Map<String, Object>> available = new ArrayList<>();
-        List<TimeSlot> allSlots = schedule.getAllTimeSlots();
 
-        for (TimeSlot slot : allSlots) {
+        for (TimeSlot slot : schedule.getTimeSlots()) {
             LocalTime segmentStart = slot.getStartTime();
             LocalTime segmentEnd = slot.getEndTime();
             boolean isDiscount = slot.getIsDiscount();
-            int rate = isDiscount ? schedule.getDiscountRate() : schedule.getRegularRate();
+            int rate = isDiscount ? 80 : 100;
 
-            while (segmentStart.plusHours(stepHours).isBefore(segmentEnd) || segmentStart.plusHours(stepHours).equals(segmentEnd)) {
+            while (!segmentStart.plusHours(stepHours).isAfter(segmentEnd)) {
                 LocalTime subStart = segmentStart;
                 LocalTime subEnd = subStart.plusHours(stepHours);
-
-                if (subEnd.isAfter(segmentEnd)) break;
 
                 LocalDateTime slotStart = bookingDate.atTime(subStart);
                 LocalDateTime slotEnd = bookingDate.atTime(subEnd);
 
+                // 檢查是否與任何訂單有衝突
                 boolean isConflict = allOrders.stream().anyMatch(order -> {
                     LocalDateTime blockedStart = order.getStartTime().minusHours(1);
                     LocalDateTime blockedEnd = order.getEndTime().plusHours(1);
@@ -621,6 +612,9 @@ public class GameService {
 
         return available;
     }
+
+
+
 
 
 

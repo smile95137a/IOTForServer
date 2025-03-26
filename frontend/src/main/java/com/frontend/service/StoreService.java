@@ -2,6 +2,7 @@ package com.frontend.service;
 
 import com.frontend.entity.poolTable.PoolTable;
 import com.frontend.entity.store.Store;
+import com.frontend.entity.store.TimeSlot;
 import com.frontend.enums.PoolTableStatus;
 import com.frontend.repo.StorePricingScheduleRepository;
 import com.frontend.repo.StoreRepository;
@@ -14,8 +15,10 @@ import com.frontend.entity.store.StorePricingSchedule;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -38,8 +41,14 @@ public class StoreService {
         storeResList.ifPresent(storeResListResult -> {
             storeResListResult.forEach(storeRes -> {
                 // 查询每个 StoreRes 的 pricingSchedules
-                List<StorePricingScheduleRes> pricingSchedules = getPricingSchedulesForStore(storeRes.getId(), currentDay);
-                storeRes.setPricingSchedules(pricingSchedules);
+                List<StorePricingSchedule> pricingSchedules = getPricingSchedulesForStore(storeRes.getId(), currentDay);
+
+                Set<StorePricingScheduleRes> scheduleResList = pricingSchedules.stream()
+                        .map(this::convertStorePricingScheduleToRes)
+                        .collect(Collectors.toSet());
+
+                storeRes.setPricingSchedules((List<StorePricingScheduleRes>) scheduleResList);
+
             });
         });
 
@@ -47,7 +56,7 @@ public class StoreService {
     }
 
     // 获取定价信息
-    private List<StorePricingScheduleRes> getPricingSchedulesForStore(Long storeId, String currentDay) {
+    private List<StorePricingSchedule> getPricingSchedulesForStore(Long storeId, String currentDay) {
         // 使用更新后的查询方法
         return storePricingScheduleRepository.findByStoreIdAndDayOfWeek(storeId, currentDay);
     }
@@ -108,23 +117,49 @@ public class StoreService {
 
     // 将 StorePricingSchedule 转换为 StorePricingScheduleRes
     private StorePricingScheduleRes convertStorePricingScheduleToRes(StorePricingSchedule schedule) {
-        // 转换普通时段和优惠时段的列表
-        List<TimeSlotRes> regularTimeSlotsRes = schedule.getRegularTimeSlots().stream()
-                .map(timeSlot -> new TimeSlotRes(timeSlot.getStartTime(), timeSlot.getEndTime(), false)) // 普通时段
-                .collect(Collectors.toList());
+        List<TimeSlotRes> regularTimeSlotsRes = new ArrayList<>();
+        List<TimeSlotRes> discountTimeSlotsRes = new ArrayList<>();
 
-        List<TimeSlotRes> discountTimeSlotsRes = schedule.getDiscountTimeSlots().stream()
-                .map(timeSlot -> new TimeSlotRes(timeSlot.getStartTime(), timeSlot.getEndTime(), true)) // 优惠时段
-                .collect(Collectors.toList());
+        for (TimeSlot slot : schedule.getTimeSlots()) {
+            TimeSlotRes res = new TimeSlotRes(slot.getStartTime(), slot.getEndTime(), slot.getIsDiscount());
+            if (slot.getIsDiscount()) {
+                discountTimeSlotsRes.add(res);
+            } else {
+                regularTimeSlotsRes.add(res);
+            }
+        }
 
+        // rates 可以選擇用 TimeSlot 中的 rate，也可以保留 schedule 上的欄位（看你最終要不要移除那兩欄）
         return new StorePricingScheduleRes(
                 schedule.getDayOfWeek(),
                 regularTimeSlotsRes,
                 discountTimeSlotsRes,
-                schedule.getRegularRate(),
-                schedule.getDiscountRate()
+                schedule.getRegularRate(),   // 或者改 null
+                schedule.getDiscountRate()   // 或者改 null
         );
     }
+
+    private StorePricingScheduleRes convertToStorePricingScheduleRes(StorePricingSchedule schedule) {
+        List<TimeSlotRes> timeSlotResList = schedule.getTimeSlots().stream()
+                .map(slot -> new TimeSlotRes(slot.getStartTime(), slot.getEndTime(), slot.getIsDiscount()))
+                .collect(Collectors.toList());
+
+        return StorePricingScheduleRes.builder()
+                .dayOfWeek(schedule.getDayOfWeek())
+                .regularRate(schedule.getRegularRate())
+                .discountRate(schedule.getDiscountRate())
+                .regularTimeSlots(schedule.getTimeSlots().stream()
+                        .filter(slot -> !slot.getIsDiscount())
+                        .map(slot -> new TimeSlotRes(slot.getStartTime(), slot.getEndTime(), false))
+                        .collect(Collectors.toList()))
+                .discountTimeSlots(schedule.getTimeSlots().stream()
+                        .filter(TimeSlot::getIsDiscount)
+                        .map(slot -> new TimeSlotRes(slot.getStartTime(), slot.getEndTime(), true))
+                        .collect(Collectors.toList()))
+                .build();
+
+    }
+
 
 }
 

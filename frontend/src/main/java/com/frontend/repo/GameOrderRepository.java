@@ -26,11 +26,6 @@ public interface GameOrderRepository extends JpaRepository<GameOrder, Long> {
     @Query("SELECT g FROM GameOrder g " +
             "WHERE g.poolTableUid = :poolTableUid " +
             "AND g.startTime BETWEEN :start AND :end")
-    List<GameOrder> findOrdersByStoreAndTableAndDateWithBuffer(
-            @Param("storeId") Long storeId,
-            @Param("poolTableUid") String poolTableUid,
-            @Param("start") LocalDateTime start,
-            @Param("end") LocalDateTime end
-    );
+    List<GameOrder> findByGameIdAndStartTimeBetweenWithBuffer(Long storeId, Long poolTableId, LocalDateTime localDateTime, LocalDateTime localDateTime1);
 }
 

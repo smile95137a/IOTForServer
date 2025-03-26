@@ -22,15 +22,14 @@ public class TimeSlot {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "regular_schedule_id")
-    private StorePricingSchedule regularSchedule;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "discount_schedule_id")
-    private StorePricingSchedule discountSchedule;
+    @JoinColumn(name = "schedule_id", nullable = false)
+    private StorePricingSchedule schedule;
 
     @Column(nullable = false)
     private Boolean isDiscount;
+
+    @Column(nullable = false)
+    private Integer rate;
 
     @Column(nullable = false)
     @JsonFormat(pattern = "HH:mm")
