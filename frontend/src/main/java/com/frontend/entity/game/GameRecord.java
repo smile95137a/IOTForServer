@@ -23,7 +23,7 @@ public class GameRecord {
     @Column
     private String gameId;  // 唯一的遊戲識別碼 (UUID)
     @Column
-    @JsonFormat(pattern = "yyyy/MM/dd HH.mm.ss")
+    @JsonFormat(pattern = "yyyy/MM/dd HH:mm:ss")
     private LocalDateTime startTime; // 遊戲開始時間戳
     @Column
     private String userUid; // 用戶UID
@@ -51,4 +51,6 @@ public class GameRecord {
     private Integer regularRateAmount; // 一班时段的金额
     @Column
     private Integer discountRateAmount; // 优惠时段的金额
+
+    private String hint;
 }

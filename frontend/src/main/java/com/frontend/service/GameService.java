@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.frontend.entity.game.GameOrder;
 import com.frontend.entity.game.GameRecord;
 import com.frontend.entity.poolTable.PoolTable;
+import com.frontend.entity.poolTable.TableEquipment;
 import com.frontend.entity.store.Store;
 import com.frontend.entity.store.StorePricingSchedule;
 import com.frontend.entity.transection.GameTransactionRecord;
@@ -57,6 +58,9 @@ public class GameService {
 
     @Autowired
     private GameTransactionRecordRepository gameTransactionRecordRepository;
+
+    @Autowired
+    private TableEquipmentRepository tableEquipmentRepository;
 
     public GameRecord bookStartGame(GameReq gameReq) throws Exception {
         // 查詢用戶
@@ -202,6 +206,14 @@ public class GameService {
         // 开启桌台使用
         byStoreUid.setIsUse(true);
         poolTableRepository.save(byStoreUid);
+
+        //開啟該桌台的所有設備
+        List<TableEquipment> byPoolTableId = tableEquipmentRepository.findByPoolTableId(byStoreUid.getId());
+        for(TableEquipment table : byPoolTableId){
+            table.setStatus(true);
+            tableEquipmentRepository.save(table);
+        }
+
 
         GameRes gameRes = new GameRes(gameRecord , message , endTimeMinutes);
 
