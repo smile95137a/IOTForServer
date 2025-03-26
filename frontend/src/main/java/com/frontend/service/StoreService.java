@@ -84,24 +84,7 @@ public class StoreService {
 
         // 获取并封装所有定价时段信息
         List<StorePricingScheduleRes> pricingScheduleResList = store.getPricingSchedules().stream()
-                .map(schedule -> {
-                    // 转换普通时段和优惠时段的列表
-                    List<TimeSlotRes> regularTimeSlotsRes = schedule.getRegularTimeSlots().stream()
-                            .map(timeSlot -> new TimeSlotRes(timeSlot.getStartTime(), timeSlot.getEndTime(), false))
-                            .collect(Collectors.toList());
-
-                    List<TimeSlotRes> discountTimeSlotsRes = schedule.getDiscountTimeSlots().stream()
-                            .map(timeSlot -> new TimeSlotRes(timeSlot.getStartTime(), timeSlot.getEndTime(), true))
-                            .collect(Collectors.toList());
-
-                    return new StorePricingScheduleRes(
-                            schedule.getDayOfWeek(),
-                            regularTimeSlotsRes,
-                            discountTimeSlotsRes,
-                            schedule.getRegularRate(),
-                            schedule.getDiscountRate()
-                    );
-                })
+                .map(this::convertStorePricingScheduleToRes) // 使用转换方法
                 .collect(Collectors.toList());
 
         // 返回 StoreRes 对象
@@ -121,5 +104,27 @@ public class StoreService {
                 store.getContactPhone()
         );
     }
+
+
+    // 将 StorePricingSchedule 转换为 StorePricingScheduleRes
+    private StorePricingScheduleRes convertStorePricingScheduleToRes(StorePricingSchedule schedule) {
+        // 转换普通时段和优惠时段的列表
+        List<TimeSlotRes> regularTimeSlotsRes = schedule.getRegularTimeSlots().stream()
+                .map(timeSlot -> new TimeSlotRes(timeSlot.getStartTime(), timeSlot.getEndTime(), false)) // 普通时段
+                .collect(Collectors.toList());
+
+        List<TimeSlotRes> discountTimeSlotsRes = schedule.getDiscountTimeSlots().stream()
+                .map(timeSlot -> new TimeSlotRes(timeSlot.getStartTime(), timeSlot.getEndTime(), true)) // 优惠时段
+                .collect(Collectors.toList());
+
+        return new StorePricingScheduleRes(
+                schedule.getDayOfWeek(),
+                regularTimeSlotsRes,
+                discountTimeSlotsRes,
+                schedule.getRegularRate(),
+                schedule.getDiscountRate()
+        );
+    }
+
 }
 

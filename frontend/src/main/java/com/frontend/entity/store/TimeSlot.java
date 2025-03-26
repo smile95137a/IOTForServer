@@ -13,8 +13,8 @@ import java.util.Objects;
 @AllArgsConstructor
 @Entity
 @Table(name = "time_slots")
-@EqualsAndHashCode(exclude = "schedule") // 避免雙向調用
-@ToString(exclude = "schedule") // 避免循環輸出
+@EqualsAndHashCode(exclude = {"regularSchedule", "discountSchedule"})
+@ToString(exclude = {"regularSchedule", "discountSchedule"})
 public class TimeSlot {
 
     @Id
@@ -34,6 +34,7 @@ public class TimeSlot {
     @Column(nullable = false)
     @JsonFormat(pattern = "HH:mm")
     private LocalTime startTime;
+
     @JsonFormat(pattern = "HH:mm")
     @Column(nullable = false)
     private LocalTime endTime;
@@ -47,4 +48,8 @@ public class TimeSlot {
         this.isDiscount = isDiscount;
     }
 
+    // 新增方法：获取关联的正确调度
+    public StorePricingSchedule getAssociatedSchedule() {
+        return isDiscount ? discountSchedule : regularSchedule;
+    }
 }
