@@ -269,7 +269,8 @@ public class AdminStoreService {
 					// 创建或更新定价计划
 					StorePricingSchedule schedule = new StorePricingSchedule();
 					schedule.setDayOfWeek(scheduleReq.getDayOfWeek());
-
+					schedule.setRegularRate(scheduleReq.getRegularRate());   // ✅ 補這行
+					schedule.setDiscountRate(scheduleReq.getDiscountRate()); // ✅ 補這行
 					// 创建并设置普通时段
 					// 创建普通时段
 					List<TimeSlot> regularTimeSlots = new ArrayList<>();
