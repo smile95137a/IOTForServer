@@ -12,6 +12,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
@@ -44,9 +45,9 @@ public class Store {
     private Set<PoolTable> poolTables; // 分店中的桌台
 
 
-    @OneToMany(mappedBy = "store", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference
-    private Set<StorePricingSchedule> pricingSchedules; // 店家的時段與費用設定
+    @OneToMany(mappedBy = "store", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonManagedReference("defaultReference")
+    private Set<StorePricingSchedule> pricingSchedules = new HashSet<>();
 
     @Column
     private String imgUrl;

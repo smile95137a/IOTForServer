@@ -1,5 +1,6 @@
 package com.frontend.controller.admin;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.frontend.entity.poolTable.PoolTable;
 import com.frontend.entity.store.StoreEquipment;
 import com.frontend.entity.vendor.Vendor;
@@ -26,7 +27,8 @@ public class StoreReq {
     private Integer discountRate; // 优惠时段价格
     private Integer deposit; // 店铺押金
     private String imgUrl; // 店铺图片 URL
-    private Set<StorePricingScheduleReq> pricingSchedules; // 店铺定价时段列表
+    @JsonManagedReference("storePricingSchedulesReference")
+    private Set<StorePricingScheduleReq> pricingSchedules;
     private String hint; // 提示信息
     private String contactPhone; // 联系电话
 }

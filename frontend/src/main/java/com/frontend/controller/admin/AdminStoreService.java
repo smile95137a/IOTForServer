@@ -80,73 +80,76 @@ public class AdminStoreService {
 	private List<TimeSlot> splitTimeSlots(List<TimeSlotReq> timeSlots, List<TimeSlotReq> overlappingTimeSlots, boolean isDiscount, StorePricingSchedule schedule) {
 		List<TimeSlot> result = new ArrayList<>();
 
-		// 如果没有时段，直接返回空列表
 		if (timeSlots == null || timeSlots.isEmpty()) {
 			return result;
 		}
 
-		// 如果没有重叠时段，直接创建原始时段
+		// 如果没有重叠时间段，直接创建 TimeSlot
 		if (overlappingTimeSlots == null || overlappingTimeSlots.isEmpty()) {
 			return timeSlots.stream()
 					.map(slot -> {
 						TimeSlot timeSlot = new TimeSlot(slot.getStartTime(), slot.getEndTime(), isDiscount);
-						timeSlot.setSchedule(schedule); // 设置关联的 StorePricingSchedule
+						// 始终设置 regularSchedule
+						timeSlot.setRegularSchedule(schedule);
+
+						// 无论是否为折扣，都设置 discountSchedule
+						// 如果不是折扣时间，使用当前 schedule 作为 discountSchedule
+						timeSlot.setDiscountSchedule(isDiscount ? schedule : schedule);
+
 						return timeSlot;
 					})
 					.collect(Collectors.toList());
 		}
 
-		// 遍历所有时段
 		for (TimeSlotReq timeSlotReq : timeSlots) {
 			LocalTime start = timeSlotReq.getStartTime();
 			LocalTime end = timeSlotReq.getEndTime();
 			boolean hasOverlap = false;
 
-			// 遍历所有重叠的时段，拆分重叠部分
 			for (TimeSlotReq overlappingSlot : overlappingTimeSlots) {
 				LocalTime overlappingStart = overlappingSlot.getStartTime();
 				LocalTime overlappingEnd = overlappingSlot.getEndTime();
 
-				// 如果当前时段与重叠时段有交集
 				if (start.isBefore(overlappingEnd) && end.isAfter(overlappingStart)) {
 					hasOverlap = true;
-					// 拆分并去除重叠部分
 
-					// 如果普通时段开始时间在重叠部分之前，加入剩余部分
+					// 非重叠部分（前段）
 					if (start.isBefore(overlappingStart)) {
 						TimeSlot timeSlot = new TimeSlot(start, overlappingStart, isDiscount);
-						timeSlot.setSchedule(schedule);
+						timeSlot.setRegularSchedule(schedule);
+						timeSlot.setDiscountSchedule(isDiscount ? schedule : schedule);
 						result.add(timeSlot);
 					}
 
-					// 添加优惠时段
+					// 重叠部分，始终作为折扣时段
 					TimeSlot discountSlot = new TimeSlot(overlappingStart, overlappingEnd, true);
-					discountSlot.setSchedule(schedule);
+					discountSlot.setRegularSchedule(schedule);
+					discountSlot.setDiscountSchedule(schedule);
 					result.add(discountSlot);
 
-					// 如果普通时段结束时间在重叠部分之后，加入剩余部分
+					// 非重叠部分（后段）
 					if (end.isAfter(overlappingEnd)) {
 						TimeSlot timeSlot = new TimeSlot(overlappingEnd, end, isDiscount);
-						timeSlot.setSchedule(schedule);
+						timeSlot.setRegularSchedule(schedule);
+						timeSlot.setDiscountSchedule(isDiscount ? schedule : schedule);
 						result.add(timeSlot);
 					}
 
-					// 更新起始时间
 					start = end;
 				}
 			}
 
-			// 如果没有重叠，直接添加原始时段
+			// 无重叠时间段
 			if (!hasOverlap) {
 				TimeSlot timeSlot = new TimeSlot(timeSlotReq.getStartTime(), timeSlotReq.getEndTime(), isDiscount);
-				timeSlot.setSchedule(schedule);
+				timeSlot.setRegularSchedule(schedule);
+				timeSlot.setDiscountSchedule(isDiscount ? schedule : schedule);
 				result.add(timeSlot);
 			}
 		}
 
 		return result;
 	}
-
 
 
 	private Store convertToEntity(StoreReq req) {
@@ -249,28 +252,29 @@ public class AdminStoreService {
 					schedule.setDayOfWeek(scheduleReq.getDayOfWeek());
 
 					// 创建并设置普通时段
+					// 创建普通时段
 					List<TimeSlot> regularTimeSlots = new ArrayList<>();
 					for (TimeSlotReq timeSlotReq : scheduleReq.getRegularTimeSlots()) {
 						TimeSlot regularSlot = new TimeSlot();
 						regularSlot.setStartTime(timeSlotReq.getStartTime());
 						regularSlot.setEndTime(timeSlotReq.getEndTime());
 						regularSlot.setIsDiscount(false); // 标记为普通时段
-						regularSlot.setSchedule(schedule); // 设置关联关系
+						regularSlot.setRegularSchedule(schedule); // 設置關聯為當前的 schedule
 						regularTimeSlots.add(regularSlot);
 					}
 
-					// 创建并设置优惠时段
+// 创建优惠时段
 					List<TimeSlot> discountTimeSlots = new ArrayList<>();
 					for (TimeSlotReq timeSlotReq : scheduleReq.getDiscountTimeSlots()) {
 						TimeSlot discountSlot = new TimeSlot();
 						discountSlot.setStartTime(timeSlotReq.getStartTime());
 						discountSlot.setEndTime(timeSlotReq.getEndTime());
 						discountSlot.setIsDiscount(true); // 标记为优惠时段
-						discountSlot.setSchedule(schedule); // 设置关联关系
+						discountSlot.setDiscountSchedule(schedule); // 設置關聯為當前的 schedule
 						discountTimeSlots.add(discountSlot);
 					}
 
-					// 设置时间段
+// 设定 schedule 的时间段
 					schedule.setRegularTimeSlots(regularTimeSlots);
 					schedule.setDiscountTimeSlots(discountTimeSlots);
 
