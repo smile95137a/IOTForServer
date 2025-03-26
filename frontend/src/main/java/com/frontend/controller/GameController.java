@@ -77,13 +77,13 @@ public class GameController {
 
 
     @GetMapping("/available-times")
-    public ResponseEntity<Map<String, List<String>>> getAvailableTimes(
+    public ResponseEntity<Map<String, List<Map<String, Object>>>> getAvailableTimes(
             @RequestParam Long storeId,
             @RequestParam String bookingDate
             ) {
 try {
     LocalDate date = LocalDate.parse(bookingDate);
-    Map<String, List<String>> availableTimes = gameService.getAvailableTimes(storeId, date);
+    Map<String, List<Map<String, Object>>> availableTimes = gameService.getAvailableTimes(storeId, date);
 
     return ResponseEntity.ok(availableTimes);
 }catch (Exception e){

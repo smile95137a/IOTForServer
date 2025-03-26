@@ -7,6 +7,7 @@ import com.frontend.repo.StorePricingScheduleRepository;
 import com.frontend.repo.StoreRepository;
 import com.frontend.res.store.StorePricingScheduleRes;
 import com.frontend.res.store.StoreRes;
+import com.frontend.res.store.TimeSlotRes;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.frontend.entity.store.StorePricingSchedule;
@@ -51,22 +52,18 @@ public class StoreService {
         return storePricingScheduleRepository.findByStoreIdAndDayOfWeek(storeId, currentDay);
     }
 
-
-
-
-
     public List<StoreRes> findAll() {
         return storeRepository.findAll().stream()
-                .map(StoreService::convert) // 使用 convert 方法转换 Store -> StoreRes
-                .toList();
+                .map(this::convert) // 使用 convert 方法转换 Store -> StoreRes
+                .collect(Collectors.toList());
     }
 
-
-    public static StoreRes convert(Store store) {
+    public StoreRes convert(Store store) {
         if (store == null) {
             return null;
         }
 
+        // 获取池台的可用和已使用数量
         long availableCount = store.getPoolTables().stream()
                 .filter(poolTable -> !poolTable.getIsUse())
                 .count();
@@ -79,46 +76,35 @@ public class StoreService {
         DayOfWeek currentDay = LocalDate.now().getDayOfWeek();
         String currentDayString = currentDay.toString().toLowerCase();
 
-        System.out.println("Current day: [" + currentDayString + "]");  // 打印当前星期几
-        System.out.println("Current day length: " + currentDayString.length());
-
         // 查找当天对应的定价时段
         StorePricingSchedule currentSchedule = store.getPricingSchedules().stream()
-                .peek(schedule -> {
-                    String dayOfWeek = schedule.getDayOfWeek().trim().toLowerCase();
-                    System.out.println("Schedule day: [" + dayOfWeek + "]");
-                    System.out.println("Schedule day length: " + dayOfWeek.length());
-                    System.out.println("Comparison result: " + dayOfWeek.equals(currentDayString));
-
-                    // 打印字符的ASCII码，查看是否有隐藏字符
-                    System.out.println("Schedule day ASCII: " + dayOfWeek.chars()
-                            .mapToObj(ch -> String.format("%d ", ch))
-                            .collect(Collectors.joining()));
-                    System.out.println("Current day ASCII: " + currentDayString.chars()
-                            .mapToObj(ch -> String.format("%d ", ch))
-                            .collect(Collectors.joining()));
-                })
-                .filter(schedule -> {
-                    String dayOfWeek = schedule.getDayOfWeek().trim().toLowerCase();
-                    return dayOfWeek.equals(currentDayString);  // 确保比较时去空格并统一为小写
-                })
+                .filter(schedule -> schedule.getDayOfWeek().toLowerCase().equals(currentDayString))
                 .findFirst()
                 .orElseThrow(() -> new RuntimeException("没有找到当天的时段信息: " + currentDayString));
 
         // 获取并封装所有定价时段信息
         List<StorePricingScheduleRes> pricingScheduleResList = store.getPricingSchedules().stream()
-                .map(schedule -> new StorePricingScheduleRes(
-                        schedule.getDayOfWeek(),
-                        schedule.getRegularStartTime(),
-                        schedule.getRegularEndTime(),
-                        schedule.getRegularRate(),
-                        schedule.getDiscountStartTime(),
-                        schedule.getDiscountEndTime(),
-                        schedule.getDiscountRate()
-                ))
+                .map(schedule -> {
+                    // 转换普通时段和优惠时段的列表
+                    List<TimeSlotRes> regularTimeSlotsRes = schedule.getRegularTimeSlots().stream()
+                            .map(timeSlot -> new TimeSlotRes(timeSlot.getStartTime(), timeSlot.getEndTime(), false))
+                            .collect(Collectors.toList());
+
+                    List<TimeSlotRes> discountTimeSlotsRes = schedule.getDiscountTimeSlots().stream()
+                            .map(timeSlot -> new TimeSlotRes(timeSlot.getStartTime(), timeSlot.getEndTime(), true))
+                            .collect(Collectors.toList());
+
+                    return new StorePricingScheduleRes(
+                            schedule.getDayOfWeek(),
+                            regularTimeSlotsRes,
+                            discountTimeSlotsRes,
+                            schedule.getRegularRate(),
+                            schedule.getDiscountRate()
+                    );
+                })
                 .collect(Collectors.toList());
 
-        // 返回StoreRes对象
+        // 返回 StoreRes 对象
         return new StoreRes(
                 store.getId(),
                 store.getUid(),
@@ -135,10 +121,5 @@ public class StoreService {
                 store.getContactPhone()
         );
     }
-
-
-
-
-
-
 }
+
