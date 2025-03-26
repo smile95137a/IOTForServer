@@ -47,9 +47,4 @@ public class TimeSlot {
         this.endTime = endTime;
         this.isDiscount = isDiscount;
     }
-
-    // 新增方法：获取关联的正确调度
-    public StorePricingSchedule getAssociatedSchedule() {
-        return isDiscount ? discountSchedule : regularSchedule;
-    }
 }
