@@ -76,12 +76,12 @@ public class GameController {
     }
     @GetMapping("/available-times")
     public ResponseEntity<ApiResponse<?>> getAvailableTimes(
-            @RequestParam Long storeId,
+            @RequestParam String tableUid,
             @RequestParam String bookingDate
     ) {
         try {
             LocalDate date = LocalDate.parse(bookingDate);
-            Map<String, List<Map<String, Object>>> availableTimes = gameService.getAvailableTimes(storeId, date);
+            List<Map<String, Object>> availableTimes = gameService.getAvailableTimesByTableUid(tableUid, date);
             return ResponseEntity.ok(ResponseUtils.success(availableTimes));
         } catch (Exception e) {
             e.printStackTrace();

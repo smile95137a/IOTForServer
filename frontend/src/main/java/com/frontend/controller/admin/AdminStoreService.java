@@ -276,10 +276,13 @@ public class AdminStoreService {
 					List<TimeSlot> regularTimeSlots = new ArrayList<>();
 					for (TimeSlotReq timeSlotReq : scheduleReq.getRegularTimeSlots()) {
 						TimeSlot regularSlot = new TimeSlot();
-						regularSlot.setStartTime(timeSlotReq.getStartTime());
-						regularSlot.setEndTime(timeSlotReq.getEndTime());
-						regularSlot.setIsDiscount(false); // 标记为普通时段
-						regularSlot.setRegularSchedule(schedule); // 設置關聯為當前的 schedule
+						LocalTime start = timeSlotReq.getStartTime();
+						LocalTime end = timeSlotReq.getEndTime();
+
+						regularSlot.setStartTime(start);
+						regularSlot.setEndTime(end);
+						regularSlot.setIsDiscount(false);
+						regularSlot.setRegularSchedule(schedule); // 應該是用 schedule 而不是 start
 						regularTimeSlots.add(regularSlot);
 					}
 
