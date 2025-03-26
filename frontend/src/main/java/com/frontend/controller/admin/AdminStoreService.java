@@ -76,7 +76,8 @@ public class AdminStoreService {
 		store.setLon(req.getLon());
 		store.setDeposit(req.getDeposit());
 		store.setImgUrl(req.getImgUrl());
-
+		store.setHint(req.getHint());
+		store.setContactPhone(req.getContactPhone());
 		if (req.getVendor() != null) {
 			store.setVendor(req.getVendor());
 		}
@@ -135,7 +136,8 @@ public class AdminStoreService {
 			store.setLat(storeReq.getLat());
 			store.setLon(storeReq.getLon());
 			store.setDeposit(storeReq.getDeposit());
-
+			store.setHint(storeReq.getHint());
+			store.setContactPhone(storeReq.getContactPhone());
 			// 设备和桌台
 			if (storeReq.getVendor() != null) {
 				store.setVendor(storeReq.getVendor());

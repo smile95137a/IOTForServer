@@ -21,7 +21,7 @@ public interface StoreRepository extends JpaRepository<Store, Long> {
 			+ "COUNT(CASE WHEN pt.status != :status THEN 1 ELSE NULL END), "
 			+ "s.lat, s.lon, "
 			+ "s.deposit , s.imgUrl , "
-			+ "null) " // 这里传递 null 给 pricingSchedules
+			+ "null , s.hint , s.contactPhone) " // 这里传递 null 给 pricingSchedules
 			+ "FROM Store s "
 			+ "LEFT JOIN s.poolTables pt "
 			+ "WHERE s.uid = :uid "

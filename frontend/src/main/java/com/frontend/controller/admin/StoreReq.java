@@ -7,6 +7,7 @@ import com.frontend.entity.store.StoreEquipment;
 import com.frontend.entity.vendor.Vendor;
 
 import com.frontend.req.store.StorePricingScheduleReq;
+import jakarta.persistence.Column;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -27,4 +28,6 @@ public class StoreReq {
     private Integer deposit;
     private String imgUrl;
     private Set<StorePricingScheduleReq> pricingSchedules;
+    private String hint;
+    private String contactPhone;
 }

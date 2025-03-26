@@ -130,8 +130,9 @@ public class StoreService {
                 store.getLon(),
                 store.getDeposit(),
                 store.getImgUrl(),
-                pricingScheduleResList
-
+                pricingScheduleResList,
+                store.getHint(),
+                store.getContactPhone()
         );
     }
 

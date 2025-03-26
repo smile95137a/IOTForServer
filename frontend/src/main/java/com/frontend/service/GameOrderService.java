@@ -32,8 +32,8 @@ public class GameOrderService {
                 .map(gameOrder -> new GameOrderRes(
                         gameOrder.getGameId(),
                         gameOrder.getTotalPrice(),
-                        gameOrder.getStartTime().toLocalDateTime(),
-                        gameOrder.getEndTime().toLocalDateTime(),
+                        gameOrder.getStartTime(),
+                        gameOrder.getEndTime(),
                         gameOrder.getDuration(),
                         gameOrder.getStatus()
                 ))

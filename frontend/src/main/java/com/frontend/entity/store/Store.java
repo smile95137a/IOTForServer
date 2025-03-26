@@ -73,6 +73,12 @@ public class Store {
     private Integer deposit;
 
     @Column
+    private String hint;
+
+    @Column
+    private String contactPhone;
+
+    @Column
     private Integer bookTime;
 
     @Column

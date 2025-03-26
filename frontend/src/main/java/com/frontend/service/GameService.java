@@ -164,14 +164,13 @@ public class GameService {
             LocalDateTime bookedStartTime = order.getStartTime(); // 获取预定的开始时间
             LocalDateTime bookedEndTime = order.getEndTime(); // 获取预定的结束时间（从订单中获取）
 
-            if (startTime.isBefore((ChronoLocalDateTime<?>) ChronoZonedDateTime.from(bookedEndTime)) && startTime.plusHours(1).isAfter((ChronoLocalDateTime<?>) ChronoZonedDateTime.from(bookedStartTime))) {
+            if (startTime.isBefore(bookedEndTime) && startTime.plusHours(1).isAfter(bookedStartTime)) {
                 // 当前时间与预定时间冲突，通知用户
                 long availableTimeMinutes = Duration.between(startTime, bookedStartTime).toMinutes();
                 endTimeMinutes += availableTimeMinutes + 5; // 用户只能玩到预定结束前5分钟
 
                 // 创建通知信息
                 message = "您的遊戲時間 " + bookedEndTime.minusMinutes(5).toLocalTime() + "，之後將會結束並計算費用。";
-                // 在前端显示该消息
 
                 // 如果是立即开台，计算可用时间
                 startTime = bookedEndTime.minusMinutes(5); // 设置游戏实际开始时间

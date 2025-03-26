@@ -1,6 +1,7 @@
 package com.frontend.res.store;
 
 import com.frontend.entity.store.StorePricingSchedule;
+import jakarta.persistence.Column;
 import lombok.*;
 
 import java.util.List;
@@ -22,6 +23,8 @@ public class StoreRes {
     private Integer deposit;
     private String imgUrl;
     private List<StorePricingScheduleRes> pricingSchedules;
+    private String hint;
+    private String contactPhone;
 
 }
 
