@@ -6,20 +6,21 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.frontend.entity.news.News;
-import com.frontend.entity.store.StorePricingSchedule;
-import com.frontend.repo.StorePricingScheduleRepository;
-import com.frontend.req.store.StorePricingScheduleReq;
-import com.frontend.res.store.AdminStoreRes;
-import com.frontend.res.store.StoreRes;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.frontend.config.service.UserPrinciple;
 import com.frontend.entity.store.Store;
+import com.frontend.entity.store.StorePricingSchedule;
+import com.frontend.repo.StorePricingScheduleRepository;
 import com.frontend.repo.StoreRepository;
+import com.frontend.req.store.StorePricingScheduleReq;
+import com.frontend.res.store.AdminStoreRes;
+import com.frontend.res.store.StoreRes;
 import com.frontend.utils.RandomUtils;
+import com.frontend.utils.SecurityUtils;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,6 +36,9 @@ public class AdminStoreService {
 	@Autowired
 	private StorePricingScheduleRepository storePricingScheduleRepository;
 
+	@Autowired
+    private AdminUserService userService;
+    
 	// Create a new store
 	public Store createStore(StoreReq storeReq, Long userId) {
 		// 转换并保存 Store 实体
@@ -67,7 +71,6 @@ public class AdminStoreService {
 		return savedStore;
 	}
 
-
 	private Store convertToEntity(StoreReq req) {
 		Store store = new Store();
 		store.setName(req.getName());
@@ -87,12 +90,31 @@ public class AdminStoreService {
 
 		return store;
 	}
+
 	public List<AdminStoreRes> getAllStores() {
-		List<Store> stores = storeRepository.findAll();
-		return stores.stream()
-				.map(this::convertToAdminStoreRes)
-				.collect(Collectors.toList());
+	    UserPrinciple securityUser = SecurityUtils.getSecurityUser();
+	    List<Store> stores;
+
+	    if (securityUser == null || SecurityUtils.hasRole(securityUser, "ROLE_ADMIN")) {
+	        stores = storeRepository.findAll();
+	    } else {
+	        Long userId = securityUser.getId();
+	        var userEntity = userService.getUserById(userId);
+
+	        if (userEntity.getVendor() == null || userEntity.getVendor().getId() == null) {
+	            stores = List.of(); 
+	        } else {
+	            Long vendorId = userEntity.getVendor().getId();
+	            stores = storeRepository.findByVendorId(vendorId);
+	        }
+	    }
+
+	    return stores.stream()
+	        .map(this::convertToAdminStoreRes)
+	        .collect(Collectors.toList());
 	}
+
+
 
 	// Retrieve a store by ID
 	public Optional<AdminStoreRes> getStoreById(String uid) {
@@ -105,20 +127,11 @@ public class AdminStoreService {
 	}
 
 	private AdminStoreRes convertToAdminStoreRes(Store store) {
-		AdminStoreRes.AdminStoreResBuilder builder = AdminStoreRes.builder()
-				.id(store.getId())
-				.uid(store.getUid())
-				.name(store.getName())
-				.address(store.getAddress())
-				.lat(store.getLat())
-				.lon(store.getLon())
-				.deposit(store.getDeposit())
-				.vendor(store.getVendor())
-				.poolTables(store.getPoolTables())
-				.pricingSchedules(store.getPricingSchedules())
-						.hint(store.getHint())
-						.contactPhone(store.getContactPhone());
-
+		AdminStoreRes.AdminStoreResBuilder builder = AdminStoreRes.builder().id(store.getId()).uid(store.getUid())
+				.name(store.getName()).address(store.getAddress()).lat(store.getLat()).lon(store.getLon())
+				.deposit(store.getDeposit()).vendor(store.getVendor()).poolTables(store.getPoolTables())
+				.pricingSchedules(store.getPricingSchedules()).hint(store.getHint())
+				.contactPhone(store.getContactPhone());
 
 		// 只在 poolTables 不为 null 时设置 poolTables
 		if (store.getPoolTables() != null) {
@@ -127,8 +140,6 @@ public class AdminStoreService {
 
 		return builder.build();
 	}
-
-
 
 	// Update a store
 	public Store updateStore(String uid, StoreReq storeReq, Long id) {
@@ -175,17 +186,15 @@ public class AdminStoreService {
 		}).orElseThrow(() -> new RuntimeException("Store not found with uid: " + uid));
 	}
 
-
-
-
 	// Delete a store
 	public void deleteStore(String uid) {
 		storeRepository.deleteByUid(uid);
 	}
 
 	public void uploadProductImg(Long id, String uploadedFilePath) {
-		Store store = storeRepository.findById(id).orElseThrow(() -> new RuntimeException("News not found with id: " + id));
-		if(store != null){
+		Store store = storeRepository.findById(id)
+				.orElseThrow(() -> new RuntimeException("News not found with id: " + id));
+		if (store != null) {
 			store.setImgUrl(uploadedFilePath);
 			storeRepository.save(store);
 		}

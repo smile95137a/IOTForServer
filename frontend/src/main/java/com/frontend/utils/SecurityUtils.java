@@ -10,7 +10,6 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 
-
 public class SecurityUtils {
 
 	public static UserPrinciple getSecurityUser() {
@@ -49,6 +48,11 @@ public class SecurityUtils {
 		}
 
 		return true;
+	}
+
+	public static boolean hasRole(UserPrinciple user, String roleName) {
+		return user.getAuthorities().stream()
+				.anyMatch(grantedAuthority -> roleName.equals(grantedAuthority.getAuthority()));
 	}
 
 }
