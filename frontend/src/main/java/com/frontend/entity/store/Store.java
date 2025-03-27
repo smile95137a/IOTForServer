@@ -1,7 +1,6 @@
 package com.frontend.entity.store;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import com.frontend.entity.poolTable.PoolTable;
@@ -13,7 +12,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
@@ -46,22 +44,20 @@ public class Store {
     private Set<PoolTable> poolTables; // 分店中的桌台
 
 
-    @OneToMany(mappedBy = "store", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JsonManagedReference("defaultReference")
-    private Set<StorePricingSchedule> pricingSchedules = new HashSet<>();
+    @OneToMany(mappedBy = "store", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private Set<StorePricingSchedule> pricingSchedules; // 店家的時段與費用設定
 
     @Column
     private String imgUrl;
 
     @Column
-    @JsonFormat(pattern = "yyyy/MM/dd HH:mm")
     private LocalDateTime createTime;
 
     @Column
     private Long createUserId;
 
     @Column
-    @JsonFormat(pattern = "yyyy/MM/dd HH:mm")
     private LocalDateTime updateTime;
 
     @Column

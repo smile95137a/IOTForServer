@@ -1,7 +1,6 @@
 package com.frontend.entity.monitor;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.frontend.entity.store.Store;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -31,14 +30,12 @@ public class Monitor {
     private boolean status; // 狀態 (e.g., ACTIVE, INACTIVE, ERROR)
 
     @Column
-    @JsonFormat(pattern = "yyyy/MM/dd HH:mm")
     private LocalDateTime createTime;
 
     @Column
     private Long createUserId;
 
     @Column
-    @JsonFormat(pattern = "yyyy/MM/dd HH:mm")
     private LocalDateTime updateTime;
 
     @Column

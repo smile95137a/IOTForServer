@@ -7,7 +7,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import com.frontend.entity.role.Role;
@@ -42,11 +41,11 @@ public class UserRes implements Serializable {
 	private String email;
 
 	private Set<Role> roles = new HashSet<>();
-	@JsonFormat(pattern = "yyyy/MM/dd HH:mm")
+	
 	private LocalDateTime createTime;
 
 	private String createUserName;
-	@JsonFormat(pattern = "yyyy/MM/dd HH:mm")
+
 	private LocalDateTime updateTime;
 
 	private String updateUserName;

@@ -8,7 +8,6 @@ import com.frontend.entity.poolTable.PoolTable;
 import com.frontend.entity.poolTable.TableEquipment;
 import com.frontend.entity.store.Store;
 import com.frontend.entity.store.StorePricingSchedule;
-import com.frontend.entity.store.TimeSlot;
 import com.frontend.entity.transection.GameTransactionRecord;
 import com.frontend.entity.user.User;
 import com.frontend.entity.vendor.Vendor;
@@ -241,18 +240,16 @@ public class GameService {
 
     public GameResponse endGame(GameReq gameReq, Long id) throws Exception {
         // 取得遊戲紀錄
+        // 获取游戏开始时间，并将其转换为台北时区的 ZonedDateTime（精确到秒）
         GameRecord byGameId = gameRecordRepository.findByGameId(gameReq.getGameId());
 
-        // 当前时间（结束时间）
         LocalDateTime endDateTime = LocalDateTime.now();
         LocalDateTime startTimeInTaipei = byGameId.getStartTime();
 
         if (endDateTime.isBefore(startTimeInTaipei)) {
             throw new Exception("结束时间不能早于开始时间");
         }
-
-        Store store = storeRepository.findById(byGameId.getStoreId()).orElseThrow(() -> new Exception("店家信息未找到"));
-
+        Store store = storeRepository.findById(byGameId.getStoreId()).get();
         // 計算遊玩時間的時間差
         Duration duration = Duration.between(startTimeInTaipei, endDateTime);  // 計算時間差
         long totalMinutes = duration.toMinutes();  // 總分鐘數
@@ -261,7 +258,7 @@ public class GameService {
         long totalHours = (long) Math.ceil((double) totalMinutes / 60);  // 向上取整
 
         // 退還押金
-        User byUid = userRepository.findById(id).orElseThrow(() -> new Exception("用户信息未找到"));
+        User byUid = userRepository.findById(id).get();
         int newAmount = byUid.getAmount() + store.getDeposit();  // 退還押金
         byUid.setAmount(newAmount);
         userRepository.save(byUid);
@@ -290,35 +287,37 @@ public class GameService {
         long elapsedMinutes = totalMinutes;
         DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
 
-        Set<TimeSlot> timeSlots = currentSchedule.getTimeSlots(); // ← 要補上這行
-
+        // 计算在优惠时段和普通时段内的价格
         while (elapsedMinutes > 0) {
-            // 找出目前時間落在哪個 slot
-            LocalTime finalCurrentTime = currentTime;
-            Optional<TimeSlot> matchedSlotOpt = timeSlots.stream()
-                    .filter(slot -> isTimeInRange(finalCurrentTime, slot.getStartTime(), slot.getEndTime()))
-                    .findFirst();
+            LocalTime discountStartTime = LocalTime.parse(currentSchedule.getDiscountStartTime(), timeFormatter);
+            LocalTime discountEndTime = LocalTime.parse(currentSchedule.getDiscountEndTime(), timeFormatter);
+            LocalTime regularStartTime = LocalTime.parse(currentSchedule.getRegularStartTime(), timeFormatter);
+            LocalTime regularEndTime = LocalTime.parse(currentSchedule.getRegularEndTime(), timeFormatter);
 
-            if (matchedSlotOpt.isPresent()) {
-                TimeSlot slot = matchedSlotOpt.get();
-                LocalTime slotEnd = slot.getEndTime();
-                long minutesInSlot = Math.min(elapsedMinutes, Duration.between(currentTime, slotEnd).toMinutes());
+            // 判断当前时间是否在优惠时段内
+            if (isTimeInRange(currentTime, discountStartTime, discountEndTime)) {
+                long discountMinutes = Math.min(elapsedMinutes, Duration.between(currentTime, discountEndTime).toMinutes());
+                adjustedPrice += discountMinutes * currentSchedule.getDiscountRate() / 60.0;
+                elapsedMinutes -= discountMinutes;
+                currentTime = currentTime.plusMinutes(discountMinutes);
+            }
 
-                int rate = slot.getIsDiscount() ? currentSchedule.getDiscountRate() : currentSchedule.getRegularRate();
-                adjustedPrice += minutesInSlot * rate / 60.0;
+            // 判断当前时间是否在常规时段内
+            if (elapsedMinutes > 0 && isTimeInRange(currentTime, regularStartTime, regularEndTime)) {
+                long regularMinutes = Math.min(elapsedMinutes, Duration.between(currentTime, regularEndTime).toMinutes());
+                adjustedPrice += regularMinutes * currentSchedule.getRegularRate() / 60.0;
+                elapsedMinutes -= regularMinutes;
+                currentTime = currentTime.plusMinutes(regularMinutes);
+            }
 
-                currentTime = currentTime.plusMinutes(minutesInSlot);
-                elapsedMinutes -= minutesInSlot;
-            } else {
-                // 若不落在任何 slot，就跳過該分鐘
+            // 如果不在时段范围内，跳到下一个时段
+            if (elapsedMinutes > 0 && !isTimeInRange(currentTime, discountStartTime, discountEndTime) &&
+                    !isTimeInRange(currentTime, regularStartTime, regularEndTime)) {
                 currentTime = currentTime.plusMinutes(1);
-                elapsedMinutes--;
             }
         }
 
-
-
-        PoolTable poolTable = poolTableRepository.findById(byGameId.getPoolTableId()).orElseThrow(() -> new Exception("桌台信息未找到"));
+        PoolTable poolTable = poolTableRepository.findById(byGameId.getPoolTableId()).get();
 
         // 更新遊戲訂單紀錄
         GameOrder gameOrder = new GameOrder();
@@ -346,7 +345,6 @@ public class GameService {
 
         return response;
     }
-
 
 
     public void checkout(CheckoutReq checkoutReq , Long id) {
@@ -558,90 +556,104 @@ public class GameService {
         gameOrderRepository.save(gameOrder); // 儲存取消訂單
     }
 
-    public List<Map<String, Object>> getAvailableTimesByTableUid(String poolTableUid, LocalDate bookingDate) {
-        int stepHours = 1;
+    public Map<String, List<String>> getAvailableTimes(Long storeId, LocalDate bookingDate) {
+        int timeSlotHours = 1; // 每個時段的時長為1小時
 
-        // 1. 查桌台與店家資訊
-        PoolTable poolTable = poolTableRepository.findByUid(poolTableUid)
-                .orElseThrow(() -> new RuntimeException("找不到對應的桌台"));
-        Long poolTableId = poolTable.getId();
-        Long storeId = poolTable.getStore().getId();
-
-// 2. 查詢當天時段設定（優惠與一般整合）
-        Optional<StorePricingSchedule> optionalSchedule = storePricingScheduleRepository
-                .findScheduleWithMergedTimeSlots(storeId, bookingDate.getDayOfWeek().toString());
-
-        List<TimeSlot> allSlots = new ArrayList<>();
-        if (optionalSchedule.isPresent()) {
-            allSlots = new ArrayList<>(optionalSchedule.get().getTimeSlots());
-        } else {
-            // 沒有設定的話給預設時段
-            TimeSlot defaultSlot = new TimeSlot();
-            defaultSlot.setStartTime(LocalTime.of(10, 0));
-            defaultSlot.setEndTime(LocalTime.of(23, 0));
-            defaultSlot.setIsDiscount(false);
-            defaultSlot.setRate(100);
-            allSlots.add(defaultSlot);
-        }
-
-// 3. 先從 GameRecord 找出該桌台該店家的 gameId
-        List<String> gameIds = gameRecordRepository
-                .findByStoreIdAndPoolTableIdAndStatus(storeId, poolTableId, "BOOK")
+        // 1. 查詢店家的營業時段
+        StorePricingSchedule schedule = storePricingScheduleRepository.findByStoreId(storeId)
                 .stream()
-                .map(GameRecord::getGameId)
-                .collect(Collectors.toList());
+                .filter(s -> s.getDayOfWeek().equalsIgnoreCase(bookingDate.getDayOfWeek().toString()))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("未找到對應日期的時段"));
 
-// 4. 再透過 gameId 查 GameOrder（當日）
-        List<GameOrder> allOrders = new ArrayList<>();
-        for (String gameId : gameIds) {
-            allOrders.addAll(gameOrderRepository.findByGameIdAndStartTimeBetween(
-                    gameId, bookingDate.atStartOfDay(), bookingDate.atTime(LocalTime.MAX)
-            ));
+        LocalTime openingTime = LocalTime.parse(schedule.getRegularStartTime());
+        LocalTime closingTime = LocalTime.parse(schedule.getRegularEndTime());
+
+        // 處理跨日情況
+        if (closingTime.isBefore(openingTime)) {
+            closingTime = closingTime.plusHours(24); // 跨日情況處理
         }
 
-// 5. 計算可用時段
-        List<Map<String, Object>> available = new ArrayList<>();
-        for (TimeSlot slot : allSlots) {
-            LocalTime segmentStart = slot.getStartTime();
-            LocalTime segmentEnd = slot.getEndTime();
-            boolean isDiscount = slot.getIsDiscount();
-            int rate = slot.getRate() != null ? slot.getRate() : (isDiscount ? 80 : 100);
+        // 2. 查詢所有桌台和遊戲資料
+        List<PoolTable> poolTables = poolTableRepository.findByStoreId(storeId);
+        List<String> gameRecords = gameRecordRepository.findGameIdByStoreIdAndStatus(storeId, "BOOK");
 
-            while (!segmentStart.plusHours(stepHours).isAfter(segmentEnd)) {
-                LocalTime subStart = segmentStart;
-                LocalTime subEnd = subStart.plusHours(stepHours);
+        // 用來存儲每個桌台的可用時段
+        Map<String, List<String>> availableTimesMap = new HashMap<>();
 
-                LocalDateTime slotStart = bookingDate.atTime(subStart);
-                LocalDateTime slotEnd = bookingDate.atTime(subEnd);
+        // 3. 遍歷每個桌台
+        for (PoolTable poolTable : poolTables) {
+            Long poolTableId = poolTable.getId();
 
-                boolean isConflict = allOrders.stream().anyMatch(order -> {
-                    LocalDateTime blockedStart = order.getStartTime().minusHours(1);
-                    LocalDateTime blockedEnd = order.getEndTime().plusHours(1);
-                    return slotStart.isBefore(blockedEnd) && slotEnd.isAfter(blockedStart);
-                });
+            // 用來存儲當前桌台的可用時段
+            List<String> availableTimes = new ArrayList<>();
+            LocalTime currentTime = openingTime;
 
-                if (!isConflict) {
-                    Map<String, Object> timeMap = new HashMap<>();
-                    timeMap.put("start", subStart.toString());
-                    timeMap.put("end", subEnd.toString());
-                    timeMap.put("rate", rate);
-                    timeMap.put("isDiscount", isDiscount);
-                    available.add(timeMap);
+            // 4. 查找該桌台是否有預約的遊戲
+            List<String> relevantGameIds = gameRecords.stream()
+                    .filter(gameId -> {
+                        // 假設每個 gameRecord 對應一個 poolTableId，查找這個遊戲記錄是否與當前桌台相關
+                        GameRecord gameRecord = gameRecordRepository.findByGameId(gameId);
+                        return gameRecord != null && gameRecord.getPoolTableId().equals(poolTableId);
+                    })
+                    .collect(Collectors.toList());
+
+            if (!relevantGameIds.isEmpty()) {
+                // 5. 如果桌台有遊戲預約，處理有預約的情況
+                for (String gameId : relevantGameIds) {
+                    // 查詢該遊戲的預約紀錄
+                    GameRecord game = gameRecordRepository.findByGameId(gameId);
+
+                    // 查詢該遊戲當日的預約紀錄
+                    LocalDateTime startOfDay = bookingDate.atStartOfDay();
+                    LocalDateTime endOfDay = bookingDate.atTime(LocalTime.MAX);
+                    List<GameOrder> existingBookings = gameOrderRepository.findByGameIdAndStartTimeBetween(
+                            gameId, startOfDay, endOfDay);
+
+                    // 如果當日有預約，檢查時段是否有衝突
+                    currentTime = openingTime;
+                    while (!currentTime.plusHours(timeSlotHours).isAfter(closingTime)) {
+                        LocalTime endTime = currentTime.plusHours(timeSlotHours);
+                        LocalDateTime slotStart = bookingDate.atTime(currentTime);
+                        LocalDateTime slotEnd = bookingDate.atTime(endTime);
+
+                        boolean isAvailable = true;
+
+                        // 檢查這個時段是否與現有預約有衝突
+                        for (GameOrder order : existingBookings) {
+                            LocalDateTime restrictedStart = order.getStartTime().minusHours(1); // 前1小時保護期
+                            LocalDateTime restrictedEnd = order.getEndTime().plusHours(1); // 後1小時保護期
+
+                            if (slotStart.isBefore(restrictedEnd) && slotEnd.isAfter(restrictedStart)) {
+                                isAvailable = false;
+                                break; // 找到衝突的預約後，退出檢查
+                            }
+                        }
+
+                        // 如果該時段可用，則加入可用時段
+                        if (isAvailable) {
+                            availableTimes.add(currentTime + " - " + endTime);
+                        }
+
+                        currentTime = endTime;
+                    }
                 }
-
-                segmentStart = subEnd;
+            } else {
+                // 6. 如果桌台未綁定遊戲，顯示所有時段
+                currentTime = openingTime;
+                while (!currentTime.plusHours(timeSlotHours).isAfter(closingTime)) {
+                    LocalTime endTime = currentTime.plusHours(timeSlotHours);
+                    availableTimes.add(currentTime + " - " + endTime);
+                    currentTime = endTime;
+                }
             }
+
+            // 7. 將該桌台的可用時段加入到 availableTimesMap 中
+            availableTimesMap.put(String.valueOf(poolTableId), availableTimes);
         }
 
-        return available;
-
+        return availableTimesMap;
     }
-
-
-
-
-
-
 
 
 }

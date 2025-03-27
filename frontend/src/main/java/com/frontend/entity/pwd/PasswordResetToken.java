@@ -1,6 +1,5 @@
 package com.frontend.entity.pwd;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -36,11 +35,9 @@ public class PasswordResetToken {
     private Boolean passwordChanged = false;
 
 	@Column
-    @JsonFormat(pattern = "yyyy/MM/dd HH:mm")
 	private LocalDateTime createTime;
 	
 	@Column
-    @JsonFormat(pattern = "yyyy/MM/dd HH:mm")
 	private LocalDateTime updateTime;
 
 

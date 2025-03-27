@@ -1,6 +1,5 @@
 package com.frontend.entity.banner;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.frontend.entity.news.News;
@@ -35,11 +34,9 @@ public class Banner {
     private BannerStatus status;
 
     @Column(name = "created_at")
-    @JsonFormat(pattern = "yyyy/MM/dd HH:mm")
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
-    @JsonFormat(pattern = "yyyy/MM/dd HH:mm")
     private LocalDateTime updatedAt;
 
     // 新增外鍵關聯

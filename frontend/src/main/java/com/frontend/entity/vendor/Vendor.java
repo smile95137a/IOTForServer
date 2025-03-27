@@ -1,6 +1,5 @@
 package com.frontend.entity.vendor;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.frontend.entity.store.Store;
@@ -39,14 +38,12 @@ public class Vendor {
     private Set<Store> stores; // 管理的分店
 
     @Column
-    @JsonFormat(pattern = "yyyy/MM/dd HH:mm")
     private LocalDateTime createTime;
 
     @Column
     private Long createUserId;
 
     @Column
-    @JsonFormat(pattern = "yyyy/MM/dd HH:mm")
     private LocalDateTime updateTime;
 
     @Column

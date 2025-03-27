@@ -60,28 +60,14 @@ public class GameController {
     }
 
 
-    @PostMapping("/checkout")
-    public ResponseEntity<ApiResponse<?>> checkout(@RequestBody CheckoutReq checkoutReq) {
-        try {
-            UserPrinciple securityUser = SecurityUtils.getSecurityUser();
-            Long id = securityUser.getId();
-            gameService.checkout(checkoutReq , id);
-            return ResponseEntity.ok(ResponseUtils.success(true));
-        }catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.ok(ResponseUtils.error(9999, e.getMessage(), null));
-        }
-
-
-    }
     @GetMapping("/available-times")
     public ResponseEntity<ApiResponse<?>> getAvailableTimes(
-            @RequestParam String tableUid,
+            @RequestParam Long storeId,
             @RequestParam String bookingDate
     ) {
         try {
             LocalDate date = LocalDate.parse(bookingDate);
-            List<Map<String, Object>> availableTimes = gameService.getAvailableTimesByTableUid(tableUid, date);
+            Map<String, List<String>> availableTimes = gameService.getAvailableTimes(storeId, date);
             return ResponseEntity.ok(ResponseUtils.success(availableTimes));
         } catch (Exception e) {
             e.printStackTrace();
@@ -94,16 +80,15 @@ public class GameController {
      *
      * @param gameReq 預約請求
      * @return 預約成功的 GameRecord
-     * @throws Exception 當有錯誤發生時
      */
     @PostMapping("/book")
     public ResponseEntity<ApiResponse<?>> bookGame(@RequestBody BookGameReq gameReq) {
         try {
             GameRecord gameRecord = gameService.bookGame(gameReq);
-            return ResponseEntity.status(HttpStatus.CREATED).body(ResponseUtils.success(gameRecord));
+            return ResponseEntity.ok(ResponseUtils.success(gameRecord));
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseUtils.error(9999, e.getMessage(), null));
+            return ResponseEntity.ok(ResponseUtils.error(9999, e.getMessage(), null));
         }
     }
 
@@ -112,7 +97,6 @@ public class GameController {
      *
      * @param gameReq 取消預約請求
      * @return 註明是否取消成功
-     * @throws Exception 當有錯誤發生時
      */
     @PostMapping("/cancel")
     public ResponseEntity<ApiResponse<?>> cancelBook(@RequestBody GameReq gameReq) {
@@ -121,11 +105,16 @@ public class GameController {
             return ResponseEntity.ok(ResponseUtils.success("預約已取消"));
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseUtils.error(9999, "取消預約失敗：" + e.getMessage(), null));
+            return ResponseEntity.ok(ResponseUtils.error(9999, e.getMessage(), null));
         }
     }
 
-    // 啟動遊戲
+    /**
+     * 啟動遊戲
+     *
+     * @param gameReq 啟動遊戲請求
+     * @return 啟動的遊戲記錄
+     */
     @PostMapping("/bookStart")
     public ResponseEntity<ApiResponse<?>> bookStart(@RequestBody GameReq gameReq) {
         try {
@@ -133,8 +122,7 @@ public class GameController {
             return ResponseEntity.ok(ResponseUtils.success(gameRecord));
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseUtils.error(9999, e.getMessage(), null));
+            return ResponseEntity.ok(ResponseUtils.error(9999, e.getMessage(), null));
         }
     }
-
 }

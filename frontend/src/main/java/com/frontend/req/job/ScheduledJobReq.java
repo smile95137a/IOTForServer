@@ -2,7 +2,6 @@ package com.frontend.req.job;
 
 import java.time.LocalDateTime;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -22,10 +21,8 @@ public class ScheduledJobReq {
 	private String status;
 	private String jobGroup;
 	private String jobDataMap;
-	@JsonFormat(pattern = "yyyy/MM/dd HH:mm")
 	private LocalDateTime createTime;
 	private Long createUserId;
-	@JsonFormat(pattern = "yyyy/MM/dd HH:mm")
 	private LocalDateTime updateTime;
 	private Long updateUserId;
 	private LocalDateTime lastActiveTime;

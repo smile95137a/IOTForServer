@@ -1,4 +1,4 @@
-package com.frontend.controller;
+package com.frontend.controller.admin;
 
 import com.frontend.config.message.ApiResponse;
 import com.frontend.config.service.UserPrinciple;

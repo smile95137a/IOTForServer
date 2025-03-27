@@ -1,23 +1,18 @@
 package com.frontend.res.store;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.ToString;
-
-import java.util.List;
 
 @Data
 @ToString
 @AllArgsConstructor
-@Builder
 public class StorePricingScheduleRes {
-
-    private String dayOfWeek;
-    private List<TimeSlotRes> regularTimeSlots;
-    private List<TimeSlotRes> discountTimeSlots;
-    private Integer regularRate;
-    private Integer discountRate;
-
+    private String dayOfWeek; // 星期几
+    private String regularStartTime; // 正常时段开始时间
+    private String regularEndTime; // 正常时段结束时间
+    private Integer regularRate; // 正常时段价格
+    private String discountStartTime; // 优惠时段开始时间
+    private String discountEndTime; // 优惠时段结束时间
+    private Integer discountRate; // 优惠时段价格
 }
-
