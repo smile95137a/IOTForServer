@@ -62,7 +62,7 @@ public class GameService {
 
     public GameRecord bookStartGame(GameReq gameReq) throws Exception {
         // 查詢用戶
-        PoolTable byStoreUid = poolTableRepository.findById(Long.valueOf(gameReq.getGameId())).get();
+        PoolTable byStoreUid = poolTableRepository.findById(gameReq.getPoolTableId()).get();
         BookGame bookGame = bookGameRepository.findByGameId(gameReq.getGameId());
         // 查找遊戲紀錄
         GameRecord gameRecord = gameRecordRepository.findByGameId(gameReq.getGameId());
