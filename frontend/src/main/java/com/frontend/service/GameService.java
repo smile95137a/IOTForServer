@@ -770,5 +770,8 @@ public class GameService {
     }
 
 
-
+    public List<BookGame> getBookGame() {
+        Optional<User> byId = userRepository.findById(SecurityUtils.getSecurityUser().getId());
+        return bookGameRepository.findByUserUId(byId.get().getUid());
+    }
 }

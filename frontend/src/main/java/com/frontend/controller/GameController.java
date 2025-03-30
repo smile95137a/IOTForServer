@@ -2,6 +2,7 @@ package com.frontend.controller;
 
 import com.frontend.config.message.ApiResponse;
 import com.frontend.config.service.UserPrinciple;
+import com.frontend.entity.game.BookGame;
 import com.frontend.entity.game.GameRecord;
 import com.frontend.req.game.BookGameReq;
 import com.frontend.req.game.CheckoutReq;
@@ -137,5 +138,17 @@ public class GameController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseUtils.error(9999, e.getMessage(), null));
         }
     }
+
+    @GetMapping("/getBookGame")
+    public ResponseEntity<ApiResponse<?>> getBookGame() {
+        try {
+            List<BookGame> availableTimes = gameService.getBookGame();
+            return ResponseEntity.ok(ResponseUtils.success(availableTimes));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.ok(ResponseUtils.error(9999, e.getMessage(), null));
+        }
+    }
+
 
 }
