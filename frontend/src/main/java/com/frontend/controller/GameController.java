@@ -44,20 +44,20 @@ public class GameController {
         }
     }
 
-    @PostMapping("/end")
-    public ResponseEntity<ApiResponse<?>> endGame(@RequestBody GameReq gameReq) {
-        try {
-            UserPrinciple securityUser = SecurityUtils.getSecurityUser();
-            Long id = securityUser.getId();
-            GameResponse gameResponse = gameService.endGame(gameReq, id);
-            return ResponseEntity.ok(ResponseUtils.success(200, "開台成功", gameResponse));
-        }catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.ok(ResponseUtils.error(9999, e.getMessage(), null));
-        }
-
-
-    }
+//    @PostMapping("/end")
+//    public ResponseEntity<ApiResponse<?>> endGame(@RequestBody GameReq gameReq) {
+//        try {
+//            UserPrinciple securityUser = SecurityUtils.getSecurityUser();
+//            Long id = securityUser.getId();
+//            GameResponse gameResponse = gameService.endGame(gameReq, id);
+//            return ResponseEntity.ok(ResponseUtils.success(200, "開台成功", gameResponse));
+//        }catch (Exception e) {
+//            e.printStackTrace();
+//            return ResponseEntity.ok(ResponseUtils.error(9999, e.getMessage(), null));
+//        }
+//
+//
+//    }
 
 
     @PostMapping("/checkout")
@@ -77,11 +77,12 @@ public class GameController {
     @GetMapping("/available-times")
     public ResponseEntity<ApiResponse<?>> getAvailableTimes(
             @RequestParam Long storeId,
-            @RequestParam String bookingDate
+            @RequestParam String bookingDate,
+            @RequestParam Long poolTableId
     ) {
         try {
             LocalDate date = LocalDate.parse(bookingDate);
-            Map<String, List<Map<String, Object>>> availableTimes = gameService.getAvailableTimes(storeId, date);
+            Map<String, List<Map<String, Object>>> availableTimes = gameService.getAvailableTimes(storeId, date , poolTableId);
             return ResponseEntity.ok(ResponseUtils.success(availableTimes));
         } catch (Exception e) {
             e.printStackTrace();

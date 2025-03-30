@@ -1,15 +1,15 @@
-package com.frontend.res.game;
+package vo;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
-public class GameResponse {
-    private long totalSeconds;
-    private double totalPrice;
+@NoArgsConstructor
+public class GameVO {
+
     private String gameId;
 
+    private String status;
 }

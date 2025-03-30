@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import vo.GameVO;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -29,4 +30,12 @@ public interface GameRecordRepository extends CrudRepository<GameRecord, Long> {
     List<GameRecord> findByStoreId(Long storeId);
 
     Optional<List<GameRecord>> findByPoolTableId(Long poolTableId);
+
+    @Query(value = "SELECT gr.game_id, gr.status FROM game_record gr WHERE gr.store_id = :storeId AND gr.pool_table_id = :poolTableId", nativeQuery = true)
+    List<Object[]> findGameIdsByStoreIdStatusAndPoolTableId(@Param("storeId") Long storeId, @Param("poolTableId") Long poolTableId);
+
+    @Query("SELECT go FROM GameRecord go WHERE go.gameId IN :allGameIds")
+    List<GameRecord> findByGameIds(List<String> allGameIds);
+
+    List<GameRecord> findByUserUid(String uid);
 }

@@ -49,7 +49,8 @@ public class StoreService {
     // 获取定价信息
     private List<StorePricingScheduleRes> getPricingSchedulesForStore(Long storeId, String currentDay) {
         // 使用更新后的查询方法
-        return storePricingScheduleRepository.findByStoreIdAndDayOfWeek(storeId, currentDay);
+//        return storePricingScheduleRepository.findByStoreIdAndDayOfWeek(storeId, currentDay);
+        return null;
     }
 
     public List<StoreRes> findAll() {
@@ -108,23 +109,27 @@ public class StoreService {
 
     // 将 StorePricingSchedule 转换为 StorePricingScheduleRes
     private StorePricingScheduleRes convertStorePricingScheduleToRes(StorePricingSchedule schedule) {
-        // 转换普通时段和优惠时段的列表
-        List<TimeSlotRes> regularTimeSlotsRes = schedule.getRegularTimeSlots().stream()
+        // 将普通时段和优惠时段分别转换为 TimeSlotRes
+        List<TimeSlotRes> regularTimeSlotsRes = schedule.getTimeSlots().stream()
+                .filter(timeSlot -> !timeSlot.getIsDiscount())  // 筛选出普通时段
                 .map(timeSlot -> new TimeSlotRes(timeSlot.getStartTime(), timeSlot.getEndTime(), false)) // 普通时段
                 .collect(Collectors.toList());
 
-        List<TimeSlotRes> discountTimeSlotsRes = schedule.getDiscountTimeSlots().stream()
+        List<TimeSlotRes> discountTimeSlotsRes = schedule.getTimeSlots().stream()
+                .filter(timeSlot -> timeSlot.getIsDiscount())  // 筛选出优惠时段
                 .map(timeSlot -> new TimeSlotRes(timeSlot.getStartTime(), timeSlot.getEndTime(), true)) // 优惠时段
                 .collect(Collectors.toList());
 
+        // 返回转换后的 StorePricingScheduleRes，包含分开的普通时段和优惠时段
         return new StorePricingScheduleRes(
                 schedule.getDayOfWeek(),
-                regularTimeSlotsRes,
-                discountTimeSlotsRes,
+                regularTimeSlotsRes,     // 普通时段
+                discountTimeSlotsRes,    // 优惠时段
                 schedule.getRegularRate(),
                 schedule.getDiscountRate()
         );
     }
+
 
 }
 
