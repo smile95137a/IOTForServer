@@ -6,7 +6,6 @@ import com.frontend.entity.store.Store;
 import com.frontend.entity.vendor.Vendor;
 import com.frontend.res.store.StoreRes;
 import com.frontend.service.StoreService;
-import com.frontend.utils.RandomUtils;
 import com.frontend.utils.ResponseUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +27,7 @@ public class StoreController {
     // Get a store by ID
     @GetMapping("/{uid}")
     public ResponseEntity<ApiResponse<List<StoreRes>>> countAvailableAndInUseByUid(@PathVariable String uid) {
-        List<StoreRes> storeRes = storeService.countAvailableAndInUseByUid(uid).orElse(Collections.emptyList());
+        List<StoreRes> storeRes = storeService.countAvailableAndInUseByUid(uid);
         if (storeRes.isEmpty()) {
             return ResponseEntity.ok(ResponseUtils.error(9999, "無此桌台", null));
         }
