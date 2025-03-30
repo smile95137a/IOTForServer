@@ -18,7 +18,7 @@ import java.util.Set;
 public interface StoreRepository extends JpaRepository<Store, Long> {
 
 	Optional<Store> findByUid(String uid);
-	
+
 	// 新增Repository方法，用于获取商店的定价时间表
 	@Query("SELECT s FROM Store s " +
 			"LEFT JOIN FETCH s.poolTables pt " +

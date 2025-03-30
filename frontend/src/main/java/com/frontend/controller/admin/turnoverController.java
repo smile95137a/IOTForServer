@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.math.BigDecimal;
 
 @RestController
-@RequestMapping("/api/b/turnover")
+@RequestMapping("/turnover")
 public class turnoverController {
 
     @Autowired
