@@ -11,4 +11,6 @@ public class GameReq {
     private String gameId;
 
     private String poolTableUId;
+
+    private Long poolTableId;
 }
