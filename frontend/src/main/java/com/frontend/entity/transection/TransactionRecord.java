@@ -1,5 +1,6 @@
 package com.frontend.entity.transection;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.frontend.entity.user.User;
 import jakarta.persistence.*;
 import lombok.*;
@@ -23,9 +24,11 @@ public class TransactionRecord {
     private Integer amount; // 消費金額
 
     @Column(nullable = false, updatable = false)
+    @JsonFormat(pattern = "yyyy/MM/dd HH:mm")
     private LocalDateTime createdAt = LocalDateTime.now(); // 創建時間
 
     @Column(nullable = false)
+    @JsonFormat(pattern = "yyyy/MM/dd HH:mm")
     private LocalDateTime transactionDate; // 交易日期
 
     @Column(nullable = false, length = 50)

@@ -23,11 +23,19 @@ public class MonitorController {
     private final MonitorService monitorService;
 
     // 新增監視器
-    @PostMapping("/create")
+    @PostMapping()
     public ResponseEntity<ApiResponse<Monitor>> createMonitor(@RequestBody MonitorReq monitorReq) {
         UserPrinciple securityUser = SecurityUtils.getSecurityUser();
         Long id = securityUser.getId();
         Monitor monitor = monitorService.createMonitor(monitorReq, id);
+        return ResponseEntity.ok(ResponseUtils.success(monitor));
+    }
+
+    @GetMapping
+    public ResponseEntity<ApiResponse<List<Monitor>>> getAll() {
+        UserPrinciple securityUser = SecurityUtils.getSecurityUser();
+        Long id = securityUser.getId();
+        List<Monitor> monitor = monitorService.getAll();
         return ResponseEntity.ok(ResponseUtils.success(monitor));
     }
 

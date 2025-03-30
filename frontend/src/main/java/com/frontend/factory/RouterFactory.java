@@ -11,8 +11,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class RouterFactory {
 
-    public Router createRouter(String routerType) {
-        RouterType type = RouterType.fromString(routerType);
+    public Router createRouter(RouterType routerType) {
+        RouterType type = RouterType.fromString(String.valueOf(routerType));
 
         return switch (type) {
             case LIGHT -> new Light();

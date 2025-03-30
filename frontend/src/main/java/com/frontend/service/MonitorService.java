@@ -73,4 +73,8 @@ public class MonitorService {
     public void deleteMonitor(Long id) {
         monitorRepository.deleteById(id);
     }
+
+    public List<Monitor> getAll() {
+        return monitorRepository.findAll();
+    }
 }

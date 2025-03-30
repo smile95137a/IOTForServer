@@ -13,7 +13,9 @@ import java.time.ZonedDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table
+@Table(indexes = {
+        @Index(name = "idx_store_status", columnList = "storeId, status")
+})
 public class GameRecord {
 
     @Id

@@ -2,6 +2,7 @@ package com.frontend.service;
 
 import com.frontend.entity.router.Router;
 import com.frontend.entity.store.Store;
+import com.frontend.enums.RouterType;
 import com.frontend.factory.RouterFactory;
 import com.frontend.repo.RouterRepository;
 import com.frontend.repo.StoreRepository;
@@ -30,13 +31,13 @@ public class RouterService {
     }
 
     // 1. 新增 Router
-    public Router addRouter(Long storeId, String routerType , Long number) {
+    public Router addRouter(Long storeId, RouterType routerType , Long number) {
         Store store = storeRepository.findById(storeId)
                 .orElseThrow(() -> new IllegalArgumentException("Store not found with id: " + storeId));
 
         Router router = routerFactory.createRouter(routerType);
         router.setStore(store);
-        router.setEquipmentName(routerType);
+        router.setEquipmentName(String.valueOf(routerType));
         router.setStatus(true);
         router.setUid(UUID.randomUUID().toString());
         router.setCreateTime(LocalDateTime.now());

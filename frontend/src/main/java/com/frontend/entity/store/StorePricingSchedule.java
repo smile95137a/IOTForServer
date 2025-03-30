@@ -1,45 +1,54 @@
 package com.frontend.entity.store;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import org.springframework.cglib.core.Local;
+
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
 @Table(name = "store_pricing_schedules")
+@EqualsAndHashCode(exclude = {"timeSlots"})
+@ToString(exclude = {"timeSlots"})
 public class StorePricingSchedule {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "store_id", nullable = false)
-    @JsonBackReference
-    private Store store; // 關聯的店家
+    @JsonBackReference("defaultReference")
+    private Store store;
 
     @Column(nullable = false)
-    private String dayOfWeek; // 星期幾 (例如: MONDAY)
+    private String dayOfWeek;
+
+    @OneToMany(mappedBy = "schedule", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonManagedReference(value = "timeSlotReference")
+    private List<TimeSlot> timeSlots = new ArrayList<>();
+
+    @JsonFormat(pattern = "HH:mm")
+    private LocalTime openTime;
+    @JsonFormat(pattern = "HH:mm")
+    private LocalTime closeTime;
 
     @Column(nullable = false)
-    private String regularStartTime; // 一般時段開始時間 (例如: 08:00)
+    private Integer regularRate;
 
     @Column(nullable = false)
-    private String regularEndTime; // 一般時段結束時間 (例如: 18:00)
+    private Integer discountRate;
 
-    @Column(nullable = false)
-    private Integer regularRate; // 一般時段金額
 
-    @Column
-    private String discountStartTime; // 優惠時段開始時間 (可為 NULL)
-
-    @Column
-    private String discountEndTime; // 優惠時段結束時間 (可為 NULL)
-
-    @Column
-    private Integer discountRate; // 優惠時段金額 (可為 NULL)
 }

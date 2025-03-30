@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -19,6 +20,11 @@ public interface TransactionRecordRepository extends JpaRepository<TransactionRe
 
     // 也可以透過 userId 來查詢
     List<TransactionRecord> findByUserId(Long userId);
+
+
+    @Query("SELECT COALESCE(SUM(t.amount), 0) FROM TransactionRecord t WHERE t.transactionType = 'DEPOSIT'")
+    BigDecimal getTotalDepositAmount();
+
 
     @Query("SELECT " +
             "  CASE WHEN :type = 'DAY' THEN CAST(DATE(t.transactionDate) AS string) " +
