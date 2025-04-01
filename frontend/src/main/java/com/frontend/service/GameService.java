@@ -369,6 +369,13 @@ public class GameService {
     }
     @Transactional
     public void checkout(CheckoutReq checkoutReq , Long id) throws Exception {
+
+        if(checkoutReq.getGameId() == null){
+            PoolTable poolTable = poolTableRepository.findByUid(checkoutReq.getPoolUId()).get();
+            GameRecord gameRecord = gameRecordRepository.findByPoolTableIdAndStatus(poolTable.getId() , "STARTED");
+            checkoutReq.setGameId(gameRecord.getGameId());
+        }
+
         // 获取当前用户
         User user = userRepository.findById(id).get(); // 假设有一个获取当前用户的方式
 

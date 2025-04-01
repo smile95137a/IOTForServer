@@ -12,4 +12,6 @@ public class CheckoutReq {
     private String payType;
 
     private String gameId;
+
+    private String poolUId;
 }

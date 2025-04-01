@@ -56,6 +56,12 @@ public class UserService {
 				throw new Exception("帳號已存在");
 			}
 
+			Optional<User> checkPhone = userRepository.findByEmail(userDto.getPhone());
+			if (checkPhone.isPresent()) {
+				throw new Exception("電話已存在");
+			}
+
+
 			// 2. 获取角色和加密密码
 			Optional<Role> memberRole = roleRepository.findByRoleName(RoleName.ROLE_USER);
 			String encryptedPassword = passwordEncoder.encode(userDto.getPassword());

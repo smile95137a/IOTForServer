@@ -3,6 +3,7 @@ package com.frontend.repo;
 import com.frontend.entity.transection.TransactionRecord;
 import com.frontend.entity.user.User;
 import com.frontend.res.report.TransactionSummary;
+import com.frontend.res.transaction.TransactionsRes;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -22,8 +23,17 @@ public interface TransactionRecordRepository extends JpaRepository<TransactionRe
     List<TransactionRecord> findByUserId(Long userId);
 
 
-    @Query("SELECT COALESCE(SUM(t.amount), 0) FROM TransactionRecord t WHERE t.transactionType = 'DEPOSIT'")
-    BigDecimal getTotalDepositAmount();
+    @Query("SELECT new com.frontend.res.transaction.TransactionsRes( " +
+            "CAST(COALESCE(SUM(t.amount), 0) AS BigDecimal), " +
+            "CAST(COUNT(t) AS Integer)) " +
+            "FROM TransactionRecord t " +
+            "WHERE t.transactionType = 'DEPOSIT' " +
+            "AND FUNCTION('DATE', t.transactionDate) = CURRENT_DATE")
+    TransactionsRes getTodayTotalDeposits();
+
+
+
+
 
 
     @Query("SELECT " +
