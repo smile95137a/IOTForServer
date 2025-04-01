@@ -56,7 +56,7 @@ public class UserService {
 				throw new Exception("帳號已存在");
 			}
 
-			Optional<User> checkPhone = userRepository.findByEmail(userDto.getPhone());
+			Optional<User> checkPhone = userRepository.findByPhoneNumber(userDto.getPhone());
 			if (checkPhone.isPresent()) {
 				throw new Exception("電話已存在");
 			}
