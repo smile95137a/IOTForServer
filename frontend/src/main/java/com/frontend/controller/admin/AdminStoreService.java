@@ -9,6 +9,7 @@ import com.frontend.entity.news.News;
 import com.frontend.entity.store.StorePricingSchedule;
 import com.frontend.entity.store.TimeSlot;
 import com.frontend.repo.StorePricingScheduleRepository;
+import com.frontend.repo.TimeSlotRepository;
 import com.frontend.req.store.StorePricingScheduleReq;
 import com.frontend.req.store.TimeSlotReq;
 import com.frontend.res.store.AdminStoreRes;
@@ -37,6 +38,9 @@ public class AdminStoreService {
 
 	@Autowired
 	private StorePricingScheduleRepository storePricingScheduleRepository;
+
+	@Autowired
+	private TimeSlotRepository timeSlotRepository;
 
 	// Create a new store
 	@Transactional
@@ -224,9 +228,10 @@ public class AdminStoreService {
 
 
 	// Update a store
-	public Store updateStore(String uid, StoreReq storeReq, Long id) {
+	@Transactional
+	public Store updateStore(String uid, StoreReq storeReq, Long id) throws Exception {
 		return storeRepository.findByUid(uid).map(store -> {
-			// 更新店铺基本信息
+			// 更新店鋪基本信息
 			store.setName(storeReq.getName());
 			store.setAddress(storeReq.getAddress());
 			store.setLat(storeReq.getLat());
@@ -237,7 +242,6 @@ public class AdminStoreService {
 			store.setBookTime(storeReq.getBookTime() == null ? 0 : storeReq.getBookTime());
 			store.setCancelBookTime(storeReq.getCancelBookTime() == null ? 0 : storeReq.getCancelBookTime());
 
-			// 更新供应商和池桌信息
 			if (storeReq.getVendor() != null) {
 				store.setVendor(storeReq.getVendor());
 			}
@@ -245,21 +249,24 @@ public class AdminStoreService {
 				store.setPoolTables(storeReq.getPoolTables());
 			}
 
-			// 更新定价计划
+			// 更新定價計畫
 			if (storeReq.getPricingSchedules() != null) {
-				// 清空原有定价计划，避免 orphanRemoval 异常
+				// 刪除原有的定價計畫，避免 orphanRemoval 問題
+				store.getPricingSchedules().forEach(storePricingScheduleRepository::delete);
 				store.getPricingSchedules().clear();
 
+				List<StorePricingSchedule> schedules = new ArrayList<>();
+				List<TimeSlot> timeSlots = new ArrayList<>();
+
 				for (StorePricingScheduleReq scheduleReq : storeReq.getPricingSchedules()) {
-					// 创建定价计划
 					StorePricingSchedule schedule = new StorePricingSchedule();
 					schedule.setDayOfWeek(scheduleReq.getDayOfWeek());
 					schedule.setOpenTime(scheduleReq.getOpenTime());
 					schedule.setCloseTime(scheduleReq.getCloseTime());
 					schedule.setRegularRate(scheduleReq.getRegularRate());
 					schedule.setDiscountRate(scheduleReq.getDiscountRate());
-					// 创建统一的时间段列表
-					List<TimeSlot> timeSlots = new ArrayList<>();
+					schedule.setStore(store);
+
 					for (TimeSlotReq timeSlotReq : scheduleReq.getTimeSlots()) {
 						TimeSlot timeSlot = new TimeSlot();
 						timeSlot.setStartTime(timeSlotReq.getStartTime());
@@ -268,23 +275,21 @@ public class AdminStoreService {
 						timeSlot.setSchedule(schedule);
 						timeSlots.add(timeSlot);
 					}
-
-					// 设定 schedule 的时间段
-					schedule.setTimeSlots(timeSlots);
-
-					// 关联 Store 实体
-					schedule.setStore(store);
-					store.getPricingSchedules().add(schedule); // 添加到 Store 的定价计划中
+					schedules.add(schedule);
 				}
+
+				storePricingScheduleRepository.saveAll(schedules);
+				timeSlotRepository.saveAll(timeSlots);
+				store.getPricingSchedules().addAll(schedules);
 			}
 
-			// 更新修改时间和修改用户
+			// 更新修改時間和修改用戶
 			store.setUpdateTime(LocalDateTime.now());
 			store.setUpdateUserId(id);
 
-			// 保存并返回更新后的 store 实体
+			// 儲存並返回更新後的 store 實體
 			return storeRepository.save(store);
-		}).orElseThrow(() -> new RuntimeException("Store not found with uid: " + uid));
+		}).orElseThrow(() -> new Exception("Store not found with uid: " + uid));
 	}
 
 

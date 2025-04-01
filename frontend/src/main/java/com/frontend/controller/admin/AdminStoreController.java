@@ -78,6 +78,8 @@ public class AdminStoreController {
             e.printStackTrace();
             ApiResponse<Store> error = ResponseUtils.error(null);
             return ResponseEntity.ok(error);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 
