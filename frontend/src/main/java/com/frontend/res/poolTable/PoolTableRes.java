@@ -13,4 +13,6 @@ public class PoolTableRes {
 
     private String gameId;
 
+    private Long poolTableId;
+
 }
