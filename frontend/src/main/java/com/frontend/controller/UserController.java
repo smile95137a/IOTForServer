@@ -49,9 +49,13 @@ public class UserController {
 
 	@PostMapping("/register")
 	public ResponseEntity<ApiResponse<UserRes>> registerUser(@RequestBody UserReq userReq) throws Exception {
-		UserRes userRes = userService.registerUser(userReq);
-		ApiResponse<UserRes> response = ResponseUtils.success(201, null, userRes);
-		return ResponseEntity.status(HttpStatus.CREATED).body(response);
+		try {
+			UserRes userRes = userService.registerUser(userReq);
+			ApiResponse<UserRes> response = ResponseUtils.success(201, null, userRes);
+			return ResponseEntity.status(HttpStatus.CREATED).body(response);
+		} catch (Exception e) {
+			return ResponseEntity.ok(ResponseUtils.error(999, e.getMessage(), null));
+		}
 	}
 
 	/*

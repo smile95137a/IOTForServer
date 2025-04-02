@@ -45,11 +45,11 @@ public class News {
     private NewsStatus status;
 
     @Column(name = "created_date") // 创建时间，不能为空
-    @JsonFormat(pattern = "yyyy/MM/dd HH:mm")
+    @JsonFormat(pattern = "yyyy/MM/dd HH:mm:ss")
     private LocalDateTime createdDate;
 
     @Column(name = "updated_date") // 最后更新时间，可为空
-    @JsonFormat(pattern = "yyyy/MM/dd HH:mm")
+    @JsonFormat(pattern = "yyyy/MM/dd HH:mm:ss")
     private LocalDateTime updatedDate;
 
     @Column(name = "author", length = 100) // 作者信息，最大长度 100

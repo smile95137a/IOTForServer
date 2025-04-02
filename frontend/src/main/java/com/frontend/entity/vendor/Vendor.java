@@ -39,14 +39,14 @@ public class Vendor {
     private Set<Store> stores; // 管理的分店
 
     @Column
-    @JsonFormat(pattern = "yyyy/MM/dd HH:mm")
+    @JsonFormat(pattern = "yyyy/MM/dd HH:mm:ss")
     private LocalDateTime createTime;
 
     @Column
     private Long createUserId;
 
     @Column
-    @JsonFormat(pattern = "yyyy/MM/dd HH:mm")
+    @JsonFormat(pattern = "yyyy/MM/dd HH:mm:ss")
     private LocalDateTime updateTime;
 
     @Column

@@ -23,7 +23,7 @@ public class MonitorController {
     private final MonitorService monitorService;
 
     // 新增監視器
-    @PostMapping()
+    @PostMapping("/create")
     public ResponseEntity<ApiResponse<Monitor>> createMonitor(@RequestBody MonitorReq monitorReq) {
         UserPrinciple securityUser = SecurityUtils.getSecurityUser();
         Long id = securityUser.getId();

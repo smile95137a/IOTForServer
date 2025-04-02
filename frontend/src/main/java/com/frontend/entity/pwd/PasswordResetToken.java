@@ -36,11 +36,11 @@ public class PasswordResetToken {
     private Boolean passwordChanged = false;
 
 	@Column
-    @JsonFormat(pattern = "yyyy/MM/dd HH:mm")
+    @JsonFormat(pattern = "yyyy/MM/dd HH:mm:ss")
 	private LocalDateTime createTime;
 	
 	@Column
-    @JsonFormat(pattern = "yyyy/MM/dd HH:mm")
+    @JsonFormat(pattern = "yyyy/MM/dd HH:mm:ss")
 	private LocalDateTime updateTime;
 
 

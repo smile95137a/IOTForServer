@@ -13,9 +13,9 @@ import java.time.LocalDateTime;
 public class GameOrderRes {
     private String gameId;
     private Integer totalPrice;
-    @JsonFormat(pattern = "yyyy/MM/dd HH:mm")
+    @JsonFormat(pattern = "yyyy/MM/dd HH:mm:ss")
     private LocalDateTime startTime;
-    @JsonFormat(pattern = "yyyy/MM/dd HH:mm")
+    @JsonFormat(pattern = "yyyy/MM/dd HH:mm:ss")
     private LocalDateTime endTime;
     private long duration;
     private String status;

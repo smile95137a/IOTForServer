@@ -76,14 +76,14 @@ public class User implements Serializable {
 
 
 	@Column
-	@JsonFormat(pattern = "yyyy/MM/dd HH:mm")
+	@JsonFormat(pattern = "yyyy/MM/dd HH:mm:ss")
 	private LocalDateTime createTime;
 
 	@Column
 	private Long createUserId;
 
 	@Column
-	@JsonFormat(pattern = "yyyy/MM/dd HH:mm")
+	@JsonFormat(pattern = "yyyy/MM/dd HH:mm:ss")
 	private LocalDateTime updateTime;
 
 	@Column

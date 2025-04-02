@@ -31,14 +31,14 @@ public class Monitor {
     private boolean status; // 狀態 (e.g., ACTIVE, INACTIVE, ERROR)
 
     @Column
-    @JsonFormat(pattern = "yyyy/MM/dd HH:mm")
+    @JsonFormat(pattern = "yyyy/MM/dd HH:mm:ss")
     private LocalDateTime createTime;
 
     @Column
     private Long createUserId;
 
     @Column
-    @JsonFormat(pattern = "yyyy/MM/dd HH:mm")
+    @JsonFormat(pattern = "yyyy/MM/dd HH:mm:ss")
     private LocalDateTime updateTime;
 
     @Column

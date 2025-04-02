@@ -42,11 +42,11 @@ public class UserRes implements Serializable {
 	private String email;
 
 	private Set<Role> roles = new HashSet<>();
-	@JsonFormat(pattern = "yyyy/MM/dd HH:mm")
+	@JsonFormat(pattern = "yyyy/MM/dd HH:mm:ss")
 	private LocalDateTime createTime;
 
 	private String createUserName;
-	@JsonFormat(pattern = "yyyy/MM/dd HH:mm")
+	@JsonFormat(pattern = "yyyy/MM/dd HH:mm:ss")
 	private LocalDateTime updateTime;
 
 	private String updateUserName;

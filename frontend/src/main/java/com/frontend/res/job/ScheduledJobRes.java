@@ -22,10 +22,10 @@ public class ScheduledJobRes {
 	private String status;
 	private String jobGroup;
 	private String jobDataMap;
-	@JsonFormat(pattern = "yyyy/MM/dd HH:mm")
+	@JsonFormat(pattern = "yyyy/MM/dd HH:mm:ss")
 	private LocalDateTime createTime;
 	private Long createUserId;
-	@JsonFormat(pattern = "yyyy/MM/dd HH:mm")
+	@JsonFormat(pattern = "yyyy/MM/dd HH:mm:ss")
 	private LocalDateTime updateTime;
 	private Long updateUserId;
 	private LocalDateTime lastActiveTime;

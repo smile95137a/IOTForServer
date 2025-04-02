@@ -37,7 +37,7 @@ public class PaymentResponse {
     private String amount;     // 金额
 
     @Column
-    @JsonFormat(pattern = "yyyy/MM/dd HH:mm")
+    @JsonFormat(pattern = "yyyy/MM/dd HH:mm:ss")
     private LocalDateTime createTime;
 
     @Column(name = "order_no")
