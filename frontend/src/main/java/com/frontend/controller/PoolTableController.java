@@ -39,7 +39,7 @@ public class PoolTableController {
         try {
             PoolTableRes poolTable = poolTableService.getPoolTableById(uid);
             if(poolTable.getGameId() == null) {
-                ApiResponse<PoolTableRes> error = ResponseUtils.error(9999 , null ,poolTable);
+                ApiResponse<PoolTableRes> error = ResponseUtils.success(9999 , null ,poolTable);
                 return ResponseEntity.ok(error);
             }
             ApiResponse<PoolTableRes> success = ResponseUtils.success(poolTable);
