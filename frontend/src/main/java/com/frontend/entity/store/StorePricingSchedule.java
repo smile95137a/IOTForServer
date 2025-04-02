@@ -48,7 +48,7 @@ public class StorePricingSchedule {
     private Integer regularRate;
 
     @Column(nullable = false)
-    private Integer discountRate;
+        private Integer discountRate;
 
 
 }

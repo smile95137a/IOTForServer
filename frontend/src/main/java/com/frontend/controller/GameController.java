@@ -7,6 +7,7 @@ import com.frontend.entity.game.GameRecord;
 import com.frontend.req.game.BookGameReq;
 import com.frontend.req.game.CheckoutReq;
 import com.frontend.req.game.GameReq;
+import com.frontend.res.game.GamePriceRes;
 import com.frontend.res.game.GameRes;
 import com.frontend.res.game.GameResponse;
 import com.frontend.service.GameService;
@@ -144,6 +145,17 @@ public class GameController {
         try {
             List<BookGame> availableTimes = gameService.getBookGame();
             return ResponseEntity.ok(ResponseUtils.success(availableTimes));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.ok(ResponseUtils.error(9999, e.getMessage(), null));
+        }
+    }
+
+    @PostMapping("/getGamePrice")
+    public ResponseEntity<ApiResponse<?>> getGamePrice(@RequestBody GameReq gameReq) {
+        try {
+             GamePriceRes gamePrice = gameService.getGamePrice(gameReq);
+            return ResponseEntity.ok(ResponseUtils.success(gamePrice));
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.ok(ResponseUtils.error(9999, e.getMessage(), null));

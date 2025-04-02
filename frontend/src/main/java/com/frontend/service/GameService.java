@@ -15,6 +15,7 @@ import com.frontend.repo.*;
 import com.frontend.req.game.BookGameReq;
 import com.frontend.req.game.CheckoutReq;
 import com.frontend.req.game.GameReq;
+import com.frontend.res.game.GamePriceRes;
 import com.frontend.res.game.GameRes;
 import com.frontend.res.game.GameResponse;
 import com.frontend.utils.SecurityUtils;
@@ -24,6 +25,7 @@ import org.springframework.stereotype.Service;
 import vo.GameVO;
 
 import java.time.*;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -59,6 +61,8 @@ public class GameService {
 
     @Autowired
     private BookGameRepository bookGameRepository;
+    @Autowired
+    private TimeSlotRepository timeSlotRepository;
 
     public GameRecord bookStartGame(GameReq gameReq) throws Exception {
         // 查詢用戶
@@ -780,5 +784,37 @@ public class GameService {
     public List<BookGame> getBookGame() {
         Optional<User> byId = userRepository.findById(SecurityUtils.getSecurityUser().getId());
         return bookGameRepository.findByUserUId(byId.get().getUid());
+    }
+
+    public GamePriceRes getGamePrice(GameReq gameReq) {
+        LocalDateTime end = LocalDateTime.now();
+        LocalDate localDate = LocalDate.now();
+        GameRecord byGameId = gameRecordRepository.findByGameId(gameReq.getGameId());
+        LocalDateTime startTime = byGameId.getStartTime();
+
+        StorePricingSchedule schedule = storePricingScheduleRepository.findByStoreId(byGameId.getStoreId())
+                .stream()
+                .filter(s -> s.getDayOfWeek().equalsIgnoreCase(localDate.getDayOfWeek().toString()))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("未找到對應日期的時段"));
+
+        List<TimeSlot> timeSlots = schedule.getTimeSlots();
+        double totalAmount = 0;
+        long totalSeconds = ChronoUnit.SECONDS.between(startTime, end);
+
+        LocalTime currentTime = startTime.toLocalTime();
+        while (!currentTime.isAfter(end.toLocalTime())) {
+            LocalTime finalCurrentTime = currentTime;
+            TimeSlot applicableSlot = timeSlots.stream()
+                    .filter(slot -> !finalCurrentTime.isBefore(slot.getStartTime()) && finalCurrentTime.isBefore(slot.getEndTime()))
+                    .findFirst()
+                    .orElse(null);
+
+            double rate = (applicableSlot != null && applicableSlot.getIsDiscount()) ? schedule.getDiscountRate() : schedule.getRegularRate();
+            totalAmount += rate / 3600;
+            currentTime = currentTime.plusSeconds(1);
+        }
+
+        return new GamePriceRes(totalSeconds, totalAmount);
     }
 }

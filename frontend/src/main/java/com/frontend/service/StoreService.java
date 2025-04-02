@@ -40,6 +40,7 @@ public class StoreService {
                 .uid(store.getUid())
                 .name(store.getName())
                 .address(store.getAddress())
+                .imgUrl(store.getImgUrl())
                 .lat(store.getLat())
                 .lon(store.getLon())
                 .deposit(store.getDeposit())
