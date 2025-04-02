@@ -418,7 +418,7 @@ public class GameService {
                 throw new RuntimeException("无效的支付方式");
         }
         GameOrder game = gameOrderRepository.findByGameId(gameId);
-        PoolTable poolTable = poolTableRepository.findByUid(game.getPoolTableUid()).get();
+        PoolTable poolTable = poolTableRepository.findById(checkoutReq.getPoolTableId()).get();
         Store store = storeRepository.findById(poolTable.getStore().getId()).get();
         Long id1 = store.getVendor().getId();
         Vendor vendor = vendorRepository.findById(id1).get();
