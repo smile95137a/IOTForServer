@@ -14,4 +14,6 @@ public class CheckoutReq {
     private String gameId;
 
     private String poolUId;
+
+    private Long poolTableId;
 }

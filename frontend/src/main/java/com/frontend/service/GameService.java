@@ -375,7 +375,7 @@ public class GameService {
     public void checkout(CheckoutReq checkoutReq , Long id) throws Exception {
 
         if(checkoutReq.getGameId() == null){
-            PoolTable poolTable = poolTableRepository.findByUid(checkoutReq.getPoolUId()).get();
+            PoolTable poolTable = poolTableRepository.findById(checkoutReq.getPoolTableId()).get();
             GameRecord gameRecord = gameRecordRepository.findByPoolTableIdAndStatus(poolTable.getId() , "STARTED");
             checkoutReq.setGameId(gameRecord.getGameId());
         }
