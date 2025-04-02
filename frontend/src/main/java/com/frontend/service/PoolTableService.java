@@ -1,8 +1,10 @@
 package com.frontend.service;
 
+import com.frontend.entity.game.GameRecord;
 import com.frontend.entity.poolTable.PoolTable;
 import com.frontend.entity.store.Store;
 import com.frontend.entity.store.StorePricingSchedule;
+import com.frontend.repo.GameRecordRepository;
 import com.frontend.repo.PoolTableRepository;
 import com.frontend.repo.StorePricingScheduleRepository;
 import com.frontend.repo.StoreRepository;
@@ -25,6 +27,9 @@ public class PoolTableService {
 
     @Autowired
     private StoreRepository storeRepository;
+
+    @Autowired
+    private GameRecordRepository gameRecordRepository;
 
     @Autowired
     private StorePricingScheduleRepository storePricingScheduleRepository;
@@ -53,7 +58,8 @@ public class PoolTableService {
         }
 
         if(poolTable.getIsUse() == true){
-            throw new Exception("很遺憾!本桌台已被其他用戶使用中，請換個桌台吧!");
+            GameRecord gameRecord = gameRecordRepository.findByPoolTableIdAndStatus(poolTable.getId() , "STARTED");
+            return new PoolTableRes(0 , gameRecord.getGameId());
         }
 
         PoolTableRes poolTableRes = new PoolTableRes();

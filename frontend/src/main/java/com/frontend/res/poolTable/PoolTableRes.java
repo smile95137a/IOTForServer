@@ -11,4 +11,6 @@ public class PoolTableRes {
 
     private Integer deposit;
 
+    private String gameId;
+
 }

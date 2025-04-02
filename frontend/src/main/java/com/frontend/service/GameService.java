@@ -442,7 +442,7 @@ public class GameService {
         gameOrderRepository.save(game);
     }
 
-    public GameRecord   bookGame(BookGameReq gameReq) throws Exception {
+    public GameRecord bookGame(BookGameReq gameReq) throws Exception {
         User byUid = userRepository.findById(SecurityUtils.getSecurityUser().getId()).orElseThrow(
                 () -> new Exception("使用者不存在"));
 

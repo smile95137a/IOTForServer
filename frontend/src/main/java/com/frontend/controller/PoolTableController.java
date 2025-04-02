@@ -38,6 +38,10 @@ public class PoolTableController {
     public ResponseEntity<ApiResponse<PoolTableRes>> getPoolTableById(@PathVariable String uid) {
         try {
             PoolTableRes poolTable = poolTableService.getPoolTableById(uid);
+            if(poolTable.getGameId() == null) {
+                ApiResponse<PoolTableRes> error = ResponseUtils.error(9999 , null ,poolTable);
+                return ResponseEntity.ok(error);
+            }
             ApiResponse<PoolTableRes> success = ResponseUtils.success(poolTable);
             return ResponseEntity.ok(success);
         }catch (Exception e){
