@@ -285,7 +285,6 @@ public class GameService {
         gameOrder.setUserId(user.getUid());
         if(bookGame == null){
             gameOrder.setGameId(newGameId);
-            gameOrder.setGameId(gameReq.getGameId());
         }else{
             gameOrder.setGameId(gameReq.getGameId());
         }
