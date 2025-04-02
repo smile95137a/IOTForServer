@@ -284,9 +284,10 @@ public class GameService {
         GameOrder gameOrder = new GameOrder();
         gameOrder.setUserId(user.getUid());
         if(bookGame == null){
+            gameOrder.setGameId(newGameId);
             gameOrder.setGameId(gameReq.getGameId());
         }else{
-            gameOrder.setGameId(newGameId);
+            gameOrder.setGameId(gameReq.getGameId());
         }
         gameOrder.setTotalPrice(adjustedPrice);
         gameOrder.setStartTime(gameRecord.getStartTime());
