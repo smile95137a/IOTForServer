@@ -652,18 +652,30 @@ public class GameService {
                     .collect(Collectors.toList());
 
             List<GameOrder> allBookings = gameOrderRepository.findByGameIds(gameIds);
+            LocalDateTime startOfDay = bookingDate.atStartOfDay(); // 當天 00:00:00
+            LocalDateTime endOfDay = bookingDate.atTime(LocalTime.MAX); // 當天 23:59:59.999999999
 
-            LocalDateTime startOfDay = bookingDate.atStartOfDay();
-            LocalDateTime endOfDay = bookingDate.atTime(LocalTime.MAX);
-
+            // 取得當天所有可能影響時段的預約
             List<GameOrder> relevantBookings = allBookings.stream()
+                    .filter(order -> order.getStartTime() != null && order.getEndTime() != null) // 避免 NullPointerException
                     .filter(order -> {
                         LocalDateTime extendedStart = order.getStartTime().minusHours(1);
                         LocalDateTime extendedEnd = order.getEndTime().plusHours(1);
-
-                        return (extendedStart.isBefore(endOfDay) && extendedEnd.isAfter(startOfDay));
+                        // 只要這個訂單在當天的範圍內影響時段，就納入計算
+                        return !(extendedEnd.isBefore(startOfDay) || extendedStart.isAfter(endOfDay));
                     })
                     .collect(Collectors.toList());
+
+
+
+            if (relevantBookings.isEmpty()) {
+                calculateAvailableTimeSlots(schedule.getOpenTime(), schedule.getCloseTime(),
+                        duration, maxSlots, schedule, timeSlots, availableTimes);
+            } else {
+                calculateAvailableTimeSlotsWithBookings(schedule.getOpenTime(), schedule.getCloseTime(),
+                        duration, maxSlots, bookingDate, relevantBookings, schedule, timeSlots, availableTimes);
+            }
+
 
             if (relevantBookings.isEmpty()) {
                 calculateAvailableTimeSlots(schedule.getOpenTime(), schedule.getCloseTime(),
