@@ -833,8 +833,10 @@ public class GameService {
 
             totalAmount += rate / 60; // 🟢 以分鐘為單位計算
             currentTime = currentTime.plusMinutes(1);
-        }
 
+        }
+// 🟢 無條件進位
+        totalAmount = Math.ceil(totalAmount);
         // 🟢 回傳秒數 + 計算好的金額
         return new GamePriceRes(totalAmount, totalSeconds);
     }
