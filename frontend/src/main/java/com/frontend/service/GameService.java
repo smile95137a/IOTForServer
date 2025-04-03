@@ -729,12 +729,12 @@ public class GameService {
 
     // 計算有預約衝突時的可用時段
     private static void calculateAvailableTimeSlotsWithBookings(LocalTime openTime, LocalTime closeTime,
-                                                                int duration, int maxSlots,
-                                                                LocalDate bookingDate,
+                                                                int duration, int maxSlots, LocalDate bookingDate,
                                                                 List<GameOrder> relevantBookings,
                                                                 StorePricingSchedule schedule,
                                                                 List<TimeSlot> timeSlots,
                                                                 List<Map<String, Object>> availableTimes) {
+
         LocalTime startTime = openTime;
         int slotCount = 0;
 
@@ -748,22 +748,24 @@ public class GameService {
                 break;
             }
 
-            LocalDateTime slotStart = bookingDate.atTime(startTime);
-            LocalDateTime slotEnd = bookingDate.atTime(slotEndTime);
+            // 轉換為當天的 LocalDateTime 以便比較
+            LocalDateTime slotStartDateTime = bookingDate.atTime(startTime);
+            LocalDateTime slotEndDateTime = bookingDate.atTime(slotEndTime);
 
-            boolean isAvailable = true;
-            for (GameOrder booking : relevantBookings) {
-                LocalDateTime restrictedStart = booking.getStartTime().minusHours(1);
-                LocalDateTime restrictedEnd = booking.getEndTime().plusHours(1);
+            boolean isConflict = relevantBookings.stream()
+                    .anyMatch(order -> {
+                        // 預訂時段的前後各加1小時緩衝
+                        LocalDateTime orderStart = order.getStartTime().minusHours(1);
+                        LocalDateTime orderEnd = order.getEndTime().plusHours(1);
 
-                if (slotStart.isBefore(restrictedEnd) && slotEnd.isAfter(restrictedStart)) {
-                    isAvailable = false;
-                    break;
-                }
-            }
+                        // 檢查時段是否衝突 (四種重疊情況)
+                        return (slotStartDateTime.isBefore(orderEnd) &&
+                                slotEndDateTime.isAfter(orderStart));
+                    });
 
-            if (isAvailable) {
+            if (!isConflict) {
                 int rate = getRateForTime(timeSlots, schedule, startTime);
+
                 Map<String, Object> availableTimeSlot = new HashMap<>();
                 availableTimeSlot.put("start", startTime.toString());
                 availableTimeSlot.put("end", slotEndTime.toString());
@@ -800,7 +802,10 @@ public class GameService {
 
         List<TimeSlot> timeSlots = schedule.getTimeSlots();
         double totalAmount = 0;
+
+        // 🟢 計算總分鐘數
         long totalSeconds = ChronoUnit.SECONDS.between(startTime, end);
+        long totalMinutes = (totalSeconds + 59) / 60; // 四捨五入到整分鐘
 
         LocalTime currentTime = startTime.toLocalTime();
         while (!currentTime.isAfter(end.toLocalTime())) {
@@ -810,11 +815,16 @@ public class GameService {
                     .findFirst()
                     .orElse(null);
 
-            double rate = (applicableSlot != null && applicableSlot.getIsDiscount()) ? schedule.getDiscountRate() : schedule.getRegularRate();
-            totalAmount += rate / 3600;
-            currentTime = currentTime.plusSeconds(1);
+            double rate = (applicableSlot != null && applicableSlot.getIsDiscount())
+                    ? schedule.getDiscountRate()
+                    : schedule.getRegularRate();
+
+            totalAmount += rate / 60; // 🟢 以分鐘為單位計算
+            currentTime = currentTime.plusMinutes(1);
         }
 
-        return new GamePriceRes(totalSeconds, totalAmount);
+        // 🟢 回傳秒數 + 計算好的金額
+        return new GamePriceRes(totalAmount, totalSeconds);
     }
+
 }

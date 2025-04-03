@@ -32,11 +32,11 @@ public class GameOrder {
     private Integer totalPrice; // 總價格
 
     @Column(nullable = false)
-    @JsonFormat(pattern = "yyyy/MM/dd HH.mm.ss")
+    @JsonFormat(pattern = "yyyy/MM/dd HH.mm")
     private LocalDateTime startTime; // 遊戲開始時間
 
     @Column(nullable = false)
-    @JsonFormat(pattern = "yyyy/MM/dd HH.mm.ss")
+    @JsonFormat(pattern = "yyyy/MM/dd HH.mm")
     private LocalDateTime endTime; // 遊戲結束時間
 
     @Column(nullable = false)

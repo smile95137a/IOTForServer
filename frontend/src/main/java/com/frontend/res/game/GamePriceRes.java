@@ -11,7 +11,7 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class GamePriceRes {
 
-    private Long price;
+    private Double price;
 
-    private Double second;
+    private Long second;
 }
