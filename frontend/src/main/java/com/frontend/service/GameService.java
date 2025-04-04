@@ -394,7 +394,7 @@ public class GameService {
         String gameId = gameResponse.getGameId();
         switch (checkoutReq.getPayType()) {
             case "1": // 儲值金支付
-                if (user.getAmount() >= totalPrice) {
+                if (user.getAmount() < totalPrice) {
                     // 扣除储值金
                     user.setAmount(user.getAmount() - totalPrice);
                     user.setTotalAmount(user.getTotalAmount() + totalPrice);
