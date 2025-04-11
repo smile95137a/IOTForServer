@@ -46,26 +46,8 @@ public class AdminUserService {
 
     private final UserMapper userMapper;
 
-//    private final UserRoleCustomRepository userRoleCustomRepository;
-
     public List<User> getAllUsers() {
         return userRepository.findAll();
-    }
-
-    public User getUserById(Long id) {
-        var optional = userRepository.findById(id);
-        if (optional.isPresent()) {
-            return optional.get();
-        }
-        return null;
-    }
-
-    public User getUserByuid(String uid) {
-        var optional = userRepository.findByuid(uid);
-        if (optional.isPresent()) {
-            return optional.get();
-        }
-        return null;
     }
 
     public UserRes getByUid(String uid) {

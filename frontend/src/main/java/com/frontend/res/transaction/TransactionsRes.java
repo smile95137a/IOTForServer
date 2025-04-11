@@ -10,8 +10,16 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TransactionsRes {
+    private BigDecimal todayTotalAmount;         // 今日总金额
+    private Integer todayTransactionCount;       // 今日交易笔数
+    private BigDecimal todayTopupAmount;         // 今日充值金额
+    private Integer todayTopupCount;             // 今日充值笔数
+    private BigDecimal monthTotalAmount;         // 本月总金额
+    private Integer monthTransactionCount;       // 本月交易笔数
 
-    private BigDecimal todayTotalAmount;
-
-    private Integer todayTransactionCount;
+    // 通常用于JPA查询结果的二参数构造函数
+    public TransactionsRes(BigDecimal amount, Integer count) {
+        this.todayTotalAmount = amount;
+        this.todayTransactionCount = count;
+    }
 }

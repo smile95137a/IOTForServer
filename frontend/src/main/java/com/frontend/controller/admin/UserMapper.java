@@ -3,6 +3,9 @@ package com.frontend.controller.admin;
 import java.time.LocalDateTime;
 import java.util.stream.Collectors;
 
+import com.frontend.entity.transection.UserTransactionsRes;
+import com.frontend.repo.GameOrderRepository;
+import com.frontend.repo.TransactionRecordRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -22,6 +25,10 @@ public class UserMapper {
 	private final PasswordEncoder passwordEncoder;
 
 	private final UserRepository userRepository;
+
+	private final GameOrderRepository gameOrderRepository;
+
+	private final TransactionRecordRepository transactionRecordRepository;
 
 
 	public User mapToUser(UserReq userReq) {
@@ -51,7 +58,14 @@ public class UserMapper {
 	                                   .orElse("Unknown"); // Provide a default value if not found
 	    }
 
-	    return UserRes.builder()
+		// 获取某个用户的消费总金额与消费笔数
+		UserTransactionsRes consumptionData = gameOrderRepository.getTotalConsumptionAmountAndCount(userEntity.getUid());
+
+// 获取某个用户的充值总金额与充值笔数
+		UserTransactionsRes depositData = transactionRecordRepository.getTotalDepositsAmountAndCount(userEntity.getId());
+
+
+		return UserRes.builder()
 	                  .id(userEntity.getId())
 	                  .uid(userEntity.getUid())
 	                  .username(userEntity.getUsername())
@@ -64,9 +78,18 @@ public class UserMapper {
 	                  .lastActiveTime(userEntity.getLastActiveTime())
 	                  .createUserName(createName)
 	                  .updateUserName(updateName)
+				.balance(userEntity.getBalance())
+				.point(userEntity.getPoint())
 				.nickName(userEntity.getNickName())
 				.gender(userEntity.getGender())
 				.imgUrl(userEntity.getUserImg())
+				// 填充总消费金额和笔数
+				.totalConsumptionAmount(consumptionData.getTotalAmount())
+				.totalConsumptionCount(consumptionData.getCount())
+
+				// 填充总储值金额和笔数
+				.totalDepositsAmount(depositData.getTotalAmount())
+				.totalDepositsCount(depositData.getCount())
 	                  .build();
 	}
 

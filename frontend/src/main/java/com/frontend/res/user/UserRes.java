@@ -1,6 +1,7 @@
 package com.frontend.res.user;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -41,6 +42,10 @@ public class UserRes implements Serializable {
 
 	private String email;
 
+	private Integer point;
+
+	private Integer balance; //餘額
+
 	private Set<Role> roles = new HashSet<>();
 	@JsonFormat(pattern = "yyyy/MM/dd HH:mm:ss")
 	private LocalDateTime createTime;
@@ -68,4 +73,9 @@ public class UserRes implements Serializable {
 	private String anonymousId;
 
 	private String nickName;
+
+	private BigDecimal totalConsumptionAmount;  // 总消費總金額
+	private Integer totalConsumptionCount;  // 总消費筆數
+	private BigDecimal totalDepositsAmount;  // 总儲值總金額
+	private Integer totalDepositsCount;  // 总儲值筆數
 }

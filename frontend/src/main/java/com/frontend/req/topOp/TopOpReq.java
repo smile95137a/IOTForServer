@@ -12,4 +12,6 @@ public class TopOpReq {
     private Integer price;
 
     private String payType;
+
+    private Integer point;
 }

@@ -78,6 +78,8 @@ public class UserService {
 					.createTime(LocalDateTime.now())
 					.name(userDto.getName())
 					.amount(0)
+					.balance(0)
+					.point(0)
 					.totalAmount(0)
 					.nickName(userDto.getNickName())
 					.build();

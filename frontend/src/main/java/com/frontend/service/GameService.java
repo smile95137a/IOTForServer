@@ -478,14 +478,34 @@ public class GameService {
         System.out.println("total" + totalPrice);
         switch (checkoutReq.getPayType()) {
             case "1": // 儲值金支付
-                if (!(user.getAmount() < totalPrice)) {
-                    // 扣除储值金
-                    user.setAmount(user.getAmount() - totalPrice);
-                    user.setTotalAmount(user.getTotalAmount() + totalPrice);
-                    userRepository.save(user); // 保存更新后的用户数据
+                double remainingAmount = totalPrice;
+
+                // 計算可用餘額（儲值金額 + 額外金額）
+                double availableBalance = user.getAmount() + user.getPoint();
+
+                // 檢查可用餘額是否足夠
+                if (availableBalance >= remainingAmount) {
+                    // 儲值金額和額外金額合併足夠，先扣除儲值金額
+                    if (user.getAmount() >= remainingAmount) {
+                        user.setAmount((int) (user.getAmount() - remainingAmount));  // 儲值金額足夠，扣除儲值金額
+                        remainingAmount = 0;
+                    } else {
+                        remainingAmount -= user.getAmount();  // 儲值金額不足，扣除所有儲值金額
+                        user.setAmount(0);  // 所有儲值金額已扣除
+                    }
+
+                    // 若還有剩餘金額，則從額外金額中扣除
+                    if (remainingAmount > 0) {
+                        user.setPoint((int) (user.getPoint() - remainingAmount));  // 扣除額外金額
+                        remainingAmount = 0;
+                    }
                 } else {
-                    throw new RuntimeException("儲值金不足");
+                    // 可用餘額不足，拋出異常
+                    throw new RuntimeException("儲值金額和額外獎勳不足以支付總金額");
                 }
+
+                // 儲值金扣除後保存更新后的用戶數據
+                userRepository.save(user);
                 break;
 
             case "2": // Apple Pay

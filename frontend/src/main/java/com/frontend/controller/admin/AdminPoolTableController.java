@@ -23,7 +23,7 @@ import com.frontend.utils.ResponseUtils;
 import com.frontend.utils.SecurityUtils;
 
 @RestController
-@RequestMapping("/api/b/poolTables")
+    @RequestMapping("/api/b/poolTables")
 public class AdminPoolTableController {
 
     @Autowired
@@ -98,6 +98,20 @@ public class AdminPoolTableController {
         } catch (RuntimeException e) {
             e.printStackTrace();
             ApiResponse<Void> error = ResponseUtils.error(null);
+            return ResponseEntity.ok(error);
+        }
+    }
+
+    @PostMapping("/closeTable/{uid}")
+    public ResponseEntity<ApiResponse<PoolTable>> closePoolTable(@PathVariable String uid,@RequestBody PoolTableReq poolTableReq) {
+        try {
+            UserPrinciple securityUser = SecurityUtils.getSecurityUser();
+            Long id = securityUser.getId();
+            PoolTable poolTable = poolTableService.closePoolTable(uid, poolTableReq , id);
+            ApiResponse<PoolTable> success = ResponseUtils.success(poolTable);
+            return ResponseEntity.ok(success);
+        } catch (RuntimeException e) {
+            ApiResponse<PoolTable> error = ResponseUtils.error(null);
             return ResponseEntity.ok(error);
         }
     }

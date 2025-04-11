@@ -2,6 +2,8 @@ package com.frontend.repo;
 
 import com.frontend.entity.game.GameOrder;
 import com.frontend.entity.game.GameRecord;
+import com.frontend.entity.transection.UserTransactionsRes;
+import com.frontend.res.transaction.TransactionsRes;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -32,5 +34,31 @@ public interface GameOrderRepository extends JpaRepository<GameOrder, Long> {
     @Query("SELECT go FROM GameOrder go WHERE go.gameId IN :gameIds")
     List<GameOrder> findByGameIds(@Param("gameIds") List<String> gameIds);
 
+
+    @Query("SELECT new com.frontend.res.transaction.TransactionsRes( " +
+            "CAST(COALESCE(SUM(g.totalPrice), 0) AS BigDecimal), " +
+            "CAST(COUNT(g) AS Integer)) " +
+            "FROM GameOrder g " +
+            "WHERE g.status = 'IS_PAY' " +
+            "AND FUNCTION('DATE', g.startTime) = CURRENT_DATE")
+    TransactionsRes getTodayTotalConsumption();
+
+    @Query("SELECT new com.frontend.res.transaction.TransactionsRes( " +
+            "CAST(COALESCE(SUM(g.totalPrice), 0) AS BigDecimal), " +
+            "CAST(COUNT(g) AS Integer)) " +
+            "FROM GameOrder g " +
+            "WHERE g.status = 'IS_PAY' " +
+            "AND FUNCTION('MONTH', g.startTime) = FUNCTION('MONTH', CURRENT_DATE) " +
+            "AND FUNCTION('YEAR', g.startTime) = FUNCTION('YEAR', CURRENT_DATE)")
+    TransactionsRes getMonthTotalConsumption();
+
+
+    @Query("SELECT new com.frontend.entity.transection.UserTransactionsRes( " +
+            "CAST(COALESCE(SUM(g.totalPrice), 0) AS BigDecimal), " +
+            "CAST(COUNT(g) AS Integer)) " +
+            "FROM GameOrder g " +
+            "WHERE g.status = 'IS_PAY' " +
+            "AND g.userId = :uid")
+    UserTransactionsRes getTotalConsumptionAmountAndCount(@Param("uid") String uid);
 }
 

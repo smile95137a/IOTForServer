@@ -22,7 +22,11 @@ public class PaymentService {
     public Integer topOp(TopOpReq topOpReq , Long userId){
         User user = userRepository.findById(userId).get();
         Integer newPrice = user.getAmount() + topOpReq.getPrice();
+        Integer newPoint = user.getPoint() + topOpReq.getPoint();
+        Integer newBalance = user.getBalance() + newPrice + newPoint;
         user.setAmount(newPrice);
+        user.setPoint(newPoint);
+        user.setBalance(newBalance);
         userRepository.save(user);
 
         //儲值紀錄

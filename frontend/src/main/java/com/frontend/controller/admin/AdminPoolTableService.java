@@ -5,6 +5,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import com.frontend.entity.game.GameRecord;
+import com.frontend.entity.poolTable.TableEquipment;
+import com.frontend.repo.GameRecordRepository;
+import com.frontend.repo.TableEquipmentRepository;
 import com.frontend.res.poolTable.AdminPoolTableRes;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +23,10 @@ public class AdminPoolTableService {
 
     @Autowired
     private PoolTableRepository poolTableRepository;
+    @Autowired
+    private TableEquipmentRepository tableEquipmentRepository;
+    @Autowired
+    private GameRecordRepository gameRecordRepository;
 
     // Create a new pool table
     public PoolTable createPoolTable(PoolTableReq poolTableReq, Long id) {
@@ -116,4 +124,21 @@ public class AdminPoolTableService {
         return poolTables;
     }
 
+    public PoolTable closePoolTable(String uid, PoolTableReq poolTableReq, Long id) {
+        PoolTable poolTable = poolTableRepository.findByUid(uid).get();
+        poolTable.setIsUse(false);
+        for (TableEquipment tableEquipment : poolTableReq.getTableEquipments()) {
+            tableEquipment.setStatus(false);
+            tableEquipmentRepository.save(tableEquipment);
+        }
+        poolTable.setUpdateTime(LocalDateTime.now());
+        poolTable.setUpdateUserId(id);
+        poolTableRepository.save(poolTable);
+
+        GameRecord started = gameRecordRepository.findByPoolTableIdAndStatus(poolTable.getId(), "STARTED");
+        if(started != null){
+            gameRecordRepository.delete(started);
+        }
+        return poolTable;
+    }
 }

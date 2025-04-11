@@ -99,5 +99,11 @@ public class User implements Serializable {
 	private Integer amount;
 
 	@Column
+	private Integer point;
+
+	@Column
+	private Integer balance; //餘額
+
+	@Column
 	private Integer totalAmount;
 }
