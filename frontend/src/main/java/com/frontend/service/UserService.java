@@ -16,10 +16,8 @@ import com.frontend.req.user.UserReq;
 import com.frontend.res.user.UserRes;
 import com.frontend.utils.RandomUtils;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -81,6 +79,7 @@ public class UserService {
 					.name(userDto.getName())
 					.amount(0)
 					.totalAmount(0)
+					.nickName(userDto.getNickName())
 					.build();
 
 // 2. 查找 `ROLE_USER` 角色
@@ -103,6 +102,7 @@ public class UserService {
 			userRes.setUid(user.getUid());
 			userRes.setId(user.getId());
 			userRes.setRoles(user.getRoles());
+			userRes.setNickName(user.getNickName());
 			return userRes;
 
 		} catch (Exception e) {

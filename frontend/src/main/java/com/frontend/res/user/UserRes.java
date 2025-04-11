@@ -66,4 +66,6 @@ public class UserRes implements Serializable {
 	private Set<Long> roleIds = new HashSet<>();
 	
 	private String anonymousId;
+
+	private String nickName;
 }

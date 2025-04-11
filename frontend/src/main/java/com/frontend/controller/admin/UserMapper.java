@@ -64,6 +64,7 @@ public class UserMapper {
 	                  .lastActiveTime(userEntity.getLastActiveTime())
 	                  .createUserName(createName)
 	                  .updateUserName(updateName)
+				.nickName(userEntity.getNickName())
 				.gender(userEntity.getGender())
 				.imgUrl(userEntity.getUserImg())
 	                  .build();

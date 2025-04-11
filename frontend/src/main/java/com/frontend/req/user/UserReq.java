@@ -24,6 +24,7 @@ public class UserReq {
     private String verificationCode;
     private String anonymousId;
     private Set<RoleName> roleNames;
+    private String nickName;
 }
 
 

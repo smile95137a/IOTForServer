@@ -44,6 +44,9 @@ public class User implements Serializable {
 	private String phoneNumber;
 
 	@Column
+	private String nickName;
+
+	@Column
 	private String password;
 
 	@Column
