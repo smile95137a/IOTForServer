@@ -59,6 +59,19 @@ public class Vendor {
     @JsonIgnore
     private Set<User> users = new HashSet<>(); // 這個 Vendor 管理的 Users
 
+    @Column
+    private String companyAddress;
+    @Column
+    private String phoneNumber;
+    @Column
+    private String email;
+    @Column
+    private String telephoneNumber;
+    @Column
+    private String address;
+    @Column
+    private String companyName;
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

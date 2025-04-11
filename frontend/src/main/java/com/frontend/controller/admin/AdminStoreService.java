@@ -68,13 +68,18 @@ public class AdminStoreService {
 						schedule.setStore(savedStore);
 
 						// 🔥 自动划分时段
-						List<TimeSlot> timeSlots = splitTimeSlots(
-								scheduleReq.getOpenTime(),
-								scheduleReq.getCloseTime(),
-								scheduleReq.getTimeSlots(),
-								schedule
-						);
-						schedule.setTimeSlots(timeSlots);
+                        List<TimeSlot> timeSlots = null;
+                        try {
+                            timeSlots = splitTimeSlots(
+                                    scheduleReq.getOpenTime(),
+                                    scheduleReq.getCloseTime(),
+                                    scheduleReq.getTimeSlots(),
+                                    schedule
+                            );
+                        } catch (Exception e) {
+                            throw new RuntimeException(e);
+                        }
+                        schedule.setTimeSlots(timeSlots);
 
 						return schedule;
 					}).collect(Collectors.toSet());
@@ -86,7 +91,7 @@ public class AdminStoreService {
 	}
 
 	private List<TimeSlot> splitTimeSlots(LocalTime openTime, LocalTime closeTime,
-										  List<TimeSlotReq> timeSlotsReq, StorePricingSchedule schedule) {
+										  List<TimeSlotReq> timeSlotsReq, StorePricingSchedule schedule) throws Exception {
 		List<TimeSlot> result = new ArrayList<>();
 
 		// 将所有时段按开始时间排序
@@ -96,11 +101,16 @@ public class AdminStoreService {
 				.toList();
 
 		LocalTime current = openTime;
-
+		LocalTime previousEndTime = openTime; // 用來跟前一個時段的結束時間進行比較
 		// 遍历所有时段，处理时段分配
 		for (LocalTime[] timeSlot : allSlots) {
 			LocalTime slotStart = timeSlot[0];
 			LocalTime slotEnd = timeSlot[1];
+
+			// 檢查時段是否重疊
+			if (slotStart.isBefore(previousEndTime)) {
+				throw new Exception("優惠時段有重疊：" + previousEndTime + " - " + slotStart);
+			}
 
 			// 非优惠时段（在优惠开始前的时段）
 			if (current.isBefore(slotStart)) {

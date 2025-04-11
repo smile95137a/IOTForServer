@@ -43,6 +43,12 @@ public class VendorService {
 		vendor.setCreateUserId(userId);
 		vendor.setUpdateUserId(userId);
 		vendor.setUserId(vendorReq.getUserId());
+		vendor.setAddress(vendorReq.getAddress());
+		vendor.setCompanyAddress(vendorReq.getCompanyAddress());
+		vendor.setEmail(vendorReq.getEmail());
+		vendor.setPhoneNumber(vendorReq.getPhoneNumber());
+		vendor.setTelephoneNumber(vendorReq.getTelephoneNumber());
+		vendor.setCompanyName(vendorReq.getCompanyName());
 
 		// **將 User 連結到 Vendor**
 		user.setVendor(vendor);
