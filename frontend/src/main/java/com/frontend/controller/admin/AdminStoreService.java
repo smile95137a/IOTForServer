@@ -176,7 +176,6 @@ public class AdminStoreService {
 				.lat(store.getLat())
 				.lon(store.getLon())
 				.deposit(store.getDeposit())
-				.vendor(store.getVendor())
 				.poolTables(store.getPoolTables()) // 如果 poolTables 不会导致循环引用，保持这个字段
 				.hint(store.getHint())
 				.contactPhone(store.getContactPhone())
@@ -209,6 +208,8 @@ public class AdminStoreService {
 				.collect(Collectors.toList());
 
 		return StorePricingScheduleRes.builder()
+				.openTime(pricingSchedule.getOpenTime())
+				.closeTime(pricingSchedule.getCloseTime())
 				.dayOfWeek(pricingSchedule.getDayOfWeek()) // 设置星期几
 				.regularTimeSlots(regularTimeSlots) // 设置普通时段
 				.discountTimeSlots(discountTimeSlots) // 设置优惠时段
