@@ -173,6 +173,7 @@ public class AdminStoreService {
 				.name(store.getName())
 				.imgUrl(store.getImgUrl())
 				.address(store.getAddress())
+				.vendor(store.getVendor())
 				.lat(store.getLat())
 				.lon(store.getLon())
 				.deposit(store.getDeposit())
