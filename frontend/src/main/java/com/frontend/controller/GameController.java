@@ -67,8 +67,8 @@ public class GameController {
         try {
             UserPrinciple securityUser = SecurityUtils.getSecurityUser();
             Long id = securityUser.getId();
-            gameService.checkout(checkoutReq , id);
-            return ResponseEntity.ok(ResponseUtils.success(true));
+            GameRes checkout = gameService.checkout(checkoutReq, id);
+            return ResponseEntity.ok(ResponseUtils.success(checkout));
         }catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.ok(ResponseUtils.error(9999, e.getMessage(), null));

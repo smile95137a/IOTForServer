@@ -94,6 +94,8 @@ public class AdminUserService {
             entity.setUpdateUserId(principal.getId());
             entity.setPhoneNumber(userReq.getPhone());
             entity.setRoles(byIdIn);
+            entity.setAnonymousId(userReq.getAnonymousId());
+            entity.setNickName(userReq.getNickName());
             userRepository.save(entity);
             var res = UserRes.builder().build();
             BeanUtils.copyProperties(entity, res);

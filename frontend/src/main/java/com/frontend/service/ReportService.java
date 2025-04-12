@@ -107,7 +107,24 @@ public class ReportService {
                 }
 
                 return balanceDetails;
+            case "DepositCount":
+                return (periodType != null && !periodType.isEmpty())
+                        ? convertToPeriodData2(transactionRecordRepository.getDepositCountByPeriod(periodType, startDate, endDate))
+                        : new ArrayList<>();
 
+            case "ConsumptionCount":
+                return (periodType != null && !periodType.isEmpty())
+                        ? convertToPeriodData2(transactionRecordRepository.getConsumptionCountByPeriod(periodType, startDate, endDate))
+                        : new ArrayList<>();
+
+            case "UserCount":
+                if (userRole == 1) { // Admin 才能看會員數
+                    return (periodType != null && !periodType.isEmpty())
+                            ? convertToPeriodData2(transactionRecordRepository.getUserCountByPeriod(periodType, startDate, endDate))
+                            : new ArrayList<>();
+                } else {
+                    return Collections.singletonMap("error", "權限不足~");
+                }
             default:
                 return Collections.singletonMap("error", "Invalid report type");
         }

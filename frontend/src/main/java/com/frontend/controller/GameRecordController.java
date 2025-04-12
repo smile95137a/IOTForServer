@@ -3,6 +3,7 @@ package com.frontend.controller;
 import com.frontend.config.message.ApiResponse;
 import com.frontend.config.service.UserPrinciple;
 import com.frontend.entity.game.GameRecord;
+import com.frontend.res.game.GameRecordRes;
 import com.frontend.service.GameRecordService;
 import com.frontend.utils.ResponseUtils;
 import com.frontend.utils.SecurityUtils;
@@ -21,14 +22,14 @@ public class GameRecordController {
 
     // 根据 userUid 和 status 查询
     @GetMapping("/game-records")
-    public ResponseEntity<ApiResponse<List<GameRecord>>> getGameRecords() {
+    public ResponseEntity<ApiResponse<List<GameRecordRes>>> getGameRecords() {
         UserPrinciple securityUser = SecurityUtils.getSecurityUser();
         Long id = securityUser.getId();
         return ResponseEntity.ok(ResponseUtils.success(200, "開台成功", gameRecordService.getGameRecordsByUserUidAndStatus(id)));
     }
 
     @GetMapping("/game-records/user")
-    public ResponseEntity<ApiResponse<List<GameRecord>>> getGameRecordsByUser() {
+    public ResponseEntity<ApiResponse<List<GameRecordRes>>> getGameRecordsByUser() {
         UserPrinciple securityUser = SecurityUtils.getSecurityUser();
         Long id = securityUser.getId();
         return ResponseEntity.ok(ResponseUtils.success(200, "開台成功", gameRecordService.getGameRecordsByUserUid(id)));

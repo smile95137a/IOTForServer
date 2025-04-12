@@ -217,7 +217,7 @@ public class GameService {
         }
 
 
-        GameRes gameRes = new GameRes(gameRecord , message , endTimeMinutes);
+        GameRes gameRes = new GameRes(gameRecord , message , endTimeMinutes , vendor);
 
 
         return gameRes;
@@ -453,7 +453,7 @@ public class GameService {
 
 
     @Transactional
-    public void checkout(CheckoutReq checkoutReq , Long id) throws Exception {
+    public GameRes checkout(CheckoutReq checkoutReq , Long id) throws Exception {
 
         if(checkoutReq.getGameId() == null){
             PoolTable poolTable = poolTableRepository.findById(checkoutReq.getPoolTableId()).get();
@@ -544,6 +544,8 @@ public class GameService {
 
         game.setStatus("IS_PAY");
         gameOrderRepository.save(game);
+
+        return new GameRes(null , null , 0L , vendor);
     }
 
     public GameRecord bookGame(BookGameReq gameReq) throws Exception {

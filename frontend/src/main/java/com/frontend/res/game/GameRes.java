@@ -1,42 +1,23 @@
 package com.frontend.res.game;
 
 import com.frontend.entity.game.GameRecord;
+import com.frontend.entity.vendor.Vendor;
+import lombok.Data;
 
+@Data
 public class GameRes {
     private GameRecord gameRecord;
     private String message;
     private long endTimeMinutes;
 
-    // Getters and Setters
-    public GameRecord getGameRecord() {
-        return gameRecord;
-    }
-
-    public void setGameRecord(GameRecord gameRecord) {
-        this.gameRecord = gameRecord;
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
-    }
-
-    public long getEndTimeMinutes() {
-        return endTimeMinutes;
-    }
-
-    public void setEndTimeMinutes(long endTimeMinutes) {
-        this.endTimeMinutes = endTimeMinutes;
-    }
+    private Vendor vendor;
 
     // 构造函数
-    public GameRes(GameRecord gameRecord, String message, long endTimeMinutes) {
+    public GameRes(GameRecord gameRecord, String message, long endTimeMinutes , Vendor vendor) {
         this.gameRecord = gameRecord;
         this.message = message;
         this.endTimeMinutes = endTimeMinutes;
+        this.vendor = vendor;
     }
 
     @Override
