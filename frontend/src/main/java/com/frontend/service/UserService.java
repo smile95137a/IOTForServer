@@ -122,12 +122,16 @@ public class UserService {
 			user.setName(req.getName());
 			user.setEmail(req.getEmail());
 			user.setUpdateTime(LocalDateTime.now());
+			user.setAnonymousId(req.getAnonymousId());
+			user.setNickName(req.getNickName());
 			userRepository.save(user);
 			UserRes userRes = new UserRes();
 			userRes.setUsername(user.getUsername());
 			userRes.setEmail(user.getEmail());
 			userRes.setUid(user.getUid());
 			userRes.setId(user.getId());
+			userRes.setNickName(user.getNickName());
+			userRes.setAnonymousId(user.getAnonymousId());
 			return userRes;
 		} catch (Exception e) {
 			throw new Exception("Failed to update user with ID: " + userId, e);
@@ -173,6 +177,10 @@ public class UserService {
 				.amount(user.getAmount())
 				.totalAmount(user.getTotalAmount())
 				.imgUrl(user.getUserImg())
+				.nickName(user.getNickName())
+				.point(user.getPoint())
+				.totalAmount(user.getTotalAmount())
+				.balance(user.getBalance())
 				.build();
 
 	}

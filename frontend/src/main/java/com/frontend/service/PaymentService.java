@@ -23,7 +23,7 @@ public class PaymentService {
         User user = userRepository.findById(userId).get();
         Integer newPrice = user.getAmount() + topOpReq.getPrice();
         Integer newPoint = user.getPoint() + topOpReq.getPoint();
-        Integer newBalance = user.getBalance() + newPrice + newPoint;
+        Integer newBalance = newPrice + newPoint;
         user.setAmount(newPrice);
         user.setPoint(newPoint);
         user.setBalance(newBalance);
