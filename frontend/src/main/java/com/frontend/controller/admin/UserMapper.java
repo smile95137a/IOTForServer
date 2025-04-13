@@ -84,6 +84,7 @@ public class UserMapper {
 				.nickName(userEntity.getNickName())
 				.gender(userEntity.getGender())
 				.imgUrl(userEntity.getUserImg())
+				.amount(userEntity.getAmount())
 				// 填充总消费金额和笔数
 				.totalConsumptionAmount(consumptionData.getTotalAmount())
 				.totalConsumptionCount(consumptionData.getCount())
