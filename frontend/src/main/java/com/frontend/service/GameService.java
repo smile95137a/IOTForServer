@@ -321,67 +321,51 @@ public class GameService {
         long totalRegularMinutes = 0;
         long totalEffectiveMinutes = 0;
 
-        // 计算总分钟数
-        long totalRawMinutes = Duration.between(startTime, endTime).toMinutes();
+        // 原始總分鐘（包含非營業時段），這邊也做進位
+        long totalRawMinutes = adjustMinutes(Duration.between(startTime, endTime));
 
         LocalDateTime currentStart = startTime;
 
-        // 循环处理每一天
         while (currentStart.isBefore(endTime)) {
-            // 当前日期的结束时间或者实际结束时间
             LocalDateTime nextDay = currentStart.toLocalDate().plusDays(1).atStartOfDay();
             LocalDateTime currentEnd = endTime.isBefore(nextDay) ? endTime : nextDay;
 
             String dayOfWeek = currentStart.getDayOfWeek().toString().toLowerCase();
             StorePricingSchedule schedule = findScheduleForDay(storeId, dayOfWeek);
 
-            // 获取当天的营业时间
             LocalTime openTime = schedule.getOpenTime();
             LocalTime closeTime = schedule.getCloseTime();
 
-            // 判断是否为24小时营业
             boolean is24HourOperation = false;
-
-            // 00:00到23:59被视为24小时营业
             if (openTime.equals(LocalTime.of(0, 0)) &&
-                    (closeTime.equals(LocalTime.of(23, 59)) ||
-                            closeTime.equals(LocalTime.of(23, 59, 59)))) {
+                    (closeTime.equals(LocalTime.of(23, 59)) || closeTime.equals(LocalTime.of(23, 59, 59)))) {
                 is24HourOperation = true;
             }
-
-            // 开始时间等于结束时间也视为24小时营业（特殊情况）
             if (openTime.equals(closeTime)) {
                 is24HourOperation = true;
             }
 
-            System.out.println("日期: " + currentStart.toLocalDate() + ", 是否24小时营业: " + is24HourOperation);
-            System.out.println("营业时间: " + openTime + " - " + closeTime);
+            System.out.println("日期: " + currentStart.toLocalDate() + ", 是否24小時營業: " + is24HourOperation);
+            System.out.println("營業時間: " + openTime + " - " + closeTime);
 
-            // 计算当天的有效开始和结束时间
             LocalDateTime effectiveStart = currentStart;
             LocalDateTime effectiveEnd = currentEnd;
 
-            // 如果不是24小时营业，才需要限制时间范围
             if (!is24HourOperation) {
-                // 检查当天的开始时间是否在营业时间之前
                 if (effectiveStart.toLocalTime().isBefore(openTime)) {
                     effectiveStart = effectiveStart.toLocalDate().atTime(openTime);
                 }
-
-                // 检查当天的结束时间是否在营业时间之后
                 if (effectiveEnd.toLocalTime().isAfter(closeTime)) {
                     effectiveEnd = effectiveEnd.toLocalDate().atTime(closeTime);
                 }
             }
 
-            // 只有当有效时间段存在时才计算
             if (effectiveStart.isBefore(effectiveEnd)) {
-                long effectiveMinutes = Duration.between(effectiveStart, effectiveEnd).toMinutes();
+                long effectiveMinutes = adjustMinutes(Duration.between(effectiveStart, effectiveEnd));
                 totalEffectiveMinutes += effectiveMinutes;
 
-                System.out.println("当日有效时间: " + effectiveMinutes + " 分钟");
+                System.out.println("當日有效時間: " + effectiveMinutes + " 分鐘");
 
-                // 找出优惠时段
                 TimeSlot discountSlot = schedule.getTimeSlots().stream()
                         .filter(TimeSlot::getIsDiscount)
                         .findFirst()
@@ -392,22 +376,18 @@ public class GameService {
                     LocalTime discountStart = discountSlot.getStartTime();
                     LocalTime discountEnd = discountSlot.getEndTime();
 
-                    // 计算当天的优惠时段
                     LocalDateTime discSlotStart = effectiveStart.toLocalDate().atTime(discountStart);
                     LocalDateTime discSlotEnd = effectiveStart.toLocalDate().atTime(discountEnd);
 
-                    // 如果优惠结束时间是第二天的时间（例如22:00-02:00）
                     if (discountEnd.isBefore(discountStart)) {
                         discSlotEnd = effectiveStart.toLocalDate().plusDays(1).atTime(discountEnd);
                     }
 
-                    // 优惠时段开始时间必须在有效时间范围内
                     if (discSlotStart.isBefore(effectiveEnd) && discSlotEnd.isAfter(effectiveStart)) {
-                        // 取重叠部分
                         LocalDateTime overlapStart = discSlotStart.isAfter(effectiveStart) ? discSlotStart : effectiveStart;
                         LocalDateTime overlapEnd = discSlotEnd.isBefore(effectiveEnd) ? discSlotEnd : effectiveEnd;
 
-                        discountMinutes = Duration.between(overlapStart, overlapEnd).toMinutes();
+                        discountMinutes = adjustMinutes(Duration.between(overlapStart, overlapEnd));
                     }
                 }
 
@@ -419,16 +399,14 @@ public class GameService {
                 double discountPrice = discountMinutes * discountRate;
                 double regularPrice = regularMinutes * regularRate;
 
-                // 计算该天的价格并累加
                 totalPrice += discountPrice + regularPrice;
                 totalDiscountMinutes += discountMinutes;
                 totalRegularMinutes += regularMinutes;
 
-                System.out.println("当日优惠时段: " + discountMinutes + " 分钟, 一般时段: " + regularMinutes + " 分钟");
-                System.out.println("当日金额: " + (discountPrice + regularPrice));
+                System.out.println("當日優惠時段: " + discountMinutes + " 分鐘, 一般時段: " + regularMinutes + " 分鐘");
+                System.out.println("當日金額: " + (discountPrice + regularPrice));
             }
 
-            // 移动到下一天的开始
             currentStart = currentEnd;
         }
 
@@ -441,6 +419,16 @@ public class GameService {
 
         return (int) Math.round(totalPrice);
     }
+
+    /**
+     * 將秒數無條件進位成整分鐘
+     */
+    private long adjustMinutes(Duration duration) {
+        long seconds = duration.getSeconds();
+        return (seconds + 59) / 60;
+    }
+
+
     private StorePricingSchedule findScheduleForDay(Long storeId, String dayOfWeek) throws Exception {
         // 根據店鋪 ID 查找對應的時段設置
         List<StorePricingSchedule> schedules = storePricingScheduleRepository.findByStoreId(storeId);
