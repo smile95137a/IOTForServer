@@ -478,32 +478,31 @@ public class GameService {
         System.out.println("total" + totalPrice);
         switch (checkoutReq.getPayType()) {
             case "1": // 儲值金支付
-                double remainingAmount = totalPrice;
+                int remainingAmount = totalPrice;
 
-                // 計算可用餘額（儲值金額 + 額外金額）
-                double availableBalance = user.getAmount() + user.getPoint();
+// 計算可用餘額（儲值金額 + 額外金額）
+                int availableBalance = user.getAmount() + user.getPoint();
 
-                // 檢查可用餘額是否足夠
+// 檢查可用餘額是否足夠
                 if (availableBalance >= remainingAmount) {
-                    // 儲值金額和額外金額合併足夠，先扣除儲值金額
+                    // 儲值金額足夠
                     if (user.getAmount() >= remainingAmount) {
-                        user.setAmount((int) (user.getAmount() - remainingAmount));  // 儲值金額足夠，扣除儲值金額
+                        user.setAmount((int) (user.getAmount() - remainingAmount));
                         remainingAmount = 0;
                     } else {
-                        remainingAmount -= user.getAmount();  // 儲值金額不足，扣除所有儲值金額
-                        user.setAmount(0);  // 所有儲值金額已扣除
-                    }
+                        // 儲值金額不足，扣光它，剩下的再從額外金額扣
+                        remainingAmount -= user.getAmount();
+                        user.setAmount(0);
 
-                    // 若還有剩餘金額，則從額外金額中扣除
-                    if (remainingAmount > 0) {
-                        user.setPoint((int) (user.getPoint() - remainingAmount));  // 扣除額外金額
+                        user.setPoint((int) (user.getPoint() - remainingAmount));
                         remainingAmount = 0;
                     }
                 } else {
-                    // 可用餘額不足，拋出異常
+                    // 餘額不足
                     throw new RuntimeException("儲值金額和額外獎勳不足以支付總金額");
                 }
-
+                availableBalance = user.getAmount() + user.getPoint();
+                user.setBalance((int) availableBalance);
                 // 儲值金扣除後保存更新后的用戶數據
                 userRepository.save(user);
                 break;
