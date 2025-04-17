@@ -956,7 +956,7 @@ public class GameService {
                     ? schedule.getDiscountRate()
                     : schedule.getRegularRate();
 
-            totalAmount += rate * totalMinutes; // 🟢 以分鐘為單位計算
+            totalAmount += rate; // 🟢 以分鐘為單位計算
             currentTime = currentTime.plusMinutes(1);
 
         }
