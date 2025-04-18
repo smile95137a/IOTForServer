@@ -875,44 +875,33 @@ public class GameService {
     }
 
     public GamePriceRes getGamePrice(GameReq gameReq) {
-        LocalDateTime end = LocalDateTime.now();
-        LocalDate localDate = LocalDate.now();
+        // 取得遊戲紀錄
         GameRecord byGameId = gameRecordRepository.findByGameId(gameReq.getGameId());
-        LocalDateTime startTime = byGameId.getStartTime();
-
-        StorePricingSchedule schedule = storePricingScheduleRepository.findByStoreId(byGameId.getStoreId())
-                .stream()
-                .filter(s -> s.getDayOfWeek().equalsIgnoreCase(localDate.getDayOfWeek().toString()))
-                .findFirst()
-                .orElseThrow(() -> new RuntimeException("未找到對應日期的時段"));
-
-        List<TimeSlot> timeSlots = schedule.getTimeSlots();
-        double totalAmount = 0;
-
-        // 🟢 計算總分鐘數
-        long totalSeconds = ChronoUnit.SECONDS.between(startTime, end);
-        long totalMinutes = (totalSeconds + 59) / 60; // 四捨五入到整分鐘
-
-        LocalTime currentTime = startTime.toLocalTime();
-        while (!currentTime.isAfter(end.toLocalTime())) {
-            LocalTime finalCurrentTime = currentTime;
-            TimeSlot applicableSlot = timeSlots.stream()
-                    .filter(slot -> !finalCurrentTime.isBefore(slot.getStartTime()) && finalCurrentTime.isBefore(slot.getEndTime()))
-                    .findFirst()
-                    .orElse(null);
-
-            double rate = (applicableSlot != null && applicableSlot.getIsDiscount())
-                    ? schedule.getDiscountRate()
-                    : schedule.getRegularRate();
-
-            totalAmount += rate; // 🟢 以分鐘為單位計算
-            currentTime = currentTime.plusMinutes(1);
-
+        if (byGameId == null) {
+            throw new RuntimeException("找不到遊戲紀錄");
         }
-// 🟢 無條件進位
-        totalAmount = Math.ceil(totalAmount);
-        // 🟢 回傳秒數 + 計算好的金額
-        return new GamePriceRes(totalAmount, totalSeconds);
+
+        // 取得開始和結束時間
+        LocalDateTime startTime = byGameId.getStartTime();
+        LocalDateTime endTime = LocalDateTime.now();
+
+        // 驗證結束時間
+        if (endTime.isBefore(startTime)) {
+            throw new RuntimeException("結束時間不能小於開始時間");
+        }
+
+        // 計算總秒數
+        long totalSeconds = ChronoUnit.SECONDS.between(startTime, endTime);
+
+        try {
+            // 使用與endGame相同的價格計算邏輯
+            int totalPrice = calculateAdjustedPrice(byGameId.getStoreId(), startTime, endTime);
+
+            // 回傳計算結果
+            return new GamePriceRes((double) totalPrice, totalSeconds);
+        } catch (Exception e) {
+            throw new RuntimeException("計算價格時發生錯誤: " + e.getMessage());
+        }
     }
 
 }
