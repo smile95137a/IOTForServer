@@ -704,21 +704,21 @@ public class GameService {
 
     @Transactional
     public Map<String, List<Map<String, Object>>> getAvailableTimes(Long storeId, LocalDate bookingDate, Long poolTableId) {
-        int duration = 1; // 每個時段的長度為1小時
-        int maxSlots = 24; // 限制為24小時內的時段，避免無限循環
+        int duration = 1;
+        int maxSlots = 24;
 
-        // 取得店家營業時段
+        boolean isToday = bookingDate.equals(LocalDate.now());
+        LocalTime now = LocalTime.now();
+
         StorePricingSchedule schedule = storePricingScheduleRepository.findByStoreId(storeId)
                 .stream()
                 .filter(s -> s.getDayOfWeek().equalsIgnoreCase(bookingDate.getDayOfWeek().toString()))
                 .findFirst()
                 .orElseThrow(() -> new RuntimeException("未找到對應日期的時段"));
 
-        // 取得對應的桌台
         PoolTable poolTable = poolTableRepository.findById(poolTableId)
                 .orElseThrow(() -> new RuntimeException("未找到指定桌台"));
 
-        // 取得 timeSlots 列表
         List<TimeSlot> timeSlots = schedule.getTimeSlots();
 
         List<Object[]> results = gameRecordRepository.findGameIdsByStoreIdStatusAndPoolTableId(storeId, poolTableId);
@@ -734,168 +734,129 @@ public class GameService {
         Map<String, List<Map<String, Object>>> availableTimesMap = new HashMap<>();
         List<Map<String, Object>> availableTimes = new ArrayList<>();
 
-        // 檢查是否為24小時營業
-        boolean is24HoursOperation = schedule.getOpenTime().equals(schedule.getCloseTime());
+        // 處理營業時間
+        LocalTime openTime = schedule.getOpenTime();
+        LocalTime closeTime = schedule.getCloseTime();
 
-        if (bookedGames.isEmpty()) {
-            // 沒有預約的情況，直接計算可用時段
-            calculateAvailableTimeSlots(schedule.getOpenTime(), schedule.getCloseTime(),
-                    duration, maxSlots, schedule, timeSlots, availableTimes, is24HoursOperation);
-        } else {
-            // 預約存在，過濾和考慮預約衝突
+        // 生成時段 (嚴格限制在當天的 00:00 到 23:59)
+        List<LocalTime> availableStartTimes = generateTimeSlots(openTime, closeTime);
+
+        // 如果是今天，過濾掉已經過去的時段
+        if (isToday) {
+            availableStartTimes = availableStartTimes.stream()
+                    .filter(time -> time.isAfter(now))
+                    .collect(Collectors.toList());
+        }
+
+        // 處理已預約的時段
+        if (!bookedGames.isEmpty()) {
             List<String> gameIds = bookedGames.stream()
                     .map(GameVO::getGameId)
                     .collect(Collectors.toList());
 
             List<GameOrder> allBookings = gameOrderRepository.findByGameIds(gameIds);
-            LocalDateTime startOfDay = bookingDate.atStartOfDay(); // 當天 00:00:00
-            LocalDateTime endOfDay = bookingDate.atTime(LocalTime.MAX); // 當天 23:59:59.999999999
+            LocalDateTime startOfDay = bookingDate.atStartOfDay();
+            LocalDateTime endOfDay = bookingDate.atTime(LocalTime.MAX);
 
-            // 取得當天所有可能影響時段的預約
             List<GameOrder> relevantBookings = allBookings.stream()
-                    .filter(order -> order.getStartTime() != null && order.getEndTime() != null) // 避免 NullPointerException
+                    .filter(order -> order.getStartTime() != null && order.getEndTime() != null)
                     .filter(order -> {
                         LocalDateTime extendedStart = order.getStartTime().minusHours(1);
                         LocalDateTime extendedEnd = order.getEndTime().plusHours(1);
-                        // 只要這個訂單在當天的範圍內影響時段，就納入計算
                         return !(extendedEnd.isBefore(startOfDay) || extendedStart.isAfter(endOfDay));
                     })
                     .collect(Collectors.toList());
 
-            if (relevantBookings.isEmpty()) {
-                calculateAvailableTimeSlots(schedule.getOpenTime(), schedule.getCloseTime(),
-                        duration, maxSlots, schedule, timeSlots, availableTimes, is24HoursOperation);
-            } else {
-                calculateAvailableTimeSlotsWithBookings(schedule.getOpenTime(), schedule.getCloseTime(),
-                        duration, maxSlots, bookingDate, relevantBookings, schedule, timeSlots,
-                        availableTimes, is24HoursOperation);
+            // 過濾掉已預約的時段
+            if (!relevantBookings.isEmpty()) {
+                availableStartTimes = filterBookedTimeSlots(availableStartTimes, relevantBookings, bookingDate, duration);
             }
         }
 
-        availableTimesMap.put(String.valueOf(poolTableId), availableTimes);
-        return availableTimesMap;
-    }
+        // 轉換成前端所需的格式
+        for (int i = 0; i < availableStartTimes.size(); i++) {
+            LocalTime startTime = availableStartTimes.get(i);
+            LocalTime endTime;
 
-    // 計算所有可用時段（無預約衝突時）
-    private static void calculateAvailableTimeSlots(LocalTime openTime, LocalTime closeTime,
-                                                    int duration, int maxSlots,
-                                                    StorePricingSchedule schedule,
-                                                    List<TimeSlot> timeSlots,
-                                                    List<Map<String, Object>> availableTimes,
-                                                    boolean is24HoursOperation) {
-        LocalTime startTime = openTime;
-        int slotCount = 0;
-
-        // 如果是24小時營業，設定closeTime為明天的openTime (等同於一整天)
-        LocalTime effectiveCloseTime = is24HoursOperation ? openTime.plusHours(24) : closeTime;
-        LocalTime dayEndTime = LocalTime.of(23, 59, 59);
-
-        while (slotCount < maxSlots) {
-            LocalTime slotEndTime = startTime.plusMinutes(duration * 60);
-
-            // 如果是24小時營業，確保不超過當天結束
-            if (is24HoursOperation && slotEndTime.isAfter(dayEndTime)) {
-                break;
-            }
-
-            // 一般情況，確保不超過營業結束時間
-            if (!is24HoursOperation && slotEndTime.isAfter(closeTime)) {
-                slotEndTime = closeTime;
-            }
-
-            // 如果已達營業結束時間，跳出循環
-            if (startTime.equals(effectiveCloseTime) ||
-                    (is24HoursOperation && startTime.equals(dayEndTime))) {
-                break;
+            // 處理23:00-00:00的特殊情況
+            if (startTime.getHour() == 23) {
+                endTime = LocalTime.of(0, 0);
+            } else {
+                endTime = startTime.plusHours(duration);
             }
 
             int rate = getRateForTime(timeSlots, schedule, startTime);
 
             Map<String, Object> availableTimeSlot = new HashMap<>();
             availableTimeSlot.put("start", startTime.toString());
-            availableTimeSlot.put("end", slotEndTime.toString());
+            availableTimeSlot.put("end", endTime.toString());
             availableTimeSlot.put("rate", rate);
             availableTimes.add(availableTimeSlot);
-
-            startTime = slotEndTime;
-            slotCount++;
-
-            // 如果已達營業結束時間或24小時店已到一天結束，跳出循環
-            if ((!is24HoursOperation && startTime.equals(closeTime)) ||
-                    (is24HoursOperation && startTime.isAfter(dayEndTime))) {
-                break;
-            }
         }
+
+        availableTimesMap.put(String.valueOf(poolTableId), availableTimes);
+        return availableTimesMap;
     }
 
-    // 計算有預約衝突時的可用時段
-    private static void calculateAvailableTimeSlotsWithBookings(LocalTime openTime, LocalTime closeTime,
-                                                                int duration, int maxSlots, LocalDate bookingDate,
-                                                                List<GameOrder> relevantBookings,
-                                                                StorePricingSchedule schedule,
-                                                                List<TimeSlot> timeSlots,
-                                                                List<Map<String, Object>> availableTimes,
-                                                                boolean is24HoursOperation) {
-        LocalTime startTime = openTime;
-        int slotCount = 0;
+    // 生成當天的所有小時時段（嚴格在當天範圍內）
+    private List<LocalTime> generateTimeSlots(LocalTime openTime, LocalTime closeTime) {
+        List<LocalTime> timeSlots = new ArrayList<>();
 
-        // 如果是24小時營業，設定closeTime為明天的openTime (等同於一整天)
-        LocalTime effectiveCloseTime = is24HoursOperation ? openTime.plusHours(24) : closeTime;
-        LocalTime dayEndTime = LocalTime.of(23, 59, 59);
+        // 判斷是否為24小時營業或跨午夜營業
+        boolean is24HoursOperation = openTime.equals(closeTime);
+        boolean crossesMidnight = !is24HoursOperation && openTime.isAfter(closeTime);
 
-        while (slotCount < maxSlots) {
-            LocalTime slotEndTime = startTime.plusMinutes(duration * 60);
+        // 生成當天的所有小時時段
+        for (int hour = 0; hour < 24; hour++) {
+            LocalTime currentTime = LocalTime.of(hour, 0);
 
-            // 如果是24小時營業，確保不超過當天結束
-            if (is24HoursOperation && slotEndTime.isAfter(dayEndTime)) {
-                break;
-            }
-
-            // 一般情況，確保不超過營業結束時間
-            if (!is24HoursOperation && slotEndTime.isAfter(closeTime)) {
-                slotEndTime = closeTime;
-            }
-
-            // 如果已達營業結束時間，跳出循環
-            if (startTime.equals(effectiveCloseTime) ||
-                    (is24HoursOperation && startTime.equals(dayEndTime))) {
-                break;
-            }
-
-            // 轉換為當天的 LocalDateTime 以便比較
-            LocalDateTime slotStartDateTime = bookingDate.atTime(startTime);
-            LocalDateTime slotEndDateTime = bookingDate.atTime(slotEndTime);
-
-            boolean isConflict = relevantBookings.stream()
-                    .anyMatch(order -> {
-                        // 預訂時段的前後各加1小時緩衝
-                        LocalDateTime orderStart = order.getStartTime().minusHours(1);
-                        LocalDateTime orderEnd = order.getEndTime().plusHours(1);
-
-                        // 檢查時段是否衝突 (四種重疊情況)
-                        return (slotStartDateTime.isBefore(orderEnd) &&
-                                slotEndDateTime.isAfter(orderStart));
-                    });
-
-            if (!isConflict) {
-                int rate = getRateForTime(timeSlots, schedule, startTime);
-
-                Map<String, Object> availableTimeSlot = new HashMap<>();
-                availableTimeSlot.put("start", startTime.toString());
-                availableTimeSlot.put("end", slotEndTime.toString());
-                availableTimeSlot.put("rate", rate);
-                availableTimes.add(availableTimeSlot);
-            }
-
-            startTime = slotEndTime;
-            slotCount++;
-
-            // 如果已達營業結束時間或24小時店已到一天結束，跳出循環
-            if ((!is24HoursOperation && startTime.equals(closeTime)) ||
-                    (is24HoursOperation && startTime.isAfter(dayEndTime))) {
-                break;
+            if (is24HoursOperation) {
+                // 24小時營業，添加所有時段
+                timeSlots.add(currentTime);
+            } else if (crossesMidnight) {
+                // 跨午夜營業，例如從晚上10點到早上6點
+                // 在這個情況下，只添加 openTime 到 23:59 和 00:00 到 closeTime 的時段
+                if (!currentTime.isBefore(openTime) || !currentTime.isAfter(closeTime)) {
+                    timeSlots.add(currentTime);
+                }
+            } else {
+                // 正常營業時間，例如早上9點到晚上10點
+                if (!currentTime.isBefore(openTime) && !currentTime.isAfter(closeTime.minusHours(1))) {
+                    timeSlots.add(currentTime);
+                }
             }
         }
+
+        return timeSlots;
+    }
+
+    // 過濾掉已預約的時段
+    private List<LocalTime> filterBookedTimeSlots(List<LocalTime> availableStartTimes,
+                                                  List<GameOrder> relevantBookings,
+                                                  LocalDate bookingDate,
+                                                  int duration) {
+        return availableStartTimes.stream()
+                .filter(startTime -> {
+                    LocalTime endTime = startTime.plusHours(duration);
+                    LocalDateTime slotStartDateTime = bookingDate.atTime(startTime);
+
+                    // 處理 23:00-00:00 的特殊情況
+                    LocalDateTime slotEndDateTime;
+                    if (startTime.getHour() == 23) {
+                        slotEndDateTime = bookingDate.plusDays(1).atStartOfDay();
+                    } else {
+                        slotEndDateTime = bookingDate.atTime(endTime);
+                    }
+
+                    // 檢查此時段是否與任何預約衝突
+                    return relevantBookings.stream()
+                            .noneMatch(order -> {
+                                LocalDateTime orderStart = order.getStartTime().minusHours(1);
+                                LocalDateTime orderEnd = order.getEndTime().plusHours(1);
+                                return (slotStartDateTime.isBefore(orderEnd) && slotEndDateTime.isAfter(orderStart));
+                            });
+                })
+                .collect(Collectors.toList());
     }
 
     private static int getRateForTime(List<TimeSlot> timeSlots, StorePricingSchedule schedule, LocalTime startTime) {
@@ -904,8 +865,9 @@ public class GameService {
                 return slot.getIsDiscount() ? schedule.getRegularRate() : schedule.getDiscountRate();
             }
         }
-        return schedule.getRegularRate(); // 預設回傳 regularRate
+        return schedule.getRegularRate();
     }
+
 
     public List<BookGame> getBookGame() {
         Optional<User> byId = userRepository.findById(SecurityUtils.getSecurityUser().getId());

@@ -20,7 +20,7 @@ public class GameRecordRes {
     private Long id;
 
     private String gameId;  // 唯一的遊戲識別碼 (UUID)
-    @JsonFormat(pattern = "yyyy/MM/dd HH:mm")
+    @JsonFormat(pattern = "yyyy/MM/dd HH:mm:ss")
     private LocalDateTime startTime; // 遊戲開始時間戳
     private String userUid; // 用戶UID
     private int price;      // 押金金額
