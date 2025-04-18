@@ -46,8 +46,13 @@ public class AdminUserService {
 
     private final UserMapper userMapper;
 
-    public List<User> getAllUsers() {
-        return userRepository.findAll();
+    public List<UserRes> getAllUsers() {
+        List<UserRes> userResList = new ArrayList<>();
+        for (User user : userRepository.findAll()) {
+            UserRes userRes = userMapper.mapToUserRes(user);
+            userResList.add(userRes);
+        }
+        return  userResList;
     }
 
     public UserRes getByUid(String uid) {
