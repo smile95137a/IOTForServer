@@ -1,5 +1,6 @@
 package com.frontend.service;
 
+import com.frontend.controller.admin.UserMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -40,10 +41,13 @@ public class UserService {
 	@Value("${verification.url}")
 	private String verificationUrl;
 
+	@Autowired
+	private UserMapper userMapper;
+
 	public UserRes getUserById(Long userId) {
 		User user = userRepository.findById(userId).get();
 
-        return convertToUserRes(user);
+		return userMapper.mapToUserRes(user);
 	}
 
 	public UserRes registerUser(UserReq userDto) throws Exception {
