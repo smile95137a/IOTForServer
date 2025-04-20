@@ -34,13 +34,21 @@ public class GameOrderService {
         User user = userRepository.findById(id).get();
         List<GameOrder> byUserUid = gameOrderRepository.findByUserId(user.getUid());
         List<GameOrderRes> gameOrderResList = toGameOrderResList(byUserUid);
-        for (GameOrderRes orderRes : gameOrderResList) {
-            GameRecord byGameId = gameRecordRepository.findByGameId(orderRes.getGameId());
-            Store store = storeRepository.findById(byGameId.getStoreId()).get();
-            PoolTable poolTable = poolTableRepository.findById(byGameId.getPoolTableId()).get();
-            String format = String.format("%s - %s", store.getName(), poolTable.getTableNumber());
-            orderRes.setGameOrderName(format);
+        if(!gameOrderResList.isEmpty()){
+            for (GameOrderRes orderRes : gameOrderResList) {
+                if(orderRes.getGameId() != null){
+                    GameRecord byGameId = gameRecordRepository.findByGameId(orderRes.getGameId());
+                    if(byGameId != null){
+                        Store store = storeRepository.findById(byGameId.getStoreId()).get();
+                        PoolTable poolTable = poolTableRepository.findById(byGameId.getPoolTableId()).get();
+                        String format = String.format("%s - %s", store.getName(), poolTable.getTableNumber());
+                        orderRes.setGameOrderName(format);
+                    }
+                }
+
+            }
         }
+
         return gameOrderResList;
     }
 
@@ -52,7 +60,8 @@ public class GameOrderService {
                         gameOrder.getStartTime(),
                         gameOrder.getEndTime(),
                         gameOrder.getDuration(),
-                        gameOrder.getStatus()
+                        gameOrder.getStatus(),
+                        null
                 ))
                 .toList();
     }

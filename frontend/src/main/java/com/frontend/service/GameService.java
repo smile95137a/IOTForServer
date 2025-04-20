@@ -426,17 +426,24 @@ public class GameService {
      * 如果秒數 <= 30，則保持當前分鐘數
      */
     private long adjustMinutes(Duration duration) {
-        long minutes = duration.toMinutes();
-        long seconds = duration.minusMinutes(minutes).getSeconds();
+        long totalSeconds = duration.getSeconds();
 
-        // 如果秒數超過 30，則進位到下一分鐘
-        if (seconds > 30) {
+        // 如果總秒數為0，則返回0
+        if (totalSeconds == 0) {
+            return 0;
+        }
+
+        // 第一分鐘直接計費（即使只有幾秒鐘）
+        long minutes = (totalSeconds <= 60) ? 1 : totalSeconds / 60;
+        long remainingSeconds = totalSeconds % 60;
+
+        // 第二分鐘開始，如果秒數 > 30，則進位
+        if (totalSeconds > 60 && remainingSeconds > 30) {
             minutes += 1;
         }
 
         return minutes;
     }
-
 
     private StorePricingSchedule findScheduleForDay(Long storeId, String dayOfWeek) throws Exception {
         // 根據店鋪 ID 查找對應的時段設置
