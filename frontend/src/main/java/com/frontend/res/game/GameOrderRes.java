@@ -18,5 +18,5 @@ public class GameOrderRes {
     @JsonFormat(pattern = "yyyy/MM/dd HH:mm:ss")
     private LocalDateTime endTime;
     private long duration;
-    private String status;
+    private String gameOrderName;
 }

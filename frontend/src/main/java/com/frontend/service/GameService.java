@@ -421,11 +421,20 @@ public class GameService {
     }
 
     /**
-     * 將秒數無條件進位成整分鐘
+     * 根據 30 秒規則將時間進位成整分鐘
+     * 如果秒數 > 30，則進位到下一分鐘
+     * 如果秒數 <= 30，則保持當前分鐘數
      */
     private long adjustMinutes(Duration duration) {
-        long seconds = duration.getSeconds();
-        return (seconds + 59) / 60;
+        long minutes = duration.toMinutes();
+        long seconds = duration.minusMinutes(minutes).getSeconds();
+
+        // 如果秒數超過 30，則進位到下一分鐘
+        if (seconds > 30) {
+            minutes += 1;
+        }
+
+        return minutes;
     }
 
 
