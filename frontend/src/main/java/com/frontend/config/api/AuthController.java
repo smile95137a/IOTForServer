@@ -68,6 +68,14 @@ public class AuthController {
         var userDetails = (UserPrinciple) authentication.getPrincipal();
         var jwt = jwtProvider.generateToken(userDetails);
 
+        // Check for blacklist role first before generating token
+        boolean isBlacklisted = userDetails.getAuthorities().stream()
+                .anyMatch(authority -> authority.getAuthority().equals(RoleName.ROLE_BLACKLIST.name()));
+
+        if (isBlacklisted) {
+            throw new RuntimeException("帳號已被列入黑名單，無法登入或操作。");
+        }
+
         var roleNames = userDetails.getAuthorities().stream()
                 .map(x -> RoleName.valueOf(x.getAuthority()))  // 取得 RoleName
                 .collect(Collectors.toSet());
