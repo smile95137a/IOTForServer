@@ -32,7 +32,7 @@ public class AuthController {
 	private final JwtProvider jwtProvider;
 
 	@PostMapping("/login")
-	public ResponseEntity<?> login(@Valid @RequestBody UserReq userReq) {
+	public ResponseEntity<?> login(@Valid @RequestBody UserReq userReq) throws Exception {
 		var authToken = new UsernamePasswordAuthenticationToken(userReq.getUsername(), userReq.getPassword());
 		var authentication = authenticationManager.authenticate(authToken);
 		SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -42,7 +42,11 @@ public class AuthController {
 		
 		var roles = userDetails.getAuthorities().stream().map(x -> RoleName.valueOf(x.getAuthority()).toString())
 				.collect(Collectors.toSet());
-		
+
+		if(roles.contains("ROLE_BLACKLIST")){
+			throw new Exception("黑名單不得登入");
+		}
+
 		var userRes = UserRes.builder()
 				.uid(userDetails.getUid())
 				.username(userDetails.getUsername())
