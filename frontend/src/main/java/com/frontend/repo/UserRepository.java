@@ -32,7 +32,7 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
 
 	void deleteByuid(String uid);
 
-	@Query("SELECT u.id, u.name, u.amount FROM User u")
+	@Query("SELECT u.id, u.name, u.balance FROM User u")
 	List<Object[]> getAllUserRemainingBalance();  // 获取所有用户的剩余储值金额
 
 }

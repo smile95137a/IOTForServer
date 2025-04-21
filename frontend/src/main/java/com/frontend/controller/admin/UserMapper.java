@@ -78,6 +78,8 @@ public class UserMapper {
 	                  .lastActiveTime(userEntity.getLastActiveTime())
 	                  .createUserName(createName)
 	                  .updateUserName(updateName)
+				.phoneNumber(userEntity.getPhoneNumber())
+				.countryCode(userEntity.getCountryCode())
 				.anonymousId(userEntity.getAnonymousId())
 				.balance(userEntity.getBalance())
 				.point(userEntity.getPoint())
