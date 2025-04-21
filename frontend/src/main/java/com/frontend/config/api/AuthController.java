@@ -73,7 +73,7 @@ public class AuthController {
                 .anyMatch(authority -> authority.getAuthority().equals(RoleName.ROLE_BLACKLIST.name()));
 
         if (isBlacklisted) {
-            throw new RuntimeException("帳號已被列入黑名單，無法登入或操作。");
+            return ResponseEntity.ok(ResponseUtils.error("帳號已被列入黑名單，無法登入或操作。"));
         }
 
         var roleNames = userDetails.getAuthorities().stream()
