@@ -427,6 +427,24 @@ public class GameService {
         long seconds = duration.getSeconds();
         return (seconds + 59) / 60;
     }
+    /**
+     * 計算實際要收費的分鐘數
+     * - 第一段：不滿 1 分鐘也要當 1 分鐘
+     * - 其餘：最後不足 1 分鐘部分若超過 30 秒才進位
+     */
+    private long adjustMinutesForPrice(Duration duration, boolean isFirstSegment) {
+        long seconds = duration.getSeconds();
+        if (seconds <= 0) return 0;
+
+        if (isFirstSegment) {
+            return 1;
+        }
+
+        long minutes = seconds / 60;
+        long remainingSeconds = seconds % 60;
+
+        return minutes + (remainingSeconds > 30 ? 1 : 0);
+    }
 
 
     private StorePricingSchedule findScheduleForDay(Long storeId, String dayOfWeek) throws Exception {
