@@ -320,8 +320,9 @@ public class GameService {
         long totalDiscountMinutes = 0;
         long totalRegularMinutes = 0;
         long totalEffectiveMinutes = 0;
+        long totalNonBusinessHoursMinutes = 0;
 
-        // 原始總分鐘（包含非營業時段），這邊也做進位
+        // 原始總分鐘，使用調整後的計時規則
         long totalRawMinutes = adjustMinutes(Duration.between(startTime, endTime));
 
         LocalDateTime currentStart = startTime;
@@ -336,6 +337,7 @@ public class GameService {
             LocalTime openTime = schedule.getOpenTime();
             LocalTime closeTime = schedule.getCloseTime();
 
+            // 檢查是否24小時營業
             boolean is24HourOperation = false;
             if (openTime.equals(LocalTime.of(0, 0)) &&
                     (closeTime.equals(LocalTime.of(23, 59)) || closeTime.equals(LocalTime.of(23, 59, 59)))) {
@@ -348,24 +350,46 @@ public class GameService {
             System.out.println("日期: " + currentStart.toLocalDate() + ", 是否24小時營業: " + is24HourOperation);
             System.out.println("營業時間: " + openTime + " - " + closeTime);
 
-            LocalDateTime effectiveStart = currentStart;
-            LocalDateTime effectiveEnd = currentEnd;
+            // 計算當日總時間（不考慮營業時間限制）
+            long totalDayMinutes = adjustMinutes(Duration.between(currentStart, currentEnd));
 
+            // 計算營業時間內的時間
+            LocalDateTime businessStart = currentStart;
+            LocalDateTime businessEnd = currentEnd;
+
+            // 非24小時營業時，計算營業時間與非營業時間
             if (!is24HourOperation) {
-                if (effectiveStart.toLocalTime().isBefore(openTime)) {
-                    effectiveStart = effectiveStart.toLocalDate().atTime(openTime);
+                // 創建營業開始和結束的日期時間
+                LocalDateTime dayOpenTime = currentStart.toLocalDate().atTime(openTime);
+                LocalDateTime dayCloseTime = currentStart.toLocalDate().atTime(closeTime);
+
+                // 處理跨日的情況（例如營業至凌晨）
+                if (closeTime.isBefore(openTime)) {
+                    dayCloseTime = dayCloseTime.plusDays(1);
                 }
-                if (effectiveEnd.toLocalTime().isAfter(closeTime)) {
-                    effectiveEnd = effectiveEnd.toLocalDate().atTime(closeTime);
+
+                // 計算營業時間內的時段
+                if (currentEnd.isBefore(dayOpenTime) || currentStart.isAfter(dayCloseTime)) {
+                    // 完全在非營業時間內
+                    businessStart = null;
+                    businessEnd = null;
+                } else {
+                    // 部分或全部在營業時間內
+                    if (currentStart.isBefore(dayOpenTime)) {
+                        businessStart = dayOpenTime;
+                    }
+                    if (currentEnd.isAfter(dayCloseTime)) {
+                        businessEnd = dayCloseTime;
+                    }
                 }
             }
 
-            if (effectiveStart.isBefore(effectiveEnd)) {
-                long effectiveMinutes = adjustMinutes(Duration.between(effectiveStart, effectiveEnd));
-                totalEffectiveMinutes += effectiveMinutes;
+            // 處理營業時間內的費用計算
+            long businessHoursMinutes = 0;
+            if (businessStart != null && businessEnd != null && businessStart.isBefore(businessEnd)) {
+                businessHoursMinutes = adjustMinutes(Duration.between(businessStart, businessEnd));
 
-                System.out.println("當日有效時間: " + effectiveMinutes + " 分鐘");
-
+                // 計算優惠時段
                 TimeSlot discountSlot = schedule.getTimeSlots().stream()
                         .filter(TimeSlot::getIsDiscount)
                         .findFirst()
@@ -376,22 +400,22 @@ public class GameService {
                     LocalTime discountStart = discountSlot.getStartTime();
                     LocalTime discountEnd = discountSlot.getEndTime();
 
-                    LocalDateTime discSlotStart = effectiveStart.toLocalDate().atTime(discountStart);
-                    LocalDateTime discSlotEnd = effectiveStart.toLocalDate().atTime(discountEnd);
+                    LocalDateTime discSlotStart = businessStart.toLocalDate().atTime(discountStart);
+                    LocalDateTime discSlotEnd = businessStart.toLocalDate().atTime(discountEnd);
 
                     if (discountEnd.isBefore(discountStart)) {
-                        discSlotEnd = effectiveStart.toLocalDate().plusDays(1).atTime(discountEnd);
+                        discSlotEnd = discSlotEnd.plusDays(1);
                     }
 
-                    if (discSlotStart.isBefore(effectiveEnd) && discSlotEnd.isAfter(effectiveStart)) {
-                        LocalDateTime overlapStart = discSlotStart.isAfter(effectiveStart) ? discSlotStart : effectiveStart;
-                        LocalDateTime overlapEnd = discSlotEnd.isBefore(effectiveEnd) ? discSlotEnd : effectiveEnd;
+                    if (discSlotStart.isBefore(businessEnd) && discSlotEnd.isAfter(businessStart)) {
+                        LocalDateTime overlapStart = discSlotStart.isAfter(businessStart) ? discSlotStart : businessStart;
+                        LocalDateTime overlapEnd = discSlotEnd.isBefore(businessEnd) ? discSlotEnd : businessEnd;
 
                         discountMinutes = adjustMinutes(Duration.between(overlapStart, overlapEnd));
                     }
                 }
 
-                long regularMinutes = effectiveMinutes - discountMinutes;
+                long regularMinutes = businessHoursMinutes - discountMinutes;
 
                 double discountRate = schedule.getDiscountRate();
                 double regularRate = schedule.getRegularRate();
@@ -402,9 +426,25 @@ public class GameService {
                 totalPrice += discountPrice + regularPrice;
                 totalDiscountMinutes += discountMinutes;
                 totalRegularMinutes += regularMinutes;
+                totalEffectiveMinutes += businessHoursMinutes;
 
-                System.out.println("當日優惠時段: " + discountMinutes + " 分鐘, 一般時段: " + regularMinutes + " 分鐘");
-                System.out.println("當日金額: " + (discountPrice + regularPrice));
+                System.out.println("營業時間內: 優惠時段: " + discountMinutes + " 分鐘, 一般時段: " + regularMinutes + " 分鐘");
+                System.out.println("營業時間內金額: " + (discountPrice + regularPrice));
+            }
+
+            // 計算非營業時間的費用
+            long nonBusinessHoursMinutes = totalDayMinutes - businessHoursMinutes;
+            if (nonBusinessHoursMinutes > 0) {
+                double regularRate = schedule.getRegularRate();
+                double nonBusinessPrice = nonBusinessHoursMinutes * regularRate;
+
+                totalPrice += nonBusinessPrice;
+                totalRegularMinutes += nonBusinessHoursMinutes;
+                totalNonBusinessHoursMinutes += nonBusinessHoursMinutes;
+                totalEffectiveMinutes += nonBusinessHoursMinutes;
+
+                System.out.println("非營業時間: " + nonBusinessHoursMinutes + " 分鐘");
+                System.out.println("非營業時間金額: " + nonBusinessPrice);
             }
 
             currentStart = currentEnd;
@@ -415,6 +455,7 @@ public class GameService {
         System.out.println("總有效遊玩時間: " + totalEffectiveMinutes + " 分鐘");
         System.out.println("總優惠時段: " + totalDiscountMinutes + " 分鐘");
         System.out.println("總一般時段: " + totalRegularMinutes + " 分鐘");
+        System.out.println("總非營業時間: " + totalNonBusinessHoursMinutes + " 分鐘");
         System.out.println("總金額: " + totalPrice);
 
         return (int) Math.round(totalPrice);
