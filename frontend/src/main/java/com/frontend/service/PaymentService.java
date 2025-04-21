@@ -30,6 +30,7 @@ public class PaymentService {
         userRepository.save(user);
 
         //儲值紀錄
+
         TransactionRecord transactionRecord = new TransactionRecord();
         transactionRecord.setTransactionDate(LocalDateTime.now());
         transactionRecord.setCreatedAt(LocalDateTime.now());
