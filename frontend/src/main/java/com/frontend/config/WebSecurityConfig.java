@@ -29,9 +29,16 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class WebSecurityConfig {
 
-	private static final String[] AUTH_WHITELIST = { "/api/auth/**", "/api/test/**" , "/api/users/createUser" ,
-	"/api/password/**", "/api/menus/click/**" };
-	
+	private static final String[] AUTH_WHITELIST = {
+			"/auth/**",              // 登入、註冊、忘記密碼
+			"/img/**",               // 圖片資源
+			"/password/**",          // 忘記密碼
+			"/menus/click/**",       // 點擊菜單行為
+			"/users/createUser",     // 建立使用者
+			"/test/**"               // 測試 API
+	};
+
+
 	private final UserDetailsServiceImpl userDetailsService;
 	private final JwtAuthEntryPoint unauthorizedHandler;
 	private final JwtAuthTokenFilter jwtAuthTokenFilter;
@@ -71,14 +78,13 @@ public class WebSecurityConfig {
 	@Bean
 	public SecurityFilterChain filterChain(HttpSecurity http, CorsConfigurationSource corsConfigurationSource) throws Exception {
 		http.cors(cors -> cors.configurationSource(corsConfigurationSource))
-				.csrf(AbstractHttpConfigurer::disable) // 禁用 CSRF
-				.exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler)) // 認證失敗處理
-				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // 無狀態會話
+				.csrf(AbstractHttpConfigurer::disable)
+				.exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
+				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 				.authorizeHttpRequests(auth -> auth
-						.requestMatchers("/img/**").permitAll() // 放行靜態資源
-						.requestMatchers(AUTH_WHITELIST).permitAll() // 放行白名單
-						.requestMatchers("/api/**").hasAnyRole("ADMIN", "MANUFACTURER", "STORE_MANAGER") // 限定角色存取
-						.anyRequest().authenticated() // 其他請求需要驗證
+						.requestMatchers(AUTH_WHITELIST).permitAll() // 白名單全部放行
+						.requestMatchers("/api/**").hasAnyRole("ADMIN", "MANUFACTURER", "STORE_MANAGER") // 後台接口要登入 + 指定角色
+						.anyRequest().permitAll() // 其他的如 /front/** 全部允許
 				);
 
 		http.authenticationProvider(authenticationProvider());
