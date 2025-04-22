@@ -74,17 +74,19 @@ public class WebSecurityConfig {
 				.csrf(AbstractHttpConfigurer::disable) // 禁用 CSRF
 				.exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler)) // 認證失敗處理
 				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // 無狀態會話
-
-				// 放行靜態資源路徑，允許不經身份驗證
-				.authorizeHttpRequests(auth ->
-						auth.requestMatchers("/img/**").permitAll() // 放行 /img/** 路徑的請求
-								.anyRequest().permitAll()); // 允許所有請求都通行
+				.authorizeHttpRequests(auth -> auth
+						.requestMatchers("/img/**").permitAll() // 放行靜態資源
+						.requestMatchers(AUTH_WHITELIST).permitAll() // 放行白名單
+						.requestMatchers("/api/**").hasAnyRole("ADMIN", "MANUFACTURER", "STORE_MANAGER") // 限定角色存取
+						.anyRequest().authenticated() // 其他請求需要驗證
+				);
 
 		http.authenticationProvider(authenticationProvider());
 		http.addFilterBefore(jwtAuthTokenFilter, UsernamePasswordAuthenticationFilter.class);
 
 		return http.build();
 	}
+
 
 
 
