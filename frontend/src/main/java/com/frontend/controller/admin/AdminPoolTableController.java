@@ -102,17 +102,19 @@ public class AdminPoolTableController {
         }
     }
 
-    @PostMapping("/closeTable/{uid}")
-    public ResponseEntity<ApiResponse<PoolTable>> closePoolTable(@PathVariable String uid,@RequestBody PoolTableReq poolTableReq) {
+    @PostMapping("/closeTable")
+    public ResponseEntity<ApiResponse<PoolTable>> closePoolTable(@RequestBody PoolTableReq poolTableReq) {
         try {
             UserPrinciple securityUser = SecurityUtils.getSecurityUser();
             Long id = securityUser.getId();
-            PoolTable poolTable = poolTableService.closePoolTable(uid, poolTableReq , id);
+            PoolTable poolTable = poolTableService.closePoolTable(poolTableReq , id);
             ApiResponse<PoolTable> success = ResponseUtils.success(poolTable);
             return ResponseEntity.ok(success);
         } catch (RuntimeException e) {
             ApiResponse<PoolTable> error = ResponseUtils.error(null);
             return ResponseEntity.ok(error);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 }

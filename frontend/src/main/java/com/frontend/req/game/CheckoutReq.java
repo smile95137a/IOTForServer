@@ -16,4 +16,6 @@ public class CheckoutReq {
     private String poolUId;
 
     private Long poolTableId;
+
+    private Integer totalPrice;
 }

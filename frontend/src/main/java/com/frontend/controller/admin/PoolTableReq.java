@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class PoolTableReq {
+    private String tableUId;
     private String tableNumber;
     private String status;
     private Store store;
