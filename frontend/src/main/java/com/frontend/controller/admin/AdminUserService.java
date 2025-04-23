@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.frontend.req.user.PointReq;
 import org.springframework.beans.BeanUtils;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -189,4 +190,18 @@ public class AdminUserService {
         userRepository.saveAll(users);
     }
 
+    public void addPoint(PointReq pointReq) {
+        List<User> users = userRepository.findAllById(pointReq.getUserId());
+
+        if (users.isEmpty()) {
+            throw new RuntimeException("找不到對應的使用者");
+        }
+
+        for (User user : users) {
+            user.setPoint(user.getPoint() + pointReq.getPoint());
+            user.setBalance(user.getAmount() + pointReq.getPoint());
+        }
+
+        userRepository.saveAll(users);
+    }
 }

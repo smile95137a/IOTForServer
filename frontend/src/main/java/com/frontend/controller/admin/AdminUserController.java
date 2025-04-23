@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import com.frontend.config.service.UserPrinciple;
+import com.frontend.req.user.PointReq;
 import com.frontend.utils.SecurityUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.http.ResponseEntity;
@@ -144,6 +145,21 @@ public class AdminUserController {
             return ResponseEntity.ok(success);
         }catch (Exception e){
             ApiResponse<String> error = ResponseUtils.error(e.getMessage());
+            return ResponseEntity.ok(error);
+        }
+    }
+
+    /**
+     * 新增獎勵金
+     */
+    @PostMapping("/addPoint")
+    public ResponseEntity<?> addPoint(@RequestBody PointReq pointReq){
+        try {
+            userService.addPoint(pointReq);
+            ApiResponse<String> success = ResponseUtils.success("加值獎勵金成功");
+            return ResponseEntity.ok(success);
+        } catch (Exception e) {
+            ApiResponse<String> error = ResponseUtils.error("加點失敗：" + e.getMessage());
             return ResponseEntity.ok(error);
         }
     }

@@ -2,13 +2,16 @@ package com.frontend.service;
 
 import com.frontend.entity.menu.Menu;
 import com.frontend.entity.role.Role;
+import com.frontend.entity.user.User;
 import com.frontend.repo.MenuRepository;
 import com.frontend.repo.RoleRepository;
+import com.frontend.res.user.UserRoleRes;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -60,4 +63,18 @@ public class RoleService {
                 .orElseThrow(() -> new RuntimeException("Role not found"));
         return role.getMenus();
     }
+
+    public List<UserRoleRes> findUsersByRole(Long roleId) {
+        Set<User> usersByRoleId = roleRepository.findUsersByRoleId(roleId);
+        List<UserRoleRes> list = new ArrayList<UserRoleRes>();
+        usersByRoleId.forEach(user -> {
+            UserRoleRes roleRes = new UserRoleRes();
+            roleRes.setId(user.getId());
+            roleRes.setUid(user.getUid());
+            roleRes.setName(user.getName());
+            list.add(roleRes);
+        });
+        return list;
+    }
+
 }

@@ -65,6 +65,10 @@ public class GameService {
     private TimeSlotRepository timeSlotRepository;
 
     public GameRecord bookStartGame(GameReq gameReq) throws Exception {
+        boolean b = this.checkoutOrder();
+        if(b){
+            throw new Exception("有尚未結帳的球局，請先結帳後才能使用開台服務");
+        }
         // 查詢用戶
         PoolTable byStoreUid = poolTableRepository.findById(gameReq.getPoolTableId()).get();
         BookGame bookGame = bookGameRepository.findByGameId(gameReq.getGameId());
@@ -106,6 +110,12 @@ public class GameService {
     }
 
     public GameRes startGame(GameReq gameReq , Long id) throws Exception {
+
+        boolean b = this.checkoutOrder();
+        if(b){
+            throw new Exception("有尚未結帳的球局，請先結帳後才能使用開台服務");
+        }
+
         // 查詢用戶
         User byUid = userRepository.findById(id).get();
         PoolTable byStoreUid = poolTableRepository.findByUid(gameReq.getPoolTableUId()).get();
@@ -134,6 +144,14 @@ public class GameService {
 
         if (currentSchedule == null) {
             throw new Exception("沒有找到當天的訊息");
+        }
+
+        LocalTime nowTime = LocalTime.now();
+        LocalTime openTime = currentSchedule.getOpenTime();
+        LocalTime closeTime = currentSchedule.getCloseTime();
+
+        if (nowTime.isBefore(openTime) || nowTime.isAfter(closeTime)) {
+            throw new Exception("非營業時間，無法開台。營業時間為：" + openTime + " - " + closeTime);
         }
 
         // 计算价格
@@ -624,7 +642,11 @@ public class GameService {
         // ➡️ 計算費率
         int discountRateAmount = currentSchedule.getDiscountRate();
         int regularRateAmount = currentSchedule.getRegularRate();
-        int bookDeposit = store.getDeposit() * (store.getBookTime() == 0 ? 1 : store.getBookTime());
+        long durationHours = Duration.between(gameReq.getStartTime(), gameReq.getEndTime()).toHours();
+        if (durationHours <= 0) {
+            throw new Exception("預約時間必須至少為1小時");
+        }
+        int bookDeposit = (int) (store.getDeposit() * durationHours);
 
         // ➡️ 查詢是否有該遊戲已被預約
         List<String> gameIds = gameRecordRepository.findGameIdByPoolTableIdAndStatus(
@@ -961,6 +983,17 @@ public class GameService {
         } catch (Exception e) {
             throw new RuntimeException("計算價格時發生錯誤: " + e.getMessage());
         }
+    }
+
+    private boolean checkoutOrder() {
+        User user = userRepository.findById(SecurityUtils.getSecurityUser().getId()).get();
+        List<GameRecord> unpaid = gameRecordRepository.findByUserUidAndStatus(user.getUid(), "UNPAID");
+        for(GameRecord noPay : unpaid){
+            if(noPay.getStatus().equals("UNPAID")){
+                return true;
+            }
+        }
+        return false;
     }
 
 }

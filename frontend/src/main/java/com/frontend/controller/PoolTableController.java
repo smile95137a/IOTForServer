@@ -39,7 +39,7 @@ public class PoolTableController {
         try {
             PoolTableRes poolTable = poolTableService.getPoolTableById(uid);
             if(poolTable.getGameId() == null) {
-                ApiResponse<PoolTableRes> error = ResponseUtils.success(9999 , null ,poolTable);
+                ApiResponse<PoolTableRes> error = ResponseUtils.success(9999 , "目前有人正在開局，請換別台使用" ,poolTable);
                 return ResponseEntity.ok(error);
             }
             ApiResponse<PoolTableRes> success = ResponseUtils.success(poolTable);

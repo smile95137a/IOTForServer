@@ -149,10 +149,17 @@ public class AdminNewsController {
 
     // 根据 ID 删除新闻
     @DeleteMapping("/{uid}")
-    public ResponseEntity<ApiResponse<Void>> deleteNewsById(@PathVariable String uid) {
-        newsService.deleteNewsById(uid);
-        ApiResponse<Void> success = ResponseUtils.success(null);
-        return ResponseEntity.ok(success);
+    public ResponseEntity<ApiResponse<String>> deleteNewsById(@PathVariable String uid) {
+        try {
+            newsService.deleteNewsById(uid);
+            ApiResponse<String> success = ResponseUtils.success("刪除成功");
+            return ResponseEntity.ok(success);
+        } catch (Exception e) {
+            e.printStackTrace();
+            ApiResponse<String> error = ResponseUtils.error(e.getMessage());
+            return ResponseEntity.ok(error);
+        }
+
     }
 
     @PostMapping("/{newsId}/upload-image")

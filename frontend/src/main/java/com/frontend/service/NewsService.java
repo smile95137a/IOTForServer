@@ -1,5 +1,6 @@
 package com.frontend.service;
 
+import com.frontend.entity.banner.Banner;
 import com.frontend.entity.news.News;
 import com.frontend.entity.user.User;
 import com.frontend.enums.NewsStatus;
@@ -60,9 +61,12 @@ public class NewsService {
 
     // Delete News by ID
     @Transactional
-    public void deleteNewsById(String uid) {
+    public void deleteNewsById(String uid) throws Exception {
         News news = newsRepository.findByNewsUid(uid).get();
-
+        Banner banner = bannerRepository.findByNewsId(news.getId());
+        if(banner != null){
+            throw new Exception("目前有綁定banner不能刪除");
+        }
         bannerRepository.deleteByNewsId(news.getId());
         newsRepository.deleteByNewsUid(uid);
     }

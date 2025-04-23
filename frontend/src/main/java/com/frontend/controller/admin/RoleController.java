@@ -3,7 +3,9 @@ package com.frontend.controller.admin;
 import com.frontend.config.message.ApiResponse;
 import com.frontend.entity.menu.Menu;
 import com.frontend.entity.role.Role;
+import com.frontend.entity.user.User;
 import com.frontend.req.menu.MenuIdsRequest;
+import com.frontend.res.user.UserRoleRes;
 import com.frontend.service.MenuService;
 import com.frontend.service.RoleService;
 import com.frontend.utils.ResponseUtils;
@@ -93,4 +95,14 @@ public class RoleController {
         ApiResponse<Set<Menu>> success = ResponseUtils.success(menus);
         return ResponseEntity.ok(success);
     }
+
+    // 8. 查詢具有某角色的所有用戶
+    @GetMapping("/{roleId}/users")
+    public ResponseEntity<ApiResponse<List<UserRoleRes>>> getUsersByRole(@PathVariable Long roleId) {
+        List<UserRoleRes> users = roleService.findUsersByRole(roleId);
+        ApiResponse<List<UserRoleRes>> response = ResponseUtils.success(users);
+        return ResponseEntity.ok(response);
+    }
+
+
 }
