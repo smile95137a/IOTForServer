@@ -210,16 +210,12 @@ public class AdminPoolTableService {
         // 取得桌台資訊
         PoolTable poolTable = poolTableRepository.findById(gameRecord.getPoolTableId())
                 .orElseThrow(() -> new Exception("桌台信息未找到"));
-        String newGameId = UUID.randomUUID().toString();
 
         // 建立遊戲訂單
         GameOrder gameOrder = new GameOrder();
         gameOrder.setUserId(user.getUid());
-        if (bookGame == null) {
-            gameOrder.setGameId(newGameId);
-        } else {
-            gameOrder.setGameId(gameReq.getGameId());
-        }
+        gameOrder.setGameId(gameReq.getGameId());
+        gameOrder.setGameId(gameReq.getGameId());
         gameOrder.setTotalPrice(adjustedPrice);
         gameOrder.setStartTime(gameRecord.getStartTime());
         gameOrder.setEndTime(endDateTime);
@@ -240,7 +236,7 @@ public class AdminPoolTableService {
         GameResponse response = new GameResponse();
         response.setTotalSeconds(duration.toSeconds());
         response.setTotalPrice(adjustedPrice);
-        response.setGameId(newGameId);
+        response.setGameId(gameReq.getGameId());
 
         return response;
     }
