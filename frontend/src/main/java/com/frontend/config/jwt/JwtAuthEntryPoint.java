@@ -2,6 +2,9 @@ package com.frontend.config.jwt;
 
 import java.io.IOException;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.frontend.config.message.ApiResponse;
+import com.frontend.utils.ResponseUtils;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
@@ -16,11 +19,18 @@ import lombok.extern.slf4j.Slf4j;
 public class JwtAuthEntryPoint implements AuthenticationEntryPoint {
 
 	@Override
-	public void commence(HttpServletRequest request, HttpServletResponse response,
-			AuthenticationException authException) throws IOException, ServletException {
+	public void commence(HttpServletRequest request,
+						 HttpServletResponse response,
+						 AuthenticationException authException) throws IOException {
+
 		log.error("Unauthorized error. Message - {}", authException.getMessage());
 
-		response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Error: Unauthorized");
+		response.setContentType("application/json;charset=UTF-8");
+		response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+
+		ApiResponse<String> error = ResponseUtils.error(9999 ,"帳號或密碼錯誤" , null);
+		response.getWriter().write(new ObjectMapper().writeValueAsString(error));
 	}
+
 
 }

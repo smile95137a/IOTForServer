@@ -83,11 +83,6 @@ public class AuthController {
 // 查詢資料庫獲取完整的 Role 物件
         var roles = roleRepository.findByRoleNameIn(roleNames);
 
-// 取得 roleId 集合
-        var roleIds = roles.stream()
-                .map(Role::getId)
-                .collect(Collectors.toSet());
-
         var userRes = UserRes.builder()
                 .id(userDetails.getId())
                 .uid(userDetails.getUid())

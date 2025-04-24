@@ -159,12 +159,24 @@ public class GameService {
         int discountRateAmount = currentSchedule.getDiscountRate();
 
         // 扣除押金
-        int newAmount = byUid.getAmount() - store.getDeposit();
-        if (newAmount < 0) {
-            throw new Exception("儲值金不足，請儲值");
+        int remainingAmount = store.getDeposit();
+        int availableBalance = byUid.getAmount() + byUid.getPoint();
+        if (availableBalance >= store.getDeposit()) {
+            // 儲值金額足夠
+            if (byUid.getAmount() >= store.getDeposit()) {
+                byUid.setAmount((int) (byUid.getAmount() - remainingAmount));
+                remainingAmount = 0;
+            } else {
+                // 儲值金額不足，扣光它，剩下的再從額外金額扣
+                remainingAmount -= byUid.getAmount();
+                byUid.setAmount(0);
+
+                byUid.setPoint((int) (byUid.getPoint() - remainingAmount));
+                remainingAmount = 0;
+            }
         } else {
-            byUid.setAmount(newAmount);
-            userRepository.save(byUid);
+            // 餘額不足
+            throw new RuntimeException("儲值金額和額外獎勳不足以支付總金額");
         }
 
         // 获取当前时间并检查是否有预定的游戏时间
