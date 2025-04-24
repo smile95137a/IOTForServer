@@ -63,8 +63,8 @@ public class NewsService {
     @Transactional
     public void deleteNewsById(String uid) throws Exception {
         News news = newsRepository.findByNewsUid(uid).get();
-        Banner banner = bannerRepository.findByNewsId(news.getId());
-        if(banner != null){
+        List<Banner> banner = bannerRepository.findAllByNewsId(news.getId());
+        if(!banner.isEmpty()){
             throw new Exception("目前有綁定banner不能刪除");
         }
         bannerRepository.deleteByNewsId(news.getId());

@@ -20,5 +20,5 @@ public interface BannerRepository extends JpaRepository<Banner, Long> {
 
     void deleteByNewsId(Long id);
 
-    Banner findByNewsId(Long id);
+    List<Banner> findAllByNewsId(Long id);
 }
