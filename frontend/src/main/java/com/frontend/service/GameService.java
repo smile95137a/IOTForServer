@@ -658,7 +658,25 @@ public class GameService {
         if (durationHours <= 0) {
             throw new Exception("預約時間必須至少為1小時");
         }
-        int bookDeposit = (int) (store.getDeposit() * durationHours);
+        int remainingAmount = (int) (store.getDeposit() * durationHours);
+        int availableBalance = byUid.getAmount() + byUid.getPoint();
+        if (availableBalance >= store.getDeposit()) {
+            // 儲值金額足夠
+            if (byUid.getAmount() >= store.getDeposit()) {
+                byUid.setAmount((int) (byUid.getAmount() - remainingAmount));
+                remainingAmount = 0;
+            } else {
+                // 儲值金額不足，扣光它，剩下的再從額外金額扣
+                remainingAmount -= byUid.getAmount();
+                byUid.setAmount(0);
+
+                byUid.setPoint((int) (byUid.getPoint() - remainingAmount));
+                remainingAmount = 0;
+            }
+        } else {
+            // 餘額不足
+            throw new RuntimeException("儲值金額和額外獎勳不足以支付總金額");
+        }
 
         // ➡️ 查詢是否有該遊戲已被預約
         List<String> gameIds = gameRecordRepository.findGameIdByPoolTableIdAndStatus(
