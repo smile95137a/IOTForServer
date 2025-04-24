@@ -157,7 +157,7 @@ public class AdminNewsController {
         } catch (Exception e) {
             e.printStackTrace();
             ApiResponse<String> error = ResponseUtils.error(e.getMessage());
-            return ResponseEntity.ok(error);
+                return ResponseEntity.ok(error);
         }
 
     }
