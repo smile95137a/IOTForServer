@@ -152,11 +152,11 @@ public class AdminNewsController {
     public ResponseEntity<ApiResponse<String>> deleteNewsById(@PathVariable String uid) {
         try {
             newsService.deleteNewsById(uid);
-            ApiResponse<String> success = ResponseUtils.success("刪除成功");
+            ApiResponse<String> success = ResponseUtils.success(200 , "刪除成功" , null);
             return ResponseEntity.ok(success);
         } catch (Exception e) {
             e.printStackTrace();
-            ApiResponse<String> error = ResponseUtils.error(e.getMessage());
+            ApiResponse<String> error = ResponseUtils.error(9999 , e.getMessage() , null);
                 return ResponseEntity.ok(error);
         }
 
