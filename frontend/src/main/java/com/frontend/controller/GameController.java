@@ -42,7 +42,7 @@ public class GameController {
             return ResponseEntity.ok(ResponseUtils.success(200, "開台成功", gameRecord));
         }catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.ok(ResponseUtils.success(9999, e.getMessage(), false));
+            return ResponseEntity.ok(ResponseUtils.success(4064, e.getMessage(), false));
         }
     }
 
@@ -106,7 +106,7 @@ public class GameController {
             return ResponseEntity.status(HttpStatus.CREATED).body(ResponseUtils.success(gameRecord));
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseUtils.error(9999, e.getMessage(), null));
+            return ResponseEntity.ok(ResponseUtils.error(4064, e.getMessage(), null));
         }
     }
 

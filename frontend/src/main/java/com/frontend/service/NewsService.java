@@ -3,6 +3,7 @@ package com.frontend.service;
 import com.frontend.entity.banner.Banner;
 import com.frontend.entity.news.News;
 import com.frontend.entity.user.User;
+import com.frontend.enums.BannerStatus;
 import com.frontend.enums.NewsStatus;
 import com.frontend.repo.BannerRepository;
 import com.frontend.repo.NewsRepository;
@@ -62,11 +63,21 @@ public class NewsService {
     // Delete News by ID
     @Transactional
     public void deleteNewsById(String uid) throws Exception {
-        News news = newsRepository.findByNewsUid(uid).get();
-        Banner banner = bannerRepository.findByNewsId(news.getId());
-        if(banner != null){
-            throw new Exception("目前有綁定banner不能刪除");
+        // 安全地獲取 News，如果不存在則拋出異常
+        News news = newsRepository.findByNewsUid(uid)
+                .orElseThrow(() -> new Exception("找不到指定的新聞"));
+
+        // 獲取所有相關的 banner
+        List<Banner> banners = bannerRepository.findAllByNewsId(news.getId());
+
+        // 檢查是否有可用的 banner，如果有則拋出異常
+        for (Banner banner : banners) {
+            if (banner.getStatus() == BannerStatus.AVAILABLE) {
+                throw new Exception("目前有綁定可用狀態的banner不能刪除");
+            }
         }
+
+        // 只有當所有相關的 banner 都不是 AVAILABLE 狀態時，才執行刪除操作
         bannerRepository.deleteByNewsId(news.getId());
         newsRepository.deleteByNewsUid(uid);
     }
