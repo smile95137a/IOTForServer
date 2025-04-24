@@ -113,26 +113,41 @@ public class AdminPoolTableService {
 
     // Update a pool table
     public PoolTable updatePoolTable(String uid, PoolTableReq updatedPoolTableReq, Long id) {
-        // 根據 UID 查找原有的 PoolTable
-        return poolTableRepository.findByUid(uid).map(poolTable -> {
-            // 使用更新的 PoolTableReq 來設置新的數據
-            poolTable.setTableNumber(updatedPoolTableReq.getTableNumber());
-            poolTable.setStatus(updatedPoolTableReq.getStatus());
-            poolTable.setIsUse(updatedPoolTableReq.getIsUse());
-            if(updatedPoolTableReq.getStore() != null){
-                poolTable.setStore(updatedPoolTableReq.getStore());
+        if(updatedPoolTableReq.getStatus().equals("FAULT")){
+            PoolTable poolTable = poolTableRepository.findByUid(uid).get();
+            List<GameRecord> book = gameRecordRepository.findAllByPoolTableIdAndStatus(poolTable.getId(), "BOOK");
+            for (GameRecord gameRecord : book) {
+                gameRecord.setStatus("CANCEL");
+                gameRecordRepository.save(gameRecord);
+
+                User byUid = userRepository.findByUid(gameRecord.getUserUid());
+                byUid.setBalance(gameRecord.getPrice());
+                userRepository.save(byUid);
             }
-            // 這裡假設 Store 是直接從 PoolTableReq 傳過來的
+            poolTable.setStatus("FAULT");
+            return poolTableRepository.save(poolTable);
+        }else{
+            // 根據 UID 查找原有的 PoolTable
+            return poolTableRepository.findByUid(uid).map(poolTable -> {
+                // 使用更新的 PoolTableReq 來設置新的數據
+                poolTable.setTableNumber(updatedPoolTableReq.getTableNumber());
+                poolTable.setStatus(updatedPoolTableReq.getStatus());
+                poolTable.setIsUse(updatedPoolTableReq.getIsUse());
+                if(updatedPoolTableReq.getStore() != null){
+                    poolTable.setStore(updatedPoolTableReq.getStore());
+                }
+                // 這裡假設 Store 是直接從 PoolTableReq 傳過來的
 //            if(updatedPoolTableReq.getTableEquipments() != null){
 //                poolTable.setTableEquipments(updatedPoolTableReq.getTableEquipments());
 //            }
-            // 設置時間和用戶信息
-            poolTable.setUpdateTime(LocalDateTime.now());
-            poolTable.setUpdateUserId(id);
+                // 設置時間和用戶信息
+                poolTable.setUpdateTime(LocalDateTime.now());
+                poolTable.setUpdateUserId(id);
 
-            // 保存更新後的 PoolTable
-            return poolTableRepository.save(poolTable);
-        }).orElseThrow(() -> new RuntimeException("PoolTable not found with uid: " + uid));
+                // 保存更新後的 PoolTable
+                return poolTableRepository.save(poolTable);
+            }).orElseThrow(() -> new RuntimeException("PoolTable not found with uid: " + uid));
+        }
     }
 
 

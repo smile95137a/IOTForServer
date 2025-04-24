@@ -26,7 +26,7 @@ public class JwtAuthEntryPoint implements AuthenticationEntryPoint {
 		log.error("Unauthorized error. Message - {}", authException.getMessage());
 
 		response.setContentType("application/json;charset=UTF-8");
-		response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+		response.setStatus(HttpServletResponse.SC_OK); // 回傳 200
 
 		ApiResponse<String> error = ResponseUtils.error(9999 ,"帳號或密碼錯誤" , null);
 		response.getWriter().write(new ObjectMapper().writeValueAsString(error));

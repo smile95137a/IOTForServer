@@ -40,4 +40,7 @@ public interface GameRecordRepository extends CrudRepository<GameRecord, Long> {
     List<GameRecord> findByUserUid(String uid);
 
     GameRecord findByPoolTableIdAndStatus(Long id, String started);
+
+    List<GameRecord> findAllByPoolTableIdAndStatus(Long id, String status);
+
 }
