@@ -20,5 +20,6 @@ public class GameOrderRes {
     private long duration;
     private String status;
     private String gameOrderName;
+    private String poolTableUid;
 
 }

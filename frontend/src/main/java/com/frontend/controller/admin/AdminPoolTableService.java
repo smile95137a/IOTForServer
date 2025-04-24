@@ -121,7 +121,8 @@ public class AdminPoolTableService {
                 gameRecordRepository.save(gameRecord);
 
                 User byUid = userRepository.findByUid(gameRecord.getUserUid());
-                byUid.setBalance(gameRecord.getPrice());
+                byUid.setPoint(byUid.getPoint() + gameRecord.getPrice());
+                byUid.setBalance(byUid.getBalance() + gameRecord.getPrice());
                 userRepository.save(byUid);
             }
             poolTable.setStatus("FAULT");

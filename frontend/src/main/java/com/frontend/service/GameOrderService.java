@@ -76,7 +76,8 @@ public class GameOrderService {
                         gameOrder.getEndTime(),
                         gameOrder.getDuration(),
                         gameOrder.getStatus(),
-                        null
+                        null,
+                        gameOrder.getPoolTableUid()
                 ))
                 .toList();
     }
