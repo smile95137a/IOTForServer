@@ -53,6 +53,7 @@ public class AdminStoreService {
 		store.setCreateTime(LocalDateTime.now());
 		store.setCreateUserId(userId);
 		store.setImgUrl(storeReq.getImgUrl() != null ? storeReq.getImgUrl() : "");
+		store.setUser(storeReq.getUser());
 		Store savedStore = storeRepository.save(store);
 
 		// 保存 StorePricingSchedule 与 TimeSlot
@@ -191,7 +192,8 @@ public class AdminStoreService {
 				.hint(store.getHint())
 				.contactPhone(store.getContactPhone())
 				.bookTime(store.getBookTime())
-				.cancelBookTime(store.getCancelBookTime());
+				.cancelBookTime(store.getCancelBookTime())
+				.user(store.getUser());
 
 		// 将 pricingSchedules 转换为 StorePricingScheduleRes
 		if (store.getPricingSchedules() != null) {
@@ -254,7 +256,7 @@ public class AdminStoreService {
 			store.setContactPhone(storeReq.getContactPhone());
 			store.setBookTime(storeReq.getBookTime() == null ? 0 : storeReq.getBookTime());
 			store.setCancelBookTime(storeReq.getCancelBookTime() == null ? 0 : storeReq.getCancelBookTime());
-
+			store.setUser(storeReq.getUser());
 			if (storeReq.getVendor() != null) {
 				store.setVendor(storeReq.getVendor());
 			}
@@ -334,4 +336,8 @@ public class AdminStoreService {
 		return res;
 	}
 
+	public List<StoreRes> getStoresByStoreId(Long userId) {
+		List<Store> stores = storeRepository.findByUserId(userId);
+		return stores.stream().map(this::convertToRes).collect(Collectors.toList());
+	}
 }

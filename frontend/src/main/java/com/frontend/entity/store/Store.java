@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import com.frontend.entity.poolTable.PoolTable;
 import com.frontend.entity.router.Router;
+import com.frontend.entity.user.User;
 import com.frontend.entity.vendor.Vendor;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -91,6 +92,11 @@ public class Store {
     @OneToMany(mappedBy = "store", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private Set<Router> routers; // 商店中的路由器（各種設備）
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", unique = true)
+    @JsonBackReference
+    private User user;
 
 
     @Override

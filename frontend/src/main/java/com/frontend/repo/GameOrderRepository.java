@@ -3,6 +3,7 @@ package com.frontend.repo;
 import com.frontend.entity.game.GameOrder;
 import com.frontend.entity.game.GameRecord;
 import com.frontend.entity.transection.UserTransactionsRes;
+import com.frontend.res.HourlyRevenueDto;
 import com.frontend.res.transaction.TransactionsRes;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -39,18 +40,36 @@ public interface GameOrderRepository extends JpaRepository<GameOrder, Long> {
             "CAST(COALESCE(SUM(g.totalPrice), 0) AS BigDecimal), " +
             "CAST(COUNT(g) AS Integer)) " +
             "FROM GameOrder g " +
+            "JOIN PoolTable pt ON g.poolTableUid = pt.uid " +
+            "JOIN pt.store s " +
+            "JOIN s.vendor v " +
             "WHERE g.status = 'IS_PAY' " +
-            "AND FUNCTION('DATE', g.startTime) = CURRENT_DATE")
-    TransactionsRes getTodayTotalConsumption();
+            "AND FUNCTION('DATE', g.startTime) = CURRENT_DATE " +
+            "AND (:highestRoleId = 1 OR " +  // 超级管理员可以看所有
+            "    (:highestRoleId = 2 AND v.id = :vendorId) OR " +  // 加盟商只看自己的
+            "    (:highestRoleId = 5 AND s.id = :storeId))")  // 店家只看自己的
+    TransactionsRes getTodayTotalConsumption(
+            @Param("highestRoleId") Long highestRoleId,
+            @Param("vendorId") Long vendorId,
+            @Param("storeId") Long storeId);
 
     @Query("SELECT new com.frontend.res.transaction.TransactionsRes( " +
             "CAST(COALESCE(SUM(g.totalPrice), 0) AS BigDecimal), " +
             "CAST(COUNT(g) AS Integer)) " +
             "FROM GameOrder g " +
+            "JOIN PoolTable pt ON g.poolTableUid = pt.uid " +
+            "JOIN pt.store s " +
+            "JOIN s.vendor v " +
             "WHERE g.status = 'IS_PAY' " +
             "AND FUNCTION('MONTH', g.startTime) = FUNCTION('MONTH', CURRENT_DATE) " +
-            "AND FUNCTION('YEAR', g.startTime) = FUNCTION('YEAR', CURRENT_DATE)")
-    TransactionsRes getMonthTotalConsumption();
+            "AND FUNCTION('YEAR', g.startTime) = FUNCTION('YEAR', CURRENT_DATE) " +
+            "AND (:highestRoleId = 1 OR " +  // 超级管理员可以看所有
+            "    (:highestRoleId = 2 AND v.id = :vendorId) OR " +  // 加盟商只看自己的
+            "    (:highestRoleId = 5 AND s.id = :storeId))")  // 店家只看自己的
+    TransactionsRes getMonthTotalConsumption(
+            @Param("highestRoleId") Long highestRoleId,
+            @Param("vendorId") Long vendorId,
+            @Param("storeId") Long storeId);
 
 
     @Query("SELECT new com.frontend.entity.transection.UserTransactionsRes( " +
@@ -60,5 +79,20 @@ public interface GameOrderRepository extends JpaRepository<GameOrder, Long> {
             "WHERE g.status = 'IS_PAY' " +
             "AND g.userId = :uid")
     UserTransactionsRes getTotalConsumptionAmountAndCount(@Param("uid") String uid);
+
+
+    @Query("SELECT new com.frontend.res.transaction.TransactionsRes( " +
+            "CAST(COALESCE(SUM(g.totalPrice), 0) AS BigDecimal), " +
+            "CAST(COUNT(g) AS Integer)) " +
+            "FROM GameOrder g " +
+            "JOIN PoolTable pt ON g.poolTableUid = pt.uid " +
+            "JOIN pt.store s " +
+            "WHERE g.status = 'IS_PAY' " +
+            "AND s.uid = :storeUid " +
+            "AND FUNCTION('DATE', g.startTime) = CURRENT_DATE")
+    TransactionsRes getStoreTodayConsumption(@Param("storeUid") String storeUid);
+
 }
+
+
 

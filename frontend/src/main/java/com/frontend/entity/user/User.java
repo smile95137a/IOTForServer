@@ -3,7 +3,9 @@ package com.frontend.entity.user;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.frontend.entity.role.Role;
+import com.frontend.entity.store.Store;
 import com.frontend.entity.vendor.Vendor;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -63,6 +65,10 @@ public class User implements Serializable {
 
 	@Column
 	private String userImg;
+
+	@OneToOne(mappedBy = "user", fetch = FetchType.LAZY)
+	@JsonManagedReference
+	private Store store;
 
 	@ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
 	@JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))

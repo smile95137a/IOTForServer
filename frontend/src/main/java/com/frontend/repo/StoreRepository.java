@@ -41,4 +41,6 @@ public interface StoreRepository extends JpaRepository<Store, Long> {
 			"LEFT JOIN FETCH s.pricingSchedules ps " +
 			"WHERE s.uid = :uid")
 	Optional<List<Store>> getStoresWithPricingByUid(@Param("uid") String uid, @Param("status") String status);
+
+	List<Store> findByUserId(Long userId);
 }

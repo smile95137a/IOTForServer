@@ -158,7 +158,6 @@ public class GameService {
         int regularRateAmount = currentSchedule.getRegularRate();
         int discountRateAmount = currentSchedule.getDiscountRate();
 
-        // 扣除押金
         int remainingAmount = store.getDeposit();
         int availableBalance = byUid.getAmount() + byUid.getPoint();
         if (availableBalance >= store.getDeposit()) {
@@ -544,10 +543,11 @@ public class GameService {
         GameRecord byGameId = gameRecordRepository.findByGameId(checkoutReq.getGameId());
         Optional<PoolTable> byId = poolTableRepository.findById(byGameId.getPoolTableId());
         // 根据支付类型进行判断
+        User byUid = userRepository.findByUid(byGameId.getUserUid());
         GameReq gameReq = new GameReq();
         gameReq.setGameId(checkoutReq.getGameId());
         gameReq.setPoolTableUId(byId.get().getUid());
-        GameResponse gameResponse = this.endGame(gameReq, SecurityUtils.getSecurityUser().getId());
+        GameResponse gameResponse = this.endGame(gameReq, byUid.getId());
         Integer totalPrice = (int)gameResponse.getTotalPrice();
 
         String gameId = gameResponse.getGameId();

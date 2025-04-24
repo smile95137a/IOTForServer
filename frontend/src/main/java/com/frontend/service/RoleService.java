@@ -66,15 +66,21 @@ public class RoleService {
 
     public List<UserRoleRes> findUsersByRole(Long roleId) {
         Set<User> usersByRoleId = roleRepository.findUsersByRoleId(roleId);
-        List<UserRoleRes> list = new ArrayList<UserRoleRes>();
+        List<UserRoleRes> list = new ArrayList<>();
+
         usersByRoleId.forEach(user -> {
+            // 條件過濾
+            if ((roleId == 2 && user.getVendor() != null) || (roleId == 5 && user.getStore() != null)) {
+                return; // 符合條件就跳過
+            }
+
             UserRoleRes roleRes = new UserRoleRes();
             roleRes.setId(user.getId());
             roleRes.setUid(user.getUid());
             roleRes.setName(user.getName());
             list.add(roleRes);
         });
+
         return list;
     }
-
 }

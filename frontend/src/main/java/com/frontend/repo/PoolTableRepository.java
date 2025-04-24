@@ -15,4 +15,5 @@ public interface PoolTableRepository extends JpaRepository<PoolTable, Long> {
 	void deleteByUid(String uid);
 
 	Optional<PoolTable> findByUid(String uuid);
+
 }

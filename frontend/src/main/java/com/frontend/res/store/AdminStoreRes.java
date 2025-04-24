@@ -3,6 +3,7 @@ package com.frontend.res.store;
 import com.frontend.entity.poolTable.PoolTable;
 import com.frontend.entity.store.StoreEquipment;
 import com.frontend.entity.store.StorePricingSchedule;
+import com.frontend.entity.user.User;
 import com.frontend.entity.vendor.Vendor;
 import jakarta.persistence.Column;
 import lombok.*;
@@ -30,4 +31,5 @@ public class AdminStoreRes {
     private String contactPhone;
     private Integer bookTime;
     private Integer cancelBookTime;
+    private User user;
 }

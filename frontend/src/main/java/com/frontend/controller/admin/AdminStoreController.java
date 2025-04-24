@@ -1,9 +1,15 @@
 package com.frontend.controller.admin;
 
+import java.time.LocalDate;
 import java.util.List;
 
+import com.frontend.repo.GameOrderRepository;
+import com.frontend.repo.TransactionRecordRepository;
+import com.frontend.res.HourlyRevenueDto;
+import com.frontend.res.StoreReportDto;
 import com.frontend.res.store.AdminStoreRes;
 import com.frontend.res.store.StoreRes;
+import com.frontend.res.transaction.TransactionsRes;
 import com.frontend.utils.ImageUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -24,6 +30,12 @@ public class AdminStoreController {
 
     @Autowired
     private AdminStoreService storeService;
+
+    @Autowired
+    private GameOrderRepository gameOrderRepository;
+
+    @Autowired
+    private TransactionRecordRepository transactionRecordRepository;
 
     // Create a new store
     @PostMapping
@@ -47,9 +59,46 @@ public class AdminStoreController {
         return ResponseEntity.ok(success);
     }
 
+    /**
+     * 获取指定店家的当日营业报表
+     * @param storeUid 店家唯一标识
+     * @return 店家当日营业数据
+     */
+    @GetMapping("/{storeUid}/report")
+    public ResponseEntity<ApiResponse<StoreReportDto>> getStoreReport(@PathVariable String storeUid) {
+try {
+    // 获取店家当日营业数据
+    StoreReportDto report = new StoreReportDto();
+
+    // 1. 获取当日营业额和交易笔数
+    TransactionsRes todayConsumption = gameOrderRepository.getStoreTodayConsumption(storeUid);
+    report.setTodayTotalAmount(todayConsumption.getTodayTotalAmount());
+    report.setTodayTransactionCount(todayConsumption.getTodayTransactionCount());
+
+    // 2. 获取当日充值金额和笔数
+    TransactionsRes todayDeposits = transactionRecordRepository.getStoreTodayDeposits(storeUid);
+    report.setTodayTopupAmount(todayDeposits.getTodayTotalAmount());
+    report.setTodayTopupCount(todayDeposits.getTodayTransactionCount());
+
+    return ResponseEntity.ok(ResponseUtils.success(report));
+}catch (Exception e) {
+    e.printStackTrace();
+}
+return null;
+    }
+
     @GetMapping("/{vendorId}/stores")
     public ResponseEntity<ApiResponse<List<StoreRes>>> getStoresByVendorId(@PathVariable Long vendorId) {
         List<StoreRes> stores = storeService.getStoresByVendorId(vendorId);
+        if (stores.isEmpty()) {
+            return ResponseEntity.ok(ResponseUtils.error(null));
+        }
+        return ResponseEntity.ok(ResponseUtils.success(stores));
+    }
+
+    @GetMapping("/{userId}/stores")
+    public ResponseEntity<ApiResponse<List<StoreRes>>> getStoresByStoreId(@PathVariable Long userId) {
+        List<StoreRes> stores = storeService.getStoresByStoreId(userId);
         if (stores.isEmpty()) {
             return ResponseEntity.ok(ResponseUtils.error(null));
         }

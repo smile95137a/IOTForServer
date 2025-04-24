@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.frontend.entity.poolTable.PoolTable;
 import com.frontend.entity.store.StoreEquipment;
+import com.frontend.entity.user.User;
 import com.frontend.entity.vendor.Vendor;
 import com.frontend.req.store.StorePricingScheduleReq;
 import lombok.AllArgsConstructor;
@@ -36,5 +37,6 @@ public class StoreReq {
     private String contactPhone; // 联系电话
     private Integer bookTime;
     private Integer cancelBookTime;
+    private User user;
 
 }

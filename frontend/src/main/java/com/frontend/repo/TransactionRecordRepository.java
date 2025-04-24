@@ -28,9 +28,18 @@ public interface TransactionRecordRepository extends JpaRepository<TransactionRe
             "CAST(COALESCE(SUM(t.amount), 0) AS BigDecimal), " +
             "CAST(COUNT(t) AS Integer)) " +
             "FROM TransactionRecord t " +
+            "JOIN t.user u " +
+            "LEFT JOIN u.store s " +
+            "LEFT JOIN s.vendor v " +
             "WHERE t.transactionType = 'DEPOSIT' " +
-            "AND FUNCTION('DATE', t.transactionDate) = CURRENT_DATE")
-    TransactionsRes getTodayTotalDeposits();
+            "AND FUNCTION('DATE', t.transactionDate) = CURRENT_DATE " +
+            "AND (:highestRoleId = 1 OR " +  // 超级管理员可以看所有
+            "    (:highestRoleId = 2 AND v.id = :vendorId) OR " +  // 加盟商只看自己的
+            "    (:highestRoleId = 5 AND s.id = :storeId))")  // 店家只看自己的
+    TransactionsRes getTodayTotalDeposits(
+            @Param("highestRoleId") Long highestRoleId,
+            @Param("vendorId") Long vendorId,
+            @Param("storeId") Long storeId);
 
 
 
@@ -103,5 +112,15 @@ public interface TransactionRecordRepository extends JpaRepository<TransactionRe
                                         @Param("startDate") LocalDateTime startDate,
                                         @Param("endDate") LocalDateTime endDate);
 
+    @Query("SELECT new com.frontend.res.transaction.TransactionsRes( " +
+            "CAST(COALESCE(SUM(t.amount), 0) AS BigDecimal), " +
+            "CAST(COUNT(t) AS Integer)) " +
+            "FROM TransactionRecord t " +
+            "JOIN t.user u " +  // 使用实体关系进行JOIN
+            "JOIN u.store s " +
+            "WHERE t.transactionType = 'DEPOSIT' " +
+            "AND s.uid = :storeUid " +
+            "AND FUNCTION('DATE', t.transactionDate) = CURRENT_DATE")
+    TransactionsRes getStoreTodayDeposits(@Param("storeUid") String storeUid);
 
 }
