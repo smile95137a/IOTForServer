@@ -23,7 +23,7 @@ import com.frontend.utils.ResponseUtils;
 import com.frontend.utils.SecurityUtils;
 
 @RestController
-    @RequestMapping("/api/b/poolTables")
+@RequestMapping("/api/b/poolTables")
 public class AdminPoolTableController {
 
     @Autowired

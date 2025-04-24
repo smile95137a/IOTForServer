@@ -176,12 +176,13 @@ public class AdminPoolTableService {
         poolTableRepository.save(poolTable);
 
         GameRecord started = gameRecordRepository.findByPoolTableIdAndStatus(poolTable.getId(), "STARTED");
+        User byUid = userRepository.findByUid(started.getUserUid());
         if(started != null){
             GameReq gameReq = new GameReq();
             gameReq.setGameId(started.getGameId());
             gameReq.setPoolTableUId(poolTableReq.getTableUId());
             gameReq.setPoolTableId(poolTable.getId());
-            this.endGame(gameReq , id);
+            this.endGame(gameReq , byUid.getId());
         }
         return poolTable;
     }
