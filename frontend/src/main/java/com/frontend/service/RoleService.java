@@ -69,18 +69,24 @@ public class RoleService {
         List<UserRoleRes> list = new ArrayList<>();
 
         usersByRoleId.forEach(user -> {
-            // 條件過濾
-            if ((roleId == 2 && user.getVendor() != null) || (roleId == 5 && user.getStore() != null)) {
-                return; // 符合條件就跳過
+            boolean isUsed = false;
+
+            if (roleId == 2) {
+                isUsed = user.getVendor() != null;
+            } else if (roleId == 5) {
+                isUsed = user.getStore() != null;
             }
 
             UserRoleRes roleRes = new UserRoleRes();
             roleRes.setId(user.getId());
             roleRes.setUid(user.getUid());
             roleRes.setName(user.getName());
+            roleRes.setIsUsed(isUsed);
+
             list.add(roleRes);
         });
 
         return list;
     }
+
 }

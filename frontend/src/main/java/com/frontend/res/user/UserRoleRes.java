@@ -14,4 +14,6 @@ public class UserRoleRes {
     private Long id;
 
     private String uid;
+
+    private Boolean isUsed;
 }
