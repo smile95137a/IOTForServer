@@ -27,10 +27,11 @@ public class StorePricingSchedule {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "store_id", nullable = false)
-    @JsonBackReference("defaultReference")
+    @ManyToOne
+    @JoinColumn(name = "store_id")
+    @JsonBackReference("pricingScheduleReference")
     private Store store;
+
 
     @Column(nullable = false)
     private String dayOfWeek;

@@ -32,9 +32,9 @@ public class PoolTable {
     private String status; // 桌台狀態 (例如 "AVAILABLE", "IN_USE")
 
     @ManyToOne
-    @JoinColumn(name = "store_id", nullable = false)
-    @JsonBackReference
-    private Store store; // 所屬分店
+    @JoinColumn(name = "store_id")
+    @JsonBackReference("poolTableReference")
+    private Store store;
 
 //    @OneToMany(mappedBy = "poolTable", cascade = CascadeType.ALL, orphanRemoval = true)
 //    private Set<TableEquipment> tableEquipments; // 桌台設備設定

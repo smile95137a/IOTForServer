@@ -66,9 +66,10 @@ public class User implements Serializable {
 	@Column
 	private String userImg;
 
-	@OneToOne(mappedBy = "user", fetch = FetchType.LAZY)
-	@JsonManagedReference
+	@OneToOne(mappedBy = "user")
+	@JsonManagedReference("userReference")
 	private Store store;
+
 
 	@ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
 	@JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))

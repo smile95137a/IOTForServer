@@ -35,8 +35,10 @@ public class Vendor {
     @Column(nullable = false)
     private String contactInfo; // 聯繫資訊 (例如電話、郵件)
 
-    @OneToMany(mappedBy = "vendor", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<Store> stores; // 管理的分店
+    @OneToMany(mappedBy = "vendor")
+    @JsonManagedReference("vendorReference")
+    private Set<Store> stores;
+
 
     @Column
     @JsonFormat(pattern = "yyyy/MM/dd HH:mm:ss")

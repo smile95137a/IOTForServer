@@ -21,9 +21,10 @@ public abstract class Router extends Equipment {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "store_id", nullable = false)
-    @JsonBackReference
+    @JoinColumn(name = "store_id")
+    @JsonBackReference("routerReference")
     private Store store;
+
 
     @Column
     private Long routerNumber;

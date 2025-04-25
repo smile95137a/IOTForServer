@@ -40,16 +40,17 @@ public class Store {
 
     @ManyToOne
     @JoinColumn(name = "vendor_id", nullable = false)
-    @JsonBackReference
+    @JsonBackReference("vendorReference")
     private Vendor vendor;
+
     @OneToMany(mappedBy = "store", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference
-    private Set<PoolTable> poolTables; // 分店中的桌台
+    @JsonManagedReference("poolTableReference")
+    private Set<PoolTable> poolTables;
 
 
     @OneToMany(mappedBy = "store", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JsonManagedReference("defaultReference")
-    private Set<StorePricingSchedule> pricingSchedules = new HashSet<>();
+    @JsonManagedReference("pricingScheduleReference")
+    private Set<StorePricingSchedule> pricingSchedules;
 
     @Column
     private String imgUrl;
@@ -90,13 +91,15 @@ public class Store {
     private Integer cancelBookTime;
 
     @OneToMany(mappedBy = "store", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference
-    private Set<Router> routers; // 商店中的路由器（各種設備）
+    @JsonManagedReference("routerReference")
+    private Set<Router> routers;
+
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", unique = true)
-    @JsonBackReference
+    @JsonBackReference("userReference")
     private User user;
+
 
 
     @Override
