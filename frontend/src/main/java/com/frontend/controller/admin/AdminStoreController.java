@@ -96,7 +96,7 @@ return null;
         return ResponseEntity.ok(ResponseUtils.success(stores));
     }
 
-    @GetMapping("/{userId}/stores")
+    @GetMapping("/{userId}/storeList")
     public ResponseEntity<ApiResponse<List<StoreRes>>> getStoresByStoreId(@PathVariable Long userId) {
         List<StoreRes> stores = storeService.getStoresByStoreId(userId);
         if (stores.isEmpty()) {
