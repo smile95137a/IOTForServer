@@ -28,7 +28,7 @@ public class AdminVendorController {
         try {
             UserPrinciple securityUser = SecurityUtils.getSecurityUser();
             Long id = securityUser.getId();
-            Vendor createdVendor = vendorService.createVendor(vendor, id);
+            Vendor createdVendor = vendorService.createVendor(vendor);
             ApiResponse<Vendor> response = ResponseUtils.success(createdVendor);
             return ResponseEntity.ok(response);
         } catch (Exception e) {

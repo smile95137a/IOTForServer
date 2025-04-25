@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import com.frontend.config.security.SecurityUtils;
 import com.frontend.entity.user.User;
 import com.frontend.repo.UserRepository;
 import org.springframework.stereotype.Service;
@@ -30,9 +31,9 @@ public class VendorService {
 	private final UserRepository userRepository;
 
 	// **創建 Vendor 並關聯 User**
-	public Vendor createVendor(VendorReq vendorReq, Long userId) {
-		User user = userRepository.findById(userId)
-				.orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
+	public Vendor createVendor(VendorReq vendorReq) {
+		User user = userRepository.findById(vendorReq.getUserId())
+				.orElseThrow(() -> new RuntimeException("User not found with id: " + vendorReq.getUserId()));
 
 		Vendor vendor = new Vendor();
 		vendor.setUid(RandomUtils.genRandom(24));
@@ -40,8 +41,9 @@ public class VendorService {
 		vendor.setContactInfo(vendorReq.getContactInfo());
 		vendor.setCreateTime(LocalDateTime.now());
 		vendor.setUpdateTime(LocalDateTime.now());
-		vendor.setCreateUserId(userId);
-		vendor.setUpdateUserId(userId);
+		vendor.setCreateUserId(SecurityUtils.getSecurityUser().getId());
+		vendor.setUpdateUserId(SecurityUtils.getSecurityUser().getId());
+		// 移除 setUserId 或確保它的用途與 users 集合不衝突
 		vendor.setUserId(vendorReq.getUserId());
 		vendor.setAddress(vendorReq.getAddress());
 		vendor.setCompanyAddress(vendorReq.getCompanyAddress());
@@ -50,15 +52,15 @@ public class VendorService {
 		vendor.setTelephoneNumber(vendorReq.getTelephoneNumber());
 		vendor.setCompanyName(vendorReq.getCompanyName());
 
-		// **將 User 連結到 Vendor**
-
-		vendor.getUsers().add(user);
-
+		// 先保存 vendor，確保它有 ID
 		Vendor savedVendor = vendorRepository.save(vendor);
-		user.setVendor(savedVendor);
-		userRepository.save(user); // 確保 user 的 vendor_id 正確設置
 
-		return savedVendor;
+		// 然後設置雙向關係
+		user.setVendor(savedVendor);
+		userRepository.save(user);
+
+		// 重新獲取 vendor 以確保關係已更新
+		return vendorRepository.findById(savedVendor.getId()).orElse(savedVendor);
 	}
 
 	// **根據 UID 獲取 Vendor**
