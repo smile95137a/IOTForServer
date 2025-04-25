@@ -99,7 +99,7 @@ return null;
     @GetMapping("/{userId}/storeList")
     public ResponseEntity<ApiResponse<List<AdminStoreRes>>> getStoresByStoreId(@PathVariable Long userId) {
         try {
-            List<AdminStoreRes> stores = storeService.getStoresByStoreId(userId);
+            List<AdminStoreRes> stores = storeService.getStoresByUserId(userId);
             if (stores.isEmpty()) {
                 return ResponseEntity.ok(ResponseUtils.error(4444 , "此使用者未綁定店家" , null));
             }

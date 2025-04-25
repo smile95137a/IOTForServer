@@ -81,7 +81,6 @@ public class User implements Serializable {
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "vendor_id")
 	@JsonBackReference
-	@JsonIgnore
 	private Vendor vendor;
 
 

@@ -6,9 +6,11 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import com.frontend.entity.news.News;
+import com.frontend.entity.role.Role;
 import com.frontend.entity.store.StorePricingSchedule;
 import com.frontend.entity.store.TimeSlot;
 import com.frontend.entity.user.User;
+import com.frontend.entity.vendor.Vendor;
 import com.frontend.repo.StorePricingScheduleRepository;
 import com.frontend.repo.TimeSlotRepository;
 import com.frontend.repo.UserRepository;
@@ -341,58 +343,54 @@ public class AdminStoreService {
 		return res;
 	}
 
-	public List<AdminStoreRes> getStoresByStoreId(Long userId) {
+	public List<AdminStoreRes> getStoresByUserId(Long userId) {
 		User user = userRepository.findById(userId).orElse(null);
 		if (user == null) {
 			return Collections.emptyList();
 		}
 
-		// 定義權限優先順序（數字越小代表權限越高）
-		Map<Long, Integer> rolePriority = Map.of(
-				1L, 1,  // 管理員
-				2L, 2,  // 廠商
-				5L, 3,  // 店家
-				3L, 4   // 一般會員
-		);
+		Set<Long> roleIds = user.getRoles().stream()
+				.map(Role::getId)
+				.collect(Collectors.toSet());
 
-		// 找出該使用者擁有的角色中，權限最高的（priority 最小）
-		int priority = user.getRoles().stream()
-				.mapToInt(role -> rolePriority.getOrDefault(role.getId(), Integer.MAX_VALUE))
-				.min()
-				.orElse(Integer.MAX_VALUE);
+		List<Store> stores = new ArrayList<>();
 
-		List<Store> stores;
-
-		switch (priority) {
-			case 1:
-				// 管理員 → 所有店家
-				stores = storeRepository.findAll();
-				break;
-			case 2:
-				// 廠商 → 該 vendor 所有店家
-				if (user.getVendor() == null) {
-					stores = Collections.emptyList();
-				} else {
-					stores = storeRepository.findByVendorId(user.getVendor().getId());
-				}
-				break;
-			case 3:
-				// 店家 → 自己綁定的店
-				Store store = storeRepository.findByUserId(userId)
-						.stream()
-						.findFirst()
-						.orElse(null);
-				stores = store != null ? List.of(store) : Collections.emptyList();
-				break;
-			default:
-				// 其他 → 沒有權限
-				stores = Collections.emptyList();
+		// 如果是管理員，顯示所有店家
+		if (roleIds.contains(1L)) {
+			return storeRepository.findAll().stream()
+					.map(this::convertToAdminStoreRes)
+					.collect(Collectors.toList());
 		}
 
+		if (roleIds.contains(2L)) {
+			try {
+				Vendor vendor = user.getVendor();
+				if (vendor != null) {
+					Long vendorId = vendor.getId();
+					if (vendorId != null) {
+						stores.addAll(storeRepository.findByVendorId(vendorId));
+					} else {
+						System.err.println("用戶 " + userId + " 的廠商ID為null");
+					}
+				} else {
+					System.err.println("用戶 " + userId + " 沒有關聯的廠商");
+				}
+			} catch (Exception e) {
+				System.err.println("獲取廠商時發生錯誤: " + e.getMessage());
+				e.printStackTrace();
+			}
+		}
+
+		// 如果是店家，添加自己的店
+		if (roleIds.contains(5L)) {
+			stores.addAll(storeRepository.findByUserId(userId));
+		}
+
+		// 去重
 		return stores.stream()
+				.distinct()
 				.map(this::convertToAdminStoreRes)
 				.collect(Collectors.toList());
 	}
-
 
 }
