@@ -341,7 +341,7 @@ public class AdminStoreService {
 		return res;
 	}
 
-	public List<StoreRes> getStoresByStoreId(Long userId) {
+	public List<AdminStoreRes> getStoresByStoreId(Long userId) {
 		User user = userRepository.findById(userId).orElse(null);
 		if (user == null) {
 			return Collections.emptyList();
@@ -390,7 +390,7 @@ public class AdminStoreService {
 		}
 
 		return stores.stream()
-				.map(this::convertToRes)
+				.map(this::convertToAdminStoreRes)
 				.collect(Collectors.toList());
 	}
 
