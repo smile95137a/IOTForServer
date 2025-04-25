@@ -177,7 +177,10 @@ public class GameService {
             // 餘額不足
             throw new RuntimeException("儲值金額和額外獎勳不足以支付總金額");
         }
-
+        availableBalance = byUid.getAmount() + byUid.getPoint();
+        byUid.setBalance((int) availableBalance);
+        // 儲值金扣除後保存更新后的用戶數據
+        userRepository.save(byUid);
         // 获取当前时间并检查是否有预定的游戏时间
         LocalDateTime startTime = LocalDateTime.now();
 
@@ -299,7 +302,7 @@ public class GameService {
         // 退還押金
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new Exception("用户信息未找到"));
-        user.setAmount(user.getAmount() + store.getDeposit());
+        user.setPoint(user.getAmount() + store.getDeposit());
         userRepository.save(user);
 
         // 計算價格
@@ -701,6 +704,10 @@ public class GameService {
             // 餘額不足
             throw new RuntimeException("儲值金額和額外獎勳不足以支付總金額");
         }
+        availableBalance = byUid.getAmount() + byUid.getPoint();
+        byUid.setBalance((int) availableBalance);
+        // 儲值金扣除後保存更新后的用戶數據
+        userRepository.save(byUid);
         LocalDateTime endTime = gameReq.getEndTime();
         // ➡️ 建立 GameRecord
         GameRecord gameRecord = new GameRecord();
@@ -780,7 +787,7 @@ public class GameService {
         if (minutesUntilStart > cancelBookTime) {
             // 超過設定時間，退還全部訂金
             refundAmount = gameRecord.getPrice();
-            byUid.setAmount(byUid.getAmount() + refundAmount);
+            byUid.setPoint(byUid.getAmount() + refundAmount);
             userRepository.save(byUid);
         }
 
