@@ -1,5 +1,6 @@
 package com.frontend.service;
 
+import com.frontend.config.GameBookingException;
 import com.frontend.entity.game.BookGame;
 import com.frontend.entity.game.GameOrder;
 import com.frontend.entity.game.GameRecord;
@@ -71,6 +72,12 @@ public class GameService {
         }
         // 查詢用戶
         PoolTable byStoreUid = poolTableRepository.findById(gameReq.getPoolTableId()).get();
+
+        boolean c = this.checkPooltable(byStoreUid.getUid());
+        if(c){
+            throw new Exception("球局目前不開放使用，請換別桌進行球局");
+        }
+
         BookGame bookGame = bookGameRepository.findByGameId(gameReq.getGameId());
         // 查找遊戲紀錄
         GameRecord gameRecord = gameRecordRepository.findByGameId(gameReq.getGameId());
@@ -124,6 +131,12 @@ public class GameService {
         Vendor vendor = vendorRepository.findById(vId).get();
         List<StorePricingSchedule> pricingSchedules = storePricingScheduleRepository.findByStoreId(store.getId());
 
+        boolean c = this.checkPooltable(byStoreUid.getUid());
+        if(c){
+            throw new Exception("球局目前不開放使用，請換別桌進行球局");
+        }
+
+
         // 检查是否已经有正在进行的游戏
         boolean isUse = gameIsUse(byUid.getUid());
         if (isUse) {
@@ -175,7 +188,7 @@ public class GameService {
             }
         } else {
             // 餘額不足
-            throw new RuntimeException("儲值金額和額外獎勳不足以支付總金額");
+            throw new GameBookingException("儲值金額和額外獎勳不足以支付總金額");
         }
         availableBalance = byUid.getAmount() + byUid.getPoint();
         byUid.setBalance((int) availableBalance);
@@ -579,7 +592,7 @@ public class GameService {
                     }
                 } else {
                     // 餘額不足
-                    throw new RuntimeException("儲值金額和額外獎勳不足以支付總金額");
+                    throw new GameBookingException("儲值金額和額外獎勳不足以支付總金額");
                 }
                 availableBalance = user.getAmount() + user.getPoint();
                 user.setBalance((int) availableBalance);
@@ -598,7 +611,7 @@ public class GameService {
                 break;
 
             default:
-                throw new RuntimeException("无效的支付方式");
+                throw new GameBookingException("无效的支付方式");
         }
         GameOrder game = gameOrderRepository.findByGameId(gameId);
         PoolTable poolTable = poolTableRepository.findById(checkoutReq.getPoolTableId()).get();
@@ -702,7 +715,7 @@ public class GameService {
             }
         } else {
             // 餘額不足
-            throw new RuntimeException("儲值金額和額外獎勳不足以支付總金額");
+            throw new GameBookingException("儲值金額和額外獎勳不足以支付總金額");
         }
         availableBalance = byUid.getAmount() + byUid.getPoint();
         byUid.setBalance((int) availableBalance);
@@ -815,7 +828,7 @@ public class GameService {
     }
 
     @Transactional
-    public Map<String, List<Map<String, Object>>> getAvailableTimes(Long storeId, LocalDate bookingDate, Long poolTableId) {
+    public Map<String, List<Map<String, Object>>> getAvailableTimes(Long storeId, LocalDate bookingDate, Long poolTableId) throws Exception {
         int duration = 1;
         int maxSlots = 24;
 
@@ -826,10 +839,10 @@ public class GameService {
                 .stream()
                 .filter(s -> s.getDayOfWeek().equalsIgnoreCase(bookingDate.getDayOfWeek().toString()))
                 .findFirst()
-                .orElseThrow(() -> new RuntimeException("未找到對應日期的時段"));
+                .orElseThrow(() -> new Exception("未找到對應日期的時段"));
 
         PoolTable poolTable = poolTableRepository.findById(poolTableId)
-                .orElseThrow(() -> new RuntimeException("未找到指定桌台"));
+                .orElseThrow(() -> new Exception("未找到指定桌台"));
 
         List<TimeSlot> timeSlots = schedule.getTimeSlots();
 
@@ -986,11 +999,11 @@ public class GameService {
         return bookGameRepository.findByUserUId(byId.get().getUid());
     }
 
-    public GamePriceRes getGamePrice(GameReq gameReq) {
+    public GamePriceRes getGamePrice(GameReq gameReq) throws Exception {
         // 取得遊戲紀錄
         GameRecord byGameId = gameRecordRepository.findByGameId(gameReq.getGameId());
         if (byGameId == null) {
-            throw new RuntimeException("找不到遊戲紀錄");
+            throw new Exception("找不到遊戲紀錄");
         }
 
         // 取得開始和結束時間
@@ -999,7 +1012,7 @@ public class GameService {
 
         // 驗證結束時間
         if (endTime.isBefore(startTime)) {
-            throw new RuntimeException("結束時間不能小於開始時間");
+            throw new Exception("結束時間不能小於開始時間");
         }
 
         // 計算總秒數
@@ -1012,7 +1025,7 @@ public class GameService {
             // 回傳計算結果
             return new GamePriceRes((double) totalPrice, totalSeconds);
         } catch (Exception e) {
-            throw new RuntimeException("計算價格時發生錯誤: " + e.getMessage());
+            throw new Exception("計算價格時發生錯誤: " + e.getMessage());
         }
     }
 
@@ -1023,6 +1036,15 @@ public class GameService {
             if(noPay.getStatus().equals("UNPAID")){
                 return true;
             }
+        }
+        return false;
+    }
+
+
+    private boolean checkPooltable(String poolTableUID){
+        PoolTable poolTable = poolTableRepository.findByUid(poolTableUID).get();
+        if(!poolTable.getStatus().equals("AVAILABLE")){
+            return true;
         }
         return false;
     }

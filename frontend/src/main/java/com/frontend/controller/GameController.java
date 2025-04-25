@@ -40,9 +40,12 @@ public class GameController {
             Long id = securityUser.getId();
             GameRes gameRecord = gameService.startGame(gameReq , id);
             return ResponseEntity.ok(ResponseUtils.success(200, "開台成功", gameRecord));
-        }catch (Exception e) {
+        }catch (RuntimeException e){
             e.printStackTrace();
             return ResponseEntity.ok(ResponseUtils.success(4064, e.getMessage(), false));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.ok(ResponseUtils.success(9999, e.getMessage(), false));
         }
     }
 
@@ -104,9 +107,13 @@ public class GameController {
         try {
             GameRecord gameRecord = gameService.bookGame(gameReq);
             return ResponseEntity.status(HttpStatus.CREATED).body(ResponseUtils.success(gameRecord));
-        } catch (Exception e) {
+        }catch (RuntimeException e){
             e.printStackTrace();
             return ResponseEntity.ok(ResponseUtils.error(4064, e.getMessage(), null));
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.ok(ResponseUtils.error(9999, e.getMessage(), null));
         }
     }
 
