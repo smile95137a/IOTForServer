@@ -8,8 +8,10 @@ import java.util.stream.Collectors;
 import com.frontend.entity.news.News;
 import com.frontend.entity.store.StorePricingSchedule;
 import com.frontend.entity.store.TimeSlot;
+import com.frontend.entity.user.User;
 import com.frontend.repo.StorePricingScheduleRepository;
 import com.frontend.repo.TimeSlotRepository;
+import com.frontend.repo.UserRepository;
 import com.frontend.req.store.StorePricingScheduleReq;
 import com.frontend.req.store.TimeSlotReq;
 import com.frontend.res.store.AdminStoreRes;
@@ -41,6 +43,9 @@ public class AdminStoreService {
 
 	@Autowired
 	private TimeSlotRepository timeSlotRepository;
+
+	@Autowired
+	private UserRepository userRepository;
 
 	// Create a new store
 	@Transactional
@@ -337,7 +342,45 @@ public class AdminStoreService {
 	}
 
 	public List<StoreRes> getStoresByStoreId(Long userId) {
-		List<Store> stores = storeRepository.findByUserId(userId);
-		return stores.stream().map(this::convertToRes).collect(Collectors.toList());
+		User user = userRepository.findById(userId).get();
+
+		// 找出最大權限的 roleId
+		int maxRoleId = user.getRoles().stream()
+				.mapToInt(role -> Math.toIntExact(role.getId()))
+				.min() // 1是最大權限 → 用 min()，1 < 2 < 5
+				.orElse(Integer.MAX_VALUE); // 若無角色
+
+		List<Store> stores;
+
+		switch (maxRoleId) {
+			case 1:
+				// 管理員 → 所有店家
+				stores = storeRepository.findAll();
+				break;
+			case 2:
+				// 廠商帳號 → 該 vendor 的所有店家
+				if (user.getVendor() == null) {
+					stores = Collections.emptyList();
+				} else {
+					stores = storeRepository.findByVendorId(user.getVendor().getId());
+				}
+				break;
+			case 5:
+				// 店家帳號 → 自己綁定的店
+				Store store = storeRepository.findByUserId(userId)
+						.stream()
+						.findFirst()
+						.orElse(null);
+				stores = store != null ? List.of(store) : Collections.emptyList();
+				break;
+			default:
+				stores = Collections.emptyList();
+		}
+
+		return stores.stream()
+				.map(this::convertToRes)
+				.collect(Collectors.toList());
 	}
+
+
 }
