@@ -111,9 +111,11 @@ public class AdminPoolTableController {
             ApiResponse<PoolTable> success = ResponseUtils.success(poolTable);
             return ResponseEntity.ok(success);
         } catch (RuntimeException e) {
+            e.printStackTrace();
             ApiResponse<PoolTable> error = ResponseUtils.error(null);
             return ResponseEntity.ok(error);
         } catch (Exception e) {
+            e.printStackTrace();
             throw new RuntimeException(e);
         }
     }
