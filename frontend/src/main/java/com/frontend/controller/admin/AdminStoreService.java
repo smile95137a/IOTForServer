@@ -342,31 +342,42 @@ public class AdminStoreService {
 	}
 
 	public List<StoreRes> getStoresByStoreId(Long userId) {
-		User user = userRepository.findById(userId).get();
+		User user = userRepository.findById(userId).orElse(null);
+		if (user == null) {
+			return Collections.emptyList();
+		}
 
-		// 找出最大權限的 roleId
-		int maxRoleId = user.getRoles().stream()
-				.mapToInt(role -> Math.toIntExact(role.getId()))
-				.min() // 1是最大權限 → 用 min()，1 < 2 < 5
-				.orElse(Integer.MAX_VALUE); // 若無角色
+		// 定義權限優先順序（數字越小代表權限越高）
+		Map<Long, Integer> rolePriority = Map.of(
+				1L, 1,  // 管理員
+				2L, 2,  // 廠商
+				5L, 3,  // 店家
+				3L, 4   // 一般會員
+		);
+
+		// 找出該使用者擁有的角色中，權限最高的（priority 最小）
+		int priority = user.getRoles().stream()
+				.mapToInt(role -> rolePriority.getOrDefault(role.getId(), Integer.MAX_VALUE))
+				.min()
+				.orElse(Integer.MAX_VALUE);
 
 		List<Store> stores;
 
-		switch (maxRoleId) {
+		switch (priority) {
 			case 1:
 				// 管理員 → 所有店家
 				stores = storeRepository.findAll();
 				break;
 			case 2:
-				// 廠商帳號 → 該 vendor 的所有店家
+				// 廠商 → 該 vendor 所有店家
 				if (user.getVendor() == null) {
 					stores = Collections.emptyList();
 				} else {
 					stores = storeRepository.findByVendorId(user.getVendor().getId());
 				}
 				break;
-			case 5:
-				// 店家帳號 → 自己綁定的店
+			case 3:
+				// 店家 → 自己綁定的店
 				Store store = storeRepository.findByUserId(userId)
 						.stream()
 						.findFirst()
@@ -374,6 +385,7 @@ public class AdminStoreService {
 				stores = store != null ? List.of(store) : Collections.emptyList();
 				break;
 			default:
+				// 其他 → 沒有權限
 				stores = Collections.emptyList();
 		}
 
