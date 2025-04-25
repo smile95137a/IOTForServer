@@ -99,7 +99,7 @@ public class turnoverController {
                 roleIds.add(1L);
             } else if (roleName.equals("ROLE_MANUFACTURER")) { // 加盟商
                 roleIds.add(2L);
-            } else if (roleName.equals("ROLE_USER")) { // 店家店长
+            } else if (roleName.equals("ROLE_STORE_MANAGER")) { // 店家店长
                 roleIds.add(5L);
             }
         }
