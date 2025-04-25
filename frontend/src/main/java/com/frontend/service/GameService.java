@@ -609,7 +609,10 @@ public class GameService {
                 // 在这里处理Google Pay支付（可以调用第三方支付接口）
                 // 这里只是示意，实际支付处理需要集成相关支付SDK
                 break;
-
+            case "4": // Google Pay
+                // 在这里处理Google Pay支付（可以调用第三方支付接口）
+                // 这里只是示意，实际支付处理需要集成相关支付SDK
+                break;
             default:
                 throw new GameBookingException("无效的支付方式");
         }

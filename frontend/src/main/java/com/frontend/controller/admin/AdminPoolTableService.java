@@ -217,7 +217,8 @@ public class AdminPoolTableService {
         // 退還押金
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new Exception("用户信息未找到"));
-        user.setAmount(user.getAmount() + store.getDeposit());
+        user.setPoint(user.getPoint() + store.getDeposit());
+        user.setBalance(user.getAmount() + user.getPoint());
         userRepository.save(user);
 
         // 計算價格

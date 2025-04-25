@@ -1,5 +1,6 @@
 package com.frontend.controller;
 
+import com.frontend.config.GameBookingException;
 import com.frontend.config.message.ApiResponse;
 import com.frontend.config.service.UserPrinciple;
 import com.frontend.entity.game.GameRecord;
@@ -40,7 +41,11 @@ public class GameOrderController {
             Long id = securityUser.getId();
             GameRes checkout = gameOrderService.checkout(checkoutReq, id);
             return ResponseEntity.ok(ResponseUtils.success(checkout));
-        }catch (Exception e) {
+        }catch (GameBookingException e){
+            e.printStackTrace();
+            return ResponseEntity.ok(ResponseUtils.error(4206, e.getMessage(), null));
+        }
+        catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.ok(ResponseUtils.error(9999, e.getMessage(), null));
         }

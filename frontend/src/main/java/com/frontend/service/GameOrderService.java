@@ -1,5 +1,6 @@
 package com.frontend.service;
 
+import com.frontend.config.GameBookingException;
 import com.frontend.entity.game.GameOrder;
 import com.frontend.entity.game.GameRecord;
 import com.frontend.entity.poolTable.PoolTable;
@@ -115,7 +116,7 @@ public class GameOrderService {
                     }
                 } else {
                     // 餘額不足
-                    throw new RuntimeException("儲值金額和額外獎勳不足以支付總金額");
+                    throw new GameBookingException("儲值金額和額外獎勳不足以支付總金額");
                 }
                 availableBalance = user.getAmount() + user.getPoint();
                 user.setBalance((int) availableBalance);
@@ -132,6 +133,7 @@ public class GameOrderService {
                 // 在这里处理Google Pay支付（可以调用第三方支付接口）
                 // 这里只是示意，实际支付处理需要集成相关支付SDK
                 break;
+            case "4":
 
             default:
                 throw new RuntimeException("无效的支付方式");
