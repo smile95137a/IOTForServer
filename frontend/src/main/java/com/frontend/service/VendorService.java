@@ -51,10 +51,11 @@ public class VendorService {
 		vendor.setCompanyName(vendorReq.getCompanyName());
 
 		// **將 User 連結到 Vendor**
-		user.setVendor(vendor);
+
 		vendor.getUsers().add(user);
 
 		Vendor savedVendor = vendorRepository.save(vendor);
+		user.setVendor(savedVendor);
 		userRepository.save(user); // 確保 user 的 vendor_id 正確設置
 
 		return savedVendor;
