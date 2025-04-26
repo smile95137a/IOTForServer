@@ -624,7 +624,7 @@ public class GameService {
         // 创建交易记录
         GameTransactionRecord transactionRecord = GameTransactionRecord.builder()
                 .uid(user.getUid())
-                .amount(game.getTotalPrice())
+                .amount(totalPrice)
                 .vendorName(vendor.getName())
                 .storeName(store.getName()) // 假设有商店名
                 .tableNumber(poolTable.getTableNumber()) // 假设有桌号
@@ -636,7 +636,9 @@ public class GameService {
 
         // 保存交易记录
         gameTransactionRecordRepository.save(transactionRecord);
-
+        if(game.getStatus().equals("IS_PAY")){
+            game.setTotalPrice(game.getTotalPrice() + totalPrice);
+        }
         game.setStatus("IS_PAY");
         gameOrderRepository.save(game);
 
