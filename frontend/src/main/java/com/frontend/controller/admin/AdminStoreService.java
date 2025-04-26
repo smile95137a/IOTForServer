@@ -71,8 +71,8 @@ public class AdminStoreService {
 						schedule.setDayOfWeek(scheduleReq.getDayOfWeek());
 						schedule.setOpenTime(scheduleReq.getOpenTime());
 						schedule.setCloseTime(scheduleReq.getCloseTime());
-						schedule.setRegularRate(storeReq.getRegularRate());
-						schedule.setDiscountRate(storeReq.getDiscountRate());
+						schedule.setRegularRate(scheduleReq.getRegularRate());
+						schedule.setDiscountRate(scheduleReq.getDiscountRate());
 						schedule.setStore(savedStore);
 
 						// 🔥 自动划分时段
