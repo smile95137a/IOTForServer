@@ -117,7 +117,7 @@ public class AdminPoolTableService {
             PoolTable poolTable = poolTableRepository.findByUid(uid).get();
             List<GameRecord> book = gameRecordRepository.findAllByPoolTableIdAndStatus(poolTable.getId(), "BOOK");
 
-            List<BookGame> byUserUId = bookGameRepository.findByUserUId(poolTable.getUid());
+            List<BookGame> byUserUId = bookGameRepository.findByUserUId(uid);
 
             for(BookGame bookGame:byUserUId){
                 bookGame.setStatus("CANCEL");
