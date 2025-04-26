@@ -358,7 +358,12 @@ public class GameService {
         // 建立回應
         GameResponse response = new GameResponse();
         response.setTotalSeconds(duration.toSeconds());
-        response.setTotalPrice(adjustedPrice);
+        if(bookGame != null){
+            int i = calculateAdjustedPrice(store.getId(), gameRecord.getStartTime(), LocalDateTime.now());
+            response.setTotalPrice(i);
+        }else{
+            response.setTotalPrice(adjustedPrice);
+        }
         response.setGameId(newGameId);
 
         return response;
