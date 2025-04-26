@@ -107,6 +107,9 @@ public class GameService {
         gameRecord.setStartTime(startTime);
         gameRecordRepository.save(gameRecord);
 
+        byGameId.setStartTime(now);
+        gameOrderRepository.save(byGameId);
+
         bookGame.setStatus("COMPLETE");
         bookGameRepository.save(bookGame);
 
