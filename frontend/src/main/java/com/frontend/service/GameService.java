@@ -330,7 +330,7 @@ public class GameService {
         // 建立遊戲訂單
         GameOrder gameOrder = new GameOrder();
         gameOrder.setUserId(user.getUid());
-        if (bookGame == null) {
+        if (bookGame.getStatus().equals("COMPLETE")) {
             gameOrder.setGameId(newGameId);
         } else {
             gameOrder.setGameId(gameReq.getGameId());
@@ -616,7 +616,6 @@ public class GameService {
             default:
                 throw new GameBookingException("无效的支付方式");
         }
-        System.out.println(gameId);
         GameOrder game = gameOrderRepository.findByGameId(gameId);
         PoolTable poolTable = poolTableRepository.findById(checkoutReq.getPoolTableId()).get();
         Store store = storeRepository.findById(poolTable.getStore().getId()).get();
@@ -625,7 +624,7 @@ public class GameService {
         // 创建交易记录
         GameTransactionRecord transactionRecord = GameTransactionRecord.builder()
                 .uid(user.getUid())
-                .amount(totalPrice)
+                .amount(game.getTotalPrice())
                 .vendorName(vendor.getName())
                 .storeName(store.getName()) // 假设有商店名
                 .tableNumber(poolTable.getTableNumber()) // 假设有桌号
@@ -637,9 +636,7 @@ public class GameService {
 
         // 保存交易记录
         gameTransactionRecordRepository.save(transactionRecord);
-        if(game.getStatus().equals("IS_PAY")){
-            game.setTotalPrice(game.getTotalPrice() + totalPrice);
-        }
+
         game.setStatus("IS_PAY");
         gameOrderRepository.save(game);
 
