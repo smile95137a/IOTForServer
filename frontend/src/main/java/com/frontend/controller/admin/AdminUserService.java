@@ -199,7 +199,7 @@ public class AdminUserService {
 
         for (User user : users) {
             user.setPoint(user.getPoint() + pointReq.getPoint());
-            user.setBalance(user.getAmount() + pointReq.getPoint());
+            user.setBalance(user.getAmount() + user.getPoint());
             userRepository.save(user);
         }
 

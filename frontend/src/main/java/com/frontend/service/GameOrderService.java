@@ -140,6 +140,11 @@ public class GameOrderService {
         }
         GameOrder game = gameOrderRepository.findByGameId(checkoutReq.getGameId());
         GameRecord byGameId = gameRecordRepository.findByGameId(checkoutReq.getGameId());
+
+        byGameId.setStatus("ENDED");
+        gameRecordRepository.save(byGameId);
+
+
         PoolTable poolTable = poolTableRepository.findById(byGameId.getPoolTableId()).get();
         Store store = storeRepository.findById(poolTable.getStore().getId()).get();
         Long id1 = store.getVendor().getId();
