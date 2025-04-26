@@ -616,6 +616,7 @@ public class GameService {
             default:
                 throw new GameBookingException("无效的支付方式");
         }
+        System.out.println(gameId);
         GameOrder game = gameOrderRepository.findByGameId(gameId);
         PoolTable poolTable = poolTableRepository.findById(checkoutReq.getPoolTableId()).get();
         Store store = storeRepository.findById(poolTable.getStore().getId()).get();
