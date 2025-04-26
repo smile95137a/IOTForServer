@@ -315,7 +315,7 @@ public class GameService {
         // 退還押金
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new Exception("用户信息未找到"));
-        user.setPoint(user.getAmount() + store.getDeposit());
+        user.setPoint(user.getPoint() + store.getDeposit());
         userRepository.save(user);
 
         // 計算價格
