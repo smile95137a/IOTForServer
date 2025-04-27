@@ -102,9 +102,8 @@ public class GameService {
         }
 
         // 更新遊戲紀錄狀態並儲存
-        gameRecord.setStartTime(now);
         gameRecord.setStatus("STARTED");
-        gameRecord.setStartTime(startTime);
+        gameRecord.setStartTime(now);
         gameRecordRepository.save(gameRecord);
 
         byGameId.setStartTime(now);
