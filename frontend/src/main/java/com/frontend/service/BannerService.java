@@ -34,6 +34,7 @@ public class BannerService {
 
         // 转换成 BannerRes 列表
         return banners.stream()
+                .filter(banner -> banner.getStatus() == BannerStatus.AVAILABLE) // 只保留 AVAILABLE
                 .map(banner -> new BannerRes(
                         banner.getBannerId(),
                         banner.getBannerUid(),
@@ -42,6 +43,7 @@ public class BannerService {
                         banner.getNews() // 如果需要，可以深度复制 news 对象
                 ))
                 .collect(Collectors.toList());
+
     }
 
     // 透過 ID 取得 Banner（包含關聯的 News）
