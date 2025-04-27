@@ -815,8 +815,8 @@ public class GameService {
             if (durationHours <= 0) {
                 throw new Exception("預約時間必須至少為1小時");
             }
-            bookDeposit = (int) (store.getDeposit() * durationHours);
-            byUid.setPoint(byUid.getAmount() + bookDeposit);
+            bookDeposit = gameRecord.getPrice();
+            byUid.setPoint(byUid.getPoint() + bookDeposit);
             userRepository.save(byUid);
         }
 
