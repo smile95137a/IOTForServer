@@ -28,7 +28,7 @@ public class AdminBannerController {
     // 取得所有 Banner
     @GetMapping
     public ResponseEntity<ApiResponse<List<BannerRes>>> getAllBanners() {
-        List<BannerRes> banners = bannerService.getAllBanners();
+        List<BannerRes> banners = bannerService.getAllBannersByB();
         return ResponseEntity.ok(ResponseUtils.success(banners));
     }
 

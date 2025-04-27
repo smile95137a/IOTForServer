@@ -34,7 +34,6 @@ public class BannerService {
 
         // 转换成 BannerRes 列表
         return banners.stream()
-                .filter(banner -> banner.getStatus() == BannerStatus.AVAILABLE) // 只保留 AVAILABLE
                 .map(banner -> new BannerRes(
                         banner.getBannerId(),
                         banner.getBannerUid(),
@@ -121,5 +120,23 @@ public class BannerService {
         Banner banner = bannerRepository.findById(bannerId).get();
             banner.setImageUrl(uploadedFilePath);
             bannerRepository.save(banner);
+    }
+
+    public List<BannerRes> getAllBannersByB() {
+        // 获取所有 Banner 实体
+        List<Banner> banners = bannerRepository.findAllWithNews();
+
+        // 转换成 BannerRes 列表
+        return banners.stream()
+                .filter(banner -> banner.getStatus() == BannerStatus.AVAILABLE) // 只保留 AVAILABLE
+                .map(banner -> new BannerRes(
+                        banner.getBannerId(),
+                        banner.getBannerUid(),
+                        banner.getImageUrl(),
+                        banner.getStatus(),
+                        banner.getNews() // 如果需要，可以深度复制 news 对象
+                ))
+                .collect(Collectors.toList());
+
     }
 }
