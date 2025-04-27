@@ -686,6 +686,7 @@ public class GameService {
             throw new Exception("預約時間必須至少為1小時");
         }
         int bookDeposit = (int) (store.getDeposit() * durationHours);
+        int recordDeposit = bookDeposit;
 
 
         // ➡️ 查詢是否有該遊戲已被預約
@@ -738,7 +739,7 @@ public class GameService {
         gameRecord.setGameId(UUID.randomUUID().toString());
         gameRecord.setUserUid(byUid.getUid());
         gameRecord.setStartTime(startOfDay);
-        gameRecord.setPrice(bookDeposit);
+        gameRecord.setPrice(recordDeposit);
         gameRecord.setRegularRateAmount(regularRateAmount);
         gameRecord.setDiscountRateAmount(discountRateAmount);
         gameRecord.setStatus("BOOK");
@@ -754,7 +755,7 @@ public class GameService {
         GameOrder gameOrder = new GameOrder();
         gameOrder.setGameId(gameRecord.getGameId());
         gameOrder.setUserId(byUid.getUid());
-        gameOrder.setTotalPrice(bookDeposit);
+        gameOrder.setTotalPrice(recordDeposit);
         gameOrder.setStartTime(startOfDay);
         gameOrder.setEndTime(endTime);
         gameOrder.setDuration(Duration.between(gameReq.getStartTime(), gameReq.getEndTime()).toHours());
