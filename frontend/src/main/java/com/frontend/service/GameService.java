@@ -655,6 +655,11 @@ public class GameService {
         User byUid = userRepository.findById(SecurityUtils.getSecurityUser().getId()).orElseThrow(
                 () -> new Exception("使用者不存在"));
 
+        boolean c = this.checkPooltable(gameReq.getPoolTableUId());
+        if(c){
+            throw new Exception("球局目前不開放使用，請換別桌進行球局");
+        }
+
         boolean isUse = gameIsUse(byUid.getUid());
         if (isUse) {
             throw new Exception("已經有開放中的球局");
