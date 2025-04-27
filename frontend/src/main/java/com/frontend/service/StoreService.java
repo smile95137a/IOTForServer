@@ -81,6 +81,8 @@ public class StoreService {
                 .discountTimeSlots(discountTimeSlots) // 设置优惠时段
                 .regularRate(pricingSchedule.getRegularRate()) // 设置普通时段价格
                 .discountRate(pricingSchedule.getDiscountRate()) // 设置优惠时段价格
+                .openTime(pricingSchedule.getOpenTime())
+                .closeTime(pricingSchedule.getCloseTime())
                 .build();
     }
 
