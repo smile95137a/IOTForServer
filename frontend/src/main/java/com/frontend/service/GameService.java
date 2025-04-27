@@ -817,6 +817,7 @@ public class GameService {
             }
             bookDeposit = gameRecord.getPrice();
             byUid.setPoint(byUid.getPoint() + bookDeposit);
+            byUid.setBalance(byUid.getAmount() + byUid.getPoint());
             userRepository.save(byUid);
         }
 
