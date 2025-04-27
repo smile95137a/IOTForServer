@@ -1,4 +1,4 @@
-package com.frontend.controller;
+package com.frontend.controller.admin;
 
 import com.frontend.config.message.ApiResponse;
 import com.frontend.config.service.UserPrinciple;
@@ -32,8 +32,8 @@ public class ReportController {
         // 先取今天的日期
         Object reportData = reportService.getReportData(
                 request.getReportType(),
-                request.getStartDate() != null ? convertToStartOfDay(LocalDate.from(request.getStartDate())) : convertToStartOfDay(null),
-                request.getEndDate() != null ? convertToEndOfDay(LocalDate.from(request.getEndDate())) : convertToEndOfDay(null),
+                isValidDateString(String.valueOf(request.getStartDate())) ? convertToStartOfDay(parseToLocalDate(String.valueOf(request.getStartDate()))) : convertToStartOfDay(null),
+                isValidDateString(String.valueOf(request.getEndDate())) ? convertToEndOfDay(parseToLocalDate(String.valueOf(request.getEndDate()))) : convertToEndOfDay(null),
                 request.getStoreId(),
                 request.getVendorId(),
                 request.getPeriodType(),
@@ -69,5 +69,25 @@ public class ReportController {
         }
         // 返回指定日期的结束时间 (23:59:59.999999999)
         return date.atTime(23, 59, 59, 999999999);
+    }
+
+    /**
+     * 检查字符串是否为有效的日期字符串
+     */
+    private boolean isValidDateString(String dateStr) {
+        return dateStr != null && !dateStr.isEmpty() && !dateStr.isBlank();
+    }
+
+    /**
+     * 将字符串解析为LocalDate对象
+     */
+    private LocalDate parseToLocalDate(String dateStr) {
+        try {
+            // 根据您的日期格式进行调整，以下假设格式为yyyy-MM-dd
+            return LocalDate.parse(dateStr);
+        } catch (Exception e) {
+            // 解析失败时返回当天日期
+            return LocalDate.now();
+        }
     }
 }
