@@ -711,9 +711,9 @@ public class GameService {
 
         // ➡️ 扣款
         int availableBalance = byUid.getAmount() + byUid.getPoint();
-        if (availableBalance >= store.getDeposit()) {
+        if (availableBalance >= bookDeposit) {
             // 儲值金額足夠
-            if (byUid.getAmount() >= store.getDeposit()) {
+            if (byUid.getAmount() >= bookDeposit) {
                 byUid.setAmount((int) (byUid.getAmount() - bookDeposit));
                 bookDeposit = 0;
             } else {
@@ -789,7 +789,7 @@ public class GameService {
 
         // 查詢該筆預約
         GameRecord gameRecord = gameRecordRepository.findByGameId(gameReq.getGameId());
-
+        GameOrder byGameId1 = gameOrderRepository.findByGameId(gameReq.getGameId());
         Store store = storeRepository.findById(gameRecord.getStoreId()).get();
 
         // 確認狀態為 "BOOK"
@@ -807,11 +807,15 @@ public class GameService {
         // 計算剩餘時間（分鐘）
         long minutesUntilStart = Duration.between(now, scheduledStartTime).toMinutes();
         Integer cancelBookTime = store.getCancelBookTime();
-        int refundAmount = 0;
+        int bookDeposit = 0;
         if (minutesUntilStart > cancelBookTime) {
             // 超過設定時間，退還全部訂金
-            refundAmount = gameRecord.getPrice();
-            byUid.setPoint(byUid.getAmount() + refundAmount);
+            long durationHours = Duration.between(byGameId1.getStartTime(), byGameId1.getEndTime()).toHours();
+            if (durationHours <= 0) {
+                throw new Exception("預約時間必須至少為1小時");
+            }
+            bookDeposit = (int) (store.getDeposit() * durationHours);
+            byUid.setPoint(byUid.getAmount() + bookDeposit);
             userRepository.save(byUid);
         }
 
@@ -824,7 +828,7 @@ public class GameService {
         GameOrder gameOrder = new GameOrder();
         gameOrder.setUserId(byUid.getUid());
         gameOrder.setGameId(gameReq.getGameId());
-        gameOrder.setTotalPrice(refundAmount); // 退款金額
+        gameOrder.setTotalPrice(bookDeposit); // 退款金額
         gameOrder.setStartTime(zonedStartTime);
         gameOrder.setEndTime(zonedStartTime);
         gameOrder.setDuration(0L);
