@@ -333,7 +333,7 @@ public class GameService {
         // 建立遊戲訂單
         GameOrder gameOrder = new GameOrder();
         gameOrder.setUserId(user.getUid());
-        if (bookGame.getStatus().equals("COMPLETE")) {
+        if (bookGame != null && "COMPLETE".equals(bookGame.getStatus())) {
             gameOrder.setGameId(newGameId);
         } else {
             gameOrder.setGameId(gameReq.getGameId());
