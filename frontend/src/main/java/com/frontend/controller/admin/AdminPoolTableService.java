@@ -116,15 +116,18 @@ public class AdminPoolTableService {
         if(updatedPoolTableReq.getStatus().equals("FAULT")){
             PoolTable poolTable = poolTableRepository.findByUid(uid).get();
             List<GameRecord> book = gameRecordRepository.findAllByPoolTableIdAndStatus(poolTable.getId(), "BOOK");
-            User user = userRepository.findById(id).get();
-            List<BookGame> byUserUId = bookGameRepository.findByUserUId(user.getUid());
 
-            for(BookGame bookGame:byUserUId){
-                bookGame.setStatus("CANCEL");
-                bookGameRepository.save(bookGame);
-            }
+
+
 
             for (GameRecord gameRecord : book) {
+                User user = userRepository.findByUid(gameRecord.getUserUid());
+                List<BookGame> byUserUId = bookGameRepository.findByUserUId(user.getUid());
+                for(BookGame bookGame:byUserUId){
+                    bookGame.setStatus("CANCEL");
+                    bookGameRepository.save(bookGame);
+                }
+
                 gameRecord.setStatus("CANCEL");
                 gameRecordRepository.save(gameRecord);
 
