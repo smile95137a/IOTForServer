@@ -365,6 +365,11 @@ public class GameService {
         }
         response.setGameId(newGameId);
 
+        if (bookGame != null && "COMPLETE".equals(bookGame.getStatus())) {
+            response.setGameId(newGameId);
+        } else {
+            response.setGameId(gameReq.getGameId());
+        }
         return response;
     }
 
@@ -632,7 +637,7 @@ public class GameService {
         // 创建交易记录
         GameTransactionRecord transactionRecord = GameTransactionRecord.builder()
                 .uid(user.getUid())
-                .amount(game.getTotalPrice())
+                .amount(totalPrice)
                 .vendorName(vendor.getName())
                 .storeName(store.getName()) // 假设有商店名
                 .tableNumber(poolTable.getTableNumber()) // 假设有桌号
