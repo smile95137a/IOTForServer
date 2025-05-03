@@ -112,6 +112,7 @@ public class AdminPoolTableService {
 
 
     // Update a pool table
+    @Transactional
     public PoolTable updatePoolTable(String uid, PoolTableReq updatedPoolTableReq, Long id) {
         if(updatedPoolTableReq.getStatus().equals("FAULT")){
             PoolTable poolTable = poolTableRepository.findByUid(uid).get();
