@@ -7,6 +7,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Where;
 
 import java.time.LocalDateTime;
 import java.util.Set;
@@ -16,6 +17,7 @@ import java.util.Set;
 @NoArgsConstructor
 @Entity
 @Table(name = "pool_tables")
+@Where(clause = "is_deleted = false")
 public class PoolTable {
 
     @Id
@@ -55,4 +57,7 @@ public class PoolTable {
 
     @Column
     private Boolean isUse;
+
+    @Column(name = "is_deleted", nullable = false)
+    private boolean isDeleted = false;
 }

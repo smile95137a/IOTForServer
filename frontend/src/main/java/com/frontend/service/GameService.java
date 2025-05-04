@@ -119,10 +119,9 @@ public class GameService {
         return gameRecord;
     }
 
-    public GameRes startGame(GameReq gameReq , Long id) throws Exception {
-
+    public GameRes startGame(GameReq gameReq, Long id, Boolean confirm) throws Exception {
         boolean b = this.checkoutOrder();
-        if(b){
+        if (b) {
             throw new Exception("有尚未結帳的球局，請先結帳後才能使用開台服務");
         }
 
@@ -135,10 +134,9 @@ public class GameService {
         List<StorePricingSchedule> pricingSchedules = storePricingScheduleRepository.findByStoreId(store.getId());
 
         boolean c = this.checkPooltable(byStoreUid.getUid());
-        if(c){
+        if (c) {
             throw new Exception("球局目前不開放使用，請換別桌進行球局");
         }
-
 
         // 检查是否已经有正在进行的游戏
         boolean isUse = gameIsUse(byUid.getUid());
@@ -177,28 +175,25 @@ public class GameService {
         int remainingAmount = store.getDeposit();
         int availableBalance = byUid.getAmount() + byUid.getPoint();
         if (availableBalance >= store.getDeposit()) {
-            // 儲值金額足夠
             if (byUid.getAmount() >= store.getDeposit()) {
                 byUid.setAmount((int) (byUid.getAmount() - remainingAmount));
                 remainingAmount = 0;
             } else {
-                // 儲值金額不足，扣光它，剩下的再從額外金額扣
                 remainingAmount -= byUid.getAmount();
                 byUid.setAmount(0);
-
                 byUid.setPoint((int) (byUid.getPoint() - remainingAmount));
                 remainingAmount = 0;
             }
         } else {
-            // 餘額不足
             throw new GameBookingException("儲值金額和額外獎勳不足以支付總金額");
         }
         availableBalance = byUid.getAmount() + byUid.getPoint();
         byUid.setBalance((int) availableBalance);
-        // 儲值金扣除後保存更新后的用戶數據
         userRepository.save(byUid);
-        // 获取当前时间并检查是否有预定的游戏时间
-        LocalDateTime startTime = LocalDateTime.now();
+
+        // 获取当前时间并处理为下一分钟整点时间（秒为00）
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime startTime = now.plusMinutes(1).withSecond(0).withNano(0);
 
         // 查找当天是否有预定的游戏记录（状态为 BOOKED）
         List<String> bookedGames = gameRecordRepository.findGameIdByStoreIdAndStatus(
@@ -207,9 +202,9 @@ public class GameService {
         );
         String message = "";
         long endTimeMinutes = 0;
+
         // 检查是否有冲突的预定
         for (String bookedGame : bookedGames) {
-            // 查找预定的订单，并获取该订单的开始时间
             GameOrder order = gameOrderRepository.findByGameId(bookedGame);
             if (order == null) {
                 continue; // 如果找不到对应的订单，则跳过
@@ -219,7 +214,6 @@ public class GameService {
             LocalDateTime bookedEndTime = order.getEndTime(); // 获取预定的结束时间（从订单中获取）
 
             if (startTime.isBefore(bookedEndTime) && startTime.plusHours(1).isAfter(bookedStartTime)) {
-                // 当前时间与预定时间冲突，通知用户
                 long availableTimeMinutes = Duration.between(startTime, bookedStartTime).toMinutes();
                 endTimeMinutes += availableTimeMinutes + 5; // 用户只能玩到预定结束前5分钟
 
@@ -230,6 +224,11 @@ public class GameService {
                 startTime = bookedEndTime.minusMinutes(5); // 设置游戏实际开始时间
                 break; // 退出循环，使用更新后的开始时间
             }
+        }
+
+        // 如果没有确认参数，则抛出异常，提示用户确认是否开台
+        if (message != null && !message.isEmpty() && (confirm == null || !confirm)) {
+            throw new GameBookingException(message);
         }
 
         // 创建游戏记录并保存
@@ -247,7 +246,6 @@ public class GameService {
         gameRecord.setPoolTableId(byStoreUid.getId());
         gameRecord.setPoolTableName(byStoreUid.getTableNumber());
         gameRecord.setHint(store.getHint());
-        // 设置普通时段金额和优惠时段金额
         gameRecord.setRegularRateAmount(regularRateAmount);
         gameRecord.setDiscountRateAmount(discountRateAmount);
 
@@ -257,16 +255,14 @@ public class GameService {
         byStoreUid.setIsUse(true);
         poolTableRepository.save(byStoreUid);
 
-        //開啟該桌台的所有設備
+        // 开启该桌台的所有设备
         List<TableEquipment> byPoolTableId = tableEquipmentRepository.findByPoolTableId(byStoreUid.getId());
-        for(TableEquipment table : byPoolTableId){
+        for (TableEquipment table : byPoolTableId) {
             table.setStatus(true);
             tableEquipmentRepository.save(table);
         }
 
-
-        GameRes gameRes = new GameRes(gameRecord , message , endTimeMinutes , vendor);
-
+        GameRes gameRes = new GameRes(gameRecord, message, endTimeMinutes, vendor);
 
         return gameRes;
     }

@@ -1,5 +1,6 @@
 package com.frontend.controller.admin;
 
+import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
@@ -52,7 +53,6 @@ public class AdminStoreService {
 	// Create a new store
 	@Transactional
 	public Store createStore(StoreReq storeReq, Long userId) {
-		// 创建并保存 Store 实体
 		Store store = convertToEntity(storeReq);
 		store.setBookTime(storeReq.getBookTime() == null ? 0 : storeReq.getBookTime());
 		store.setCancelBookTime(storeReq.getCancelBookTime() == null ? 0 : storeReq.getCancelBookTime());
@@ -61,39 +61,38 @@ public class AdminStoreService {
 		store.setCreateUserId(userId);
 		store.setImgUrl(storeReq.getImgUrl() != null ? storeReq.getImgUrl() : "");
 		store.setUser(storeReq.getUser());
+
 		Store savedStore = storeRepository.save(store);
 
-		// 保存 StorePricingSchedule 与 TimeSlot
-		if (storeReq.getPricingSchedules() != null && !storeReq.getPricingSchedules().isEmpty()) {
-			Set<StorePricingSchedule> schedules = storeReq.getPricingSchedules().stream()
-					.map(scheduleReq -> {
-						StorePricingSchedule schedule = new StorePricingSchedule();
-						schedule.setDayOfWeek(scheduleReq.getDayOfWeek());
-						schedule.setOpenTime(scheduleReq.getOpenTime());
-						schedule.setCloseTime(scheduleReq.getCloseTime());
-						schedule.setRegularRate(scheduleReq.getRegularRate());
-						schedule.setDiscountRate(scheduleReq.getDiscountRate());
-						schedule.setStore(savedStore);
+		// 為 7 天建立 schedule
+		List<StorePricingSchedule> schedules = new ArrayList<>();
+		for (DayOfWeek day : DayOfWeek.values()) {
+			StorePricingSchedule schedule = new StorePricingSchedule();
+			schedule.setDayOfWeek(day.name());
+			schedule.setOpenTime(storeReq.getOpenTime());
+			schedule.setCloseTime(storeReq.getCloseTime());
+			schedule.setRegularRate(storeReq.getRegularRate());
+			schedule.setDiscountRate(storeReq.getDiscountRate());
+			schedule.setStore(savedStore);
 
-						// 🔥 自动划分时段
-                        List<TimeSlot> timeSlots = null;
-                        try {
-                            timeSlots = splitTimeSlots(
-                                    scheduleReq.getOpenTime(),
-                                    scheduleReq.getCloseTime(),
-                                    scheduleReq.getTimeSlots(),
-                                    schedule
-                            );
-                        } catch (Exception e) {
-                            throw new RuntimeException(e);
-                        }
-                        schedule.setTimeSlots(timeSlots);
+			// 時段切分邏輯
+			List<TimeSlot> timeSlots;
+			try {
+				timeSlots = splitTimeSlots(
+						storeReq.getOpenTime(),
+						storeReq.getCloseTime(),
+						storeReq.getTimeSlots(),
+						schedule
+				);
+			} catch (Exception e) {
+				throw new RuntimeException("優惠時段錯誤：" + e.getMessage());
+			}
 
-						return schedule;
-					}).collect(Collectors.toSet());
-
-			storePricingScheduleRepository.saveAll(schedules);
+			schedule.setTimeSlots(timeSlots);
+			schedules.add(schedule);
 		}
+
+		storePricingScheduleRepository.saveAll(schedules);
 
 		return savedStore;
 	}
@@ -253,7 +252,7 @@ public class AdminStoreService {
 	@Transactional
 	public Store updateStore(String uid, StoreReq storeReq, Long id) throws Exception {
 		return storeRepository.findByUid(uid).map(store -> {
-			// 更新店鋪基本信息
+			// 更新店铺基本信息
 			store.setName(storeReq.getName());
 			store.setAddress(storeReq.getAddress());
 			store.setLat(storeReq.getLat());
@@ -264,16 +263,18 @@ public class AdminStoreService {
 			store.setBookTime(storeReq.getBookTime() == null ? 0 : storeReq.getBookTime());
 			store.setCancelBookTime(storeReq.getCancelBookTime() == null ? 0 : storeReq.getCancelBookTime());
 			store.setUser(storeReq.getUser());
+
 			if (storeReq.getVendor() != null) {
 				store.setVendor(storeReq.getVendor());
 			}
+
 			if (storeReq.getPoolTables() != null) {
 				store.setPoolTables(storeReq.getPoolTables());
 			}
 
-			// 更新定價計畫
+			// 更新定价计划
 			if (storeReq.getPricingSchedules() != null) {
-				// 刪除原有的定價計畫，避免 orphanRemoval 問題
+				// 删除原有的定价计划及其时段，避免 orphanRemoval 问题
 				store.getPricingSchedules().forEach(storePricingScheduleRepository::delete);
 				store.getPricingSchedules().clear();
 
@@ -289,27 +290,33 @@ public class AdminStoreService {
 					schedule.setDiscountRate(scheduleReq.getDiscountRate());
 					schedule.setStore(store);
 
-					for (TimeSlotReq timeSlotReq : scheduleReq.getTimeSlots()) {
-						TimeSlot timeSlot = new TimeSlot();
-						timeSlot.setStartTime(timeSlotReq.getStartTime());
-						timeSlot.setEndTime(timeSlotReq.getEndTime());
-						timeSlot.setIsDiscount(timeSlotReq.getIsDiscount());
-						timeSlot.setSchedule(schedule);
-						timeSlots.add(timeSlot);
+					// 时段切分逻辑
+					List<TimeSlot> splitTimeSlots;
+					try {
+						splitTimeSlots = splitTimeSlots(scheduleReq.getOpenTime(), scheduleReq.getCloseTime(), scheduleReq.getTimeSlots(), schedule);
+					} catch (Exception e) {
+						throw new RuntimeException("时段切分错误：" + e.getMessage());
 					}
+
+					// 更新定价计划的时段
+					schedule.setTimeSlots(splitTimeSlots);
+					timeSlots.addAll(splitTimeSlots);
 					schedules.add(schedule);
 				}
 
+				// 保存新的定价计划和时段
 				storePricingScheduleRepository.saveAll(schedules);
 				timeSlotRepository.saveAll(timeSlots);
+
+				// 添加新的定价计划
 				store.getPricingSchedules().addAll(schedules);
 			}
 
-			// 更新修改時間和修改用戶
+			// 更新修改时间和修改用户
 			store.setUpdateTime(LocalDateTime.now());
 			store.setUpdateUserId(id);
 
-			// 儲存並返回更新後的 store 實體
+			// 保存并返回更新后的 store 实体
 			return storeRepository.save(store);
 		}).orElseThrow(() -> new Exception("Store not found with uid: " + uid));
 	}
@@ -318,10 +325,31 @@ public class AdminStoreService {
 
 
 
-
-	// Delete a store
+	@Transactional
 	public void deleteStore(String uid) {
-		storeRepository.deleteByUid(uid);
+		Store store = storeRepository.findByUid(uid)
+				.orElseThrow(() -> new RuntimeException("找不到該 Store: " + uid));
+
+		// 標記主體為已刪除
+		store.setDeleted(true);
+
+		// 標記 poolTables 為已刪除
+		if (store.getPoolTables() != null) {
+			store.getPoolTables().forEach(table -> table.setDeleted(true));
+		}
+
+		// 標記 pricingSchedules 為已刪除
+		if (store.getPricingSchedules() != null) {
+			store.getPricingSchedules().forEach(schedule -> schedule.setDeleted(true));
+		}
+
+		// 標記 routers 為已刪除
+		if (store.getRouters() != null) {
+			store.getRouters().forEach(router -> router.setDeleted(true));
+		}
+
+		// 儲存變更（透過級聯 cascade，一起更新關聯）
+		storeRepository.save(store);
 	}
 
 	public void uploadProductImg(Long id, String uploadedFilePath) {

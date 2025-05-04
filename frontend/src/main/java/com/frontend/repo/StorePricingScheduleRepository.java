@@ -9,7 +9,4 @@ import java.util.List;
 public interface StorePricingScheduleRepository extends JpaRepository<StorePricingSchedule, Long> {
     List<StorePricingSchedule> findByStoreId(Long id);
 
-    // 根据店铺 ID 和星期几查询优惠时段
-    List<StorePricingSchedule> findByStoreIdAndDayOfWeek(Long storeId, String dayOfWeek);
-
 }

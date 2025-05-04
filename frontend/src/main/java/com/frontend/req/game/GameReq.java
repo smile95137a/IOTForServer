@@ -13,4 +13,6 @@ public class GameReq {
     private String poolTableUId;
 
     private Long poolTableId;
+
+    private Boolean confirm;  // ✅ 新增此欄位，用來告訴後端是否為確認開台
 }

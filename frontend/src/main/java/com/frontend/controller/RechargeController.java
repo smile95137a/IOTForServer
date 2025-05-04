@@ -21,11 +21,8 @@ public class RechargeController {
 
     @GetMapping("/standard")
     public ResponseEntity<List<RechargeStandard>> getStandard() {
-        return ResponseEntity.ok(rechargeService.getStandardPlans());
+        LocalDate today = LocalDate.now();
+        return ResponseEntity.ok(rechargeService.getEffectiveRechargePlans(today));
     }
 
-    @GetMapping("/promotion")
-    public ResponseEntity<List<RechargePromotion>> getPromotion(@RequestParam("date") LocalDate date) {
-        return ResponseEntity.ok(rechargeService.getActivePromotions(date));
-    }
 }

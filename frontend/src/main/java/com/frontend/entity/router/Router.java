@@ -7,6 +7,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Where;
 
 @Data
 @AllArgsConstructor
@@ -14,6 +15,7 @@ import lombok.NoArgsConstructor;
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED) // 使用 JOINED 策略，讓子類別建立獨立的表
 @Table(name = "routers")
+@Where(clause = "is_deleted = false")
 public abstract class Router extends Equipment {
 ////////////給碩哥
     @Id
@@ -28,6 +30,9 @@ public abstract class Router extends Equipment {
 
     @Column
     private Long routerNumber;
+
+    @Column(name = "is_deleted", nullable = false)
+    private boolean isDeleted = false;
 
     public void connect() {
         System.out.println("Connecting " + getClass().getSimpleName() + "...");

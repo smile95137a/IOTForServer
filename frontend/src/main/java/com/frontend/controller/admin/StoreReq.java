@@ -7,12 +7,14 @@ import com.frontend.entity.store.StoreEquipment;
 import com.frontend.entity.user.User;
 import com.frontend.entity.vendor.Vendor;
 import com.frontend.req.store.StorePricingScheduleReq;
+import com.frontend.req.store.TimeSlotReq;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.List;
 import java.util.Set;
 
 @Data
@@ -38,5 +40,7 @@ public class StoreReq {
     private Integer bookTime;
     private Integer cancelBookTime;
     private User user;
-
+    private LocalTime openTime;
+    private LocalTime closeTime;
+    private List<TimeSlotReq> timeSlots; // 優惠區間
 }

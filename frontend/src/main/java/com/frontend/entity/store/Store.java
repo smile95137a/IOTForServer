@@ -12,6 +12,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Where;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -23,6 +24,7 @@ import java.util.Set;
 @NoArgsConstructor
 @Entity
 @Table(name = "stores")
+@Where(clause = "is_deleted = false")
 public class Store {
 
     @Id
@@ -48,7 +50,7 @@ public class Store {
     private Set<PoolTable> poolTables;
 
 
-    @OneToMany(mappedBy = "store", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "store", cascade = CascadeType.ALL, fetch = FetchType.LAZY , orphanRemoval = true)
     @JsonManagedReference("pricingScheduleReference")
     private Set<StorePricingSchedule> pricingSchedules;
 
@@ -100,7 +102,8 @@ public class Store {
     @JsonBackReference("userReference")
     private User user;
 
-
+    @Column(name = "is_deleted", nullable = false)
+    private boolean isDeleted = false; // ✅ 預設為 false
 
     @Override
     public boolean equals(Object o) {

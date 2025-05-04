@@ -71,7 +71,7 @@ public class UserService {
 			// 3. 创建用户并保存
 			// 1. 创建 User
 			User user = User.builder()
-					.uid(RandomUtils.genRandom(32))
+					.uid(RandomUtils.genRandom(6))
 					.countryCode(userDto.getCountryCode())
 					.gender(userDto.getGender())
 					.verificationCode(userDto.getVerificationCode())

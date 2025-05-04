@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.Where;
 import org.springframework.cglib.core.Local;
 
 import java.time.LocalDateTime;
@@ -21,6 +22,7 @@ import java.util.stream.Collectors;
 @Table(name = "store_pricing_schedules")
 @EqualsAndHashCode(exclude = {"timeSlots"})
 @ToString(exclude = {"timeSlots"})
+@Where(clause = "is_deleted = false")
 public class StorePricingSchedule {
 
     @Id
@@ -36,7 +38,7 @@ public class StorePricingSchedule {
     @Column(nullable = false)
     private String dayOfWeek;
 
-    @OneToMany(mappedBy = "schedule", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "schedule", cascade = CascadeType.ALL, fetch = FetchType.LAZY , orphanRemoval = true)
     @JsonManagedReference(value = "timeSlotReference")
     private List<TimeSlot> timeSlots = new ArrayList<>();
 
@@ -51,5 +53,7 @@ public class StorePricingSchedule {
     @Column(nullable = false)
         private Integer discountRate;
 
+    @Column(name = "is_deleted", nullable = false)
+    private boolean isDeleted = false;
 
 }
