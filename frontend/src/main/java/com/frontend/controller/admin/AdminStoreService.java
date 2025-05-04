@@ -330,27 +330,34 @@ public class AdminStoreService {
 		Store store = storeRepository.findByUid(uid)
 				.orElseThrow(() -> new RuntimeException("找不到該 Store: " + uid));
 
-		// 標記主體為已刪除
-		store.setDeleted(true);
-
-		// 標記 poolTables 為已刪除
+		// 清空 poolTables 的關聯
 		if (store.getPoolTables() != null) {
-			store.getPoolTables().forEach(table -> table.setDeleted(true));
+			store.getPoolTables().forEach(table -> table.setStore(null)); // 解除關聯
+			store.getPoolTables().clear(); // 清除集合
 		}
 
-		// 標記 pricingSchedules 為已刪除
+		// 清空 pricingSchedules 的關聯
 		if (store.getPricingSchedules() != null) {
-			store.getPricingSchedules().forEach(schedule -> schedule.setDeleted(true));
+			store.getPricingSchedules().forEach(schedule -> schedule.setStore(null));
+			store.getPricingSchedules().clear();
 		}
 
-		// 標記 routers 為已刪除
+		// 清空 routers 的關聯
 		if (store.getRouters() != null) {
-			store.getRouters().forEach(router -> router.setDeleted(true));
+			store.getRouters().forEach(router -> router.setStore(null));
+			store.getRouters().clear();
 		}
 
-		// 儲存變更（透過級聯 cascade，一起更新關聯）
+		// 解除 user 的關聯
+		store.setUser(null);
+
+		// 解除 vendor 的關聯（如果你不想移除 vendor，可略過這一行）
+		store.setVendor(null);
+
+		// 最後儲存變更
 		storeRepository.save(store);
 	}
+
 
 	public void uploadProductImg(Long id, String uploadedFilePath) {
 		Store store = storeRepository.findById(id).orElseThrow(() -> new RuntimeException("News not found with id: " + id));
