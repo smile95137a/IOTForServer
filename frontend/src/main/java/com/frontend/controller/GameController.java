@@ -38,7 +38,7 @@ public class GameController {
         try {
             UserPrinciple securityUser = SecurityUtils.getSecurityUser();
             Long id = securityUser.getId();
-            GameRes gameRecord = gameService.startGame(gameReq , id , gameReq.getConfirm());
+            GameRes gameRecord = gameService.startGame(gameReq , id);
             return ResponseEntity.ok(ResponseUtils.success(200, "開台成功", gameRecord));
         }catch (RuntimeException e){
             e.printStackTrace();

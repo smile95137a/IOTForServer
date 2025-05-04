@@ -126,119 +126,102 @@ public class GameService {
             throw new Exception("有尚未結帳的球局，請先結帳後才能使用開台服務");
         }
 
-        // 查詢用戶
-        User byUid = userRepository.findById(id).get();
-        PoolTable byStoreUid = poolTableRepository.findByUid(gameReq.getPoolTableUId()).get();
-        Store store = storeRepository.findById(byStoreUid.getStore().getId()).get();
-        Long vId = store.getVendor().getId();
-        Vendor vendor = vendorRepository.findById(vId).get();
+        // 查詢用戶、桌台、店家、廠商
+        User byUid = userRepository.findById(id).orElseThrow(() -> new Exception("找不到用戶"));
+        PoolTable byStoreUid = poolTableRepository.findByUid(gameReq.getPoolTableUId()).orElseThrow(() -> new Exception("找不到桌台"));
+        Store store = storeRepository.findById(byStoreUid.getStore().getId()).orElseThrow(() -> new Exception("找不到店家"));
+        Vendor vendor = vendorRepository.findById(store.getVendor().getId()).orElseThrow(() -> new Exception("找不到廠商"));
         List<StorePricingSchedule> pricingSchedules = storePricingScheduleRepository.findByStoreId(store.getId());
 
-        boolean c = this.checkPooltable(byStoreUid.getUid());
-        if(c){
+        if (this.checkPooltable(byStoreUid.getUid())) {
             throw new Exception("球局目前不開放使用，請換別桌進行球局");
         }
 
-
-        // 检查是否已经有正在进行的游戏
-        boolean isUse = gameIsUse(byUid.getUid());
-        if (isUse) {
+        if (gameIsUse(byUid.getUid())) {
             throw new Exception("已經有開放中的球局");
         }
 
-        // 获取当前日期对应星期几，转换为字符串
-        String currentDayString = LocalDate.now().getDayOfWeek().toString().toLowerCase();  // 获取当前星期几的英文名（全小写）
+        String currentDayString = LocalDate.now().getDayOfWeek().toString().toLowerCase();
+        StorePricingSchedule currentSchedule = pricingSchedules.stream()
+                .filter(s -> s.getDayOfWeek().toLowerCase().equals(currentDayString))
+                .findFirst()
+                .orElseThrow(() -> new Exception("沒有找到當天的訊息"));
 
-        // 查找当天对应的优惠时段和普通时段
-        StorePricingSchedule currentSchedule = null;
-        for (StorePricingSchedule schedule : pricingSchedules) {
-            if (schedule.getDayOfWeek().toLowerCase().equals(currentDayString)) {
-                currentSchedule = schedule;
+        LocalTime nowTime = LocalTime.now();
+        if (nowTime.isBefore(currentSchedule.getOpenTime()) || nowTime.isAfter(currentSchedule.getCloseTime())) {
+            throw new Exception("非營業時間，無法開台。營業時間為：" + currentSchedule.getOpenTime() + " - " + currentSchedule.getCloseTime());
+        }
+
+        // ✅ 判斷是否落在已預約時間的前後一小時內，若是，則需要 confirm=true
+        List<String> bookedGames = gameRecordRepository.findGameIdByStoreIdAndStatus(store.getId(), "BOOKED");
+        LocalDateTime now = LocalDateTime.now();
+        boolean isInCriticalPeriod = false;
+
+        for (String bookedGame : bookedGames) {
+            GameOrder order = gameOrderRepository.findByGameId(bookedGame);
+            if (order == null) continue;
+
+            LocalDateTime bookedStartTime = order.getStartTime();
+            LocalDateTime oneHourBefore = bookedStartTime.minusHours(1);
+            LocalDateTime oneHourAfter = bookedStartTime.plusHours(1);
+
+            if (!now.isBefore(oneHourBefore) && !now.isAfter(oneHourAfter)) {
+                isInCriticalPeriod = true;
                 break;
             }
         }
 
-        if (currentSchedule == null) {
-            throw new Exception("沒有找到當天的訊息");
+        if (isInCriticalPeriod && (gameReq.getConfirm() == null || !gameReq.getConfirm())) {
+            throw new Exception("目前時間接近預約時段，請確認是否仍要開台");
         }
 
-        LocalTime nowTime = LocalTime.now();
-        LocalTime openTime = currentSchedule.getOpenTime();
-        LocalTime closeTime = currentSchedule.getCloseTime();
-
-        if (nowTime.isBefore(openTime) || nowTime.isAfter(closeTime)) {
-            throw new Exception("非營業時間，無法開台。營業時間為：" + openTime + " - " + closeTime);
-        }
-
-        // 计算价格
-        int regularRateAmount = currentSchedule.getRegularRate();
-        int discountRateAmount = currentSchedule.getDiscountRate();
-
+        // ✅ 扣儲值金與點數
         int remainingAmount = store.getDeposit();
         int availableBalance = byUid.getAmount() + byUid.getPoint();
+
         if (availableBalance >= store.getDeposit()) {
-            // 儲值金額足夠
             if (byUid.getAmount() >= store.getDeposit()) {
-                byUid.setAmount((int) (byUid.getAmount() - remainingAmount));
-                remainingAmount = 0;
+                byUid.setAmount(byUid.getAmount() - store.getDeposit());
             } else {
-                // 儲值金額不足，扣光它，剩下的再從額外金額扣
                 remainingAmount -= byUid.getAmount();
                 byUid.setAmount(0);
-
-                byUid.setPoint((int) (byUid.getPoint() - remainingAmount));
-                remainingAmount = 0;
+                byUid.setPoint(byUid.getPoint() - remainingAmount);
             }
         } else {
-            // 餘額不足
             throw new GameBookingException("儲值金額和額外獎勳不足以支付總金額");
         }
-        availableBalance = byUid.getAmount() + byUid.getPoint();
-        byUid.setBalance((int) availableBalance);
-        // 儲值金扣除後保存更新后的用戶數據
-        userRepository.save(byUid);
-        // 获取当前时间并检查是否有预定的游戏时间
-        LocalDateTime startTime = LocalDateTime.now();
 
-        // 查找当天是否有预定的游戏记录（状态为 BOOKED）
-        List<String> bookedGames = gameRecordRepository.findGameIdByStoreIdAndStatus(
-                store.getId(),
-                "BOOKED"
-        );
+        byUid.setBalance(byUid.getAmount() + byUid.getPoint());
+        userRepository.save(byUid);
+
+        // ✅ 處理預約時間衝突與時間提示訊息
         String message = "";
         long endTimeMinutes = 0;
-        // 检查是否有冲突的预定
-        for (String bookedGame : bookedGames) {
-            // 查找预定的订单，并获取该订单的开始时间
-            GameOrder order = gameOrderRepository.findByGameId(bookedGame);
-            if (order == null) {
-                continue; // 如果找不到对应的订单，则跳过
-            }
+        LocalDateTime startTime = now;
 
-            LocalDateTime bookedStartTime = order.getStartTime(); // 获取预定的开始时间
-            LocalDateTime bookedEndTime = order.getEndTime(); // 获取预定的结束时间（从订单中获取）
+        for (String bookedGame : bookedGames) {
+            GameOrder order = gameOrderRepository.findByGameId(bookedGame);
+            if (order == null) continue;
+
+            LocalDateTime bookedStartTime = order.getStartTime();
+            LocalDateTime bookedEndTime = order.getEndTime();
 
             if (startTime.isBefore(bookedEndTime) && startTime.plusHours(1).isAfter(bookedStartTime)) {
-                // 当前时间与预定时间冲突，通知用户
                 long availableTimeMinutes = Duration.between(startTime, bookedStartTime).toMinutes();
-                endTimeMinutes += availableTimeMinutes + 5; // 用户只能玩到预定结束前5分钟
-
-                // 创建通知信息
+                endTimeMinutes = availableTimeMinutes + 5;
                 message = "您的遊戲時間 " + bookedEndTime.minusMinutes(5).toLocalTime() + "，之後將會結束並計算費用。";
-
-                // 如果是立即开台，计算可用时间
-                startTime = bookedEndTime.minusMinutes(5); // 设置游戏实际开始时间
-                break; // 退出循环，使用更新后的开始时间
+                startTime = bookedEndTime.minusMinutes(5);
+                break;
             }
         }
 
-        // 创建游戏记录并保存
+        // ✅ 建立 GameRecord 並儲存
         GameRecord gameRecord = new GameRecord();
-        gameRecord.setGameId(UUID.randomUUID().toString()); // 生成UUID
+        gameRecord.setGameId(UUID.randomUUID().toString());
         gameRecord.setStartTime(startTime);
         gameRecord.setUserUid(byUid.getUid());
-        gameRecord.setPrice(store.getDeposit()); // 设置押金
-        gameRecord.setStatus("STARTED"); // 设置状态为开始
+        gameRecord.setPrice(store.getDeposit());
+        gameRecord.setStatus("STARTED");
         gameRecord.setStoreId(store.getId());
         gameRecord.setStoreName(store.getName());
         gameRecord.setVendorId(vendor.getId());
@@ -247,28 +230,22 @@ public class GameService {
         gameRecord.setPoolTableId(byStoreUid.getId());
         gameRecord.setPoolTableName(byStoreUid.getTableNumber());
         gameRecord.setHint(store.getHint());
-        // 设置普通时段金额和优惠时段金额
-        gameRecord.setRegularRateAmount(regularRateAmount);
-        gameRecord.setDiscountRateAmount(discountRateAmount);
+        gameRecord.setRegularRateAmount(currentSchedule.getRegularRate());
+        gameRecord.setDiscountRateAmount(currentSchedule.getDiscountRate());
+        gameRecordRepository.save(gameRecord);
 
-        gameRecordRepository.save(gameRecord);  // 保存游戏记录
-
-        // 开启桌台使用
+        // ✅ 更新桌台與設備狀態
         byStoreUid.setIsUse(true);
         poolTableRepository.save(byStoreUid);
 
-        //開啟該桌台的所有設備
         List<TableEquipment> byPoolTableId = tableEquipmentRepository.findByPoolTableId(byStoreUid.getId());
-        for(TableEquipment table : byPoolTableId){
+        for (TableEquipment table : byPoolTableId) {
             table.setStatus(true);
             tableEquipmentRepository.save(table);
         }
 
-
-        GameRes gameRes = new GameRes(gameRecord , message , endTimeMinutes , vendor);
-
-
-        return gameRes;
+        // ✅ 回傳資料
+        return new GameRes(gameRecord, message, endTimeMinutes, vendor);
     }
 
 
