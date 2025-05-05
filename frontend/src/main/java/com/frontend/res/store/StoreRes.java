@@ -49,4 +49,6 @@ public class StoreRes {
 
     // 特殊日期資訊（如果今天是特殊日期）
     private SpecialDateRes specialDateRes;
+
+    private TodayRes todayRes;
 }

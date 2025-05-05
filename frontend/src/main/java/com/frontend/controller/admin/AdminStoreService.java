@@ -326,7 +326,10 @@ public class AdminStoreService {
 
 	// 将 TimeSlot 转换为 TimeSlotRes 的方法
 	private TimeSlotRes convertToTimeSlotRes(TimeSlot timeSlot) {
-		return new TimeSlotRes(timeSlot.getStartTime(), timeSlot.getEndTime(), timeSlot.getIsDiscount());
+		if(timeSlot.getIsDiscount()) {
+			return new TimeSlotRes(timeSlot.getStartTime(), timeSlot.getEndTime(), timeSlot.getIsDiscount() , timeSlot.getSchedule().getRegularRate());
+		}
+		return null;
 	}
 
 
