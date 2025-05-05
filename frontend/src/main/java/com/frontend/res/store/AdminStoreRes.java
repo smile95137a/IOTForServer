@@ -1,5 +1,6 @@
 package com.frontend.res.store;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.frontend.entity.poolTable.PoolTable;
 import com.frontend.entity.store.StoreEquipment;
 import com.frontend.entity.store.StorePricingSchedule;
@@ -34,8 +35,10 @@ public class AdminStoreRes {
     private Integer cancelBookTime;
     private User user;
 
-    // 從 PricingSchedule 獲取的基本資料
+    // 從 PricingSchedule 獲取的基本資料.
+    @JsonFormat(pattern = "HH:mm")
     private LocalTime openTime;
+    @JsonFormat(pattern = "HH:mm")
     private LocalTime closeTime;
     private Integer regularRate;
     private Integer discountRate;
