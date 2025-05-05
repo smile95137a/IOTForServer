@@ -1,6 +1,7 @@
 package com.frontend.controller.admin;
 
 import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
@@ -8,26 +9,20 @@ import java.util.stream.Collectors;
 
 import com.frontend.entity.news.News;
 import com.frontend.entity.role.Role;
-import com.frontend.entity.store.StorePricingSchedule;
-import com.frontend.entity.store.TimeSlot;
+import com.frontend.entity.store.*;
 import com.frontend.entity.user.User;
 import com.frontend.entity.vendor.Vendor;
-import com.frontend.repo.StorePricingScheduleRepository;
-import com.frontend.repo.TimeSlotRepository;
-import com.frontend.repo.UserRepository;
+import com.frontend.repo.*;
+import com.frontend.req.store.SpecialDateReq;
+import com.frontend.req.store.SpecialTimeSlotReq;
 import com.frontend.req.store.StorePricingScheduleReq;
 import com.frontend.req.store.TimeSlotReq;
-import com.frontend.res.store.AdminStoreRes;
-import com.frontend.res.store.StorePricingScheduleRes;
-import com.frontend.res.store.StoreRes;
-import com.frontend.res.store.TimeSlotRes;
+import com.frontend.res.store.*;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.frontend.entity.store.Store;
-import com.frontend.repo.StoreRepository;
 import com.frontend.utils.RandomUtils;
 
 import lombok.RequiredArgsConstructor;
@@ -50,6 +45,13 @@ public class AdminStoreService {
 	@Autowired
 	private UserRepository userRepository;
 
+	@Autowired
+	private SpecialDateRepository specialDateRepository;
+
+	@Autowired
+	private SpecialTimeSlotRepository specialTimeSlotRepository;
+
+
 	// Create a new store
 	@Transactional
 	public Store createStore(StoreReq storeReq, Long userId) {
@@ -63,6 +65,34 @@ public class AdminStoreService {
 		store.setUser(storeReq.getUser());
 
 		Store savedStore = storeRepository.save(store);
+
+		// 儲存特殊日期與時段
+		List<SpecialDate> specialDates = new ArrayList<>();
+		if (storeReq.getSpecialDates() != null) {
+			for (SpecialDateReq dateReq : storeReq.getSpecialDates()) {
+				SpecialDate specialDate = new SpecialDate();
+				specialDate.setDate(dateReq.getDate());
+				specialDate.setOpenTime(dateReq.getOpenTime());
+				specialDate.setCloseTime(dateReq.getCloseTime());
+				specialDate.setRegularRate(dateReq.getRegularRate());
+				specialDate.setStore(savedStore);
+
+				List<SpecialTimeSlot> slots = new ArrayList<>();
+				for (SpecialTimeSlotReq slotReq : dateReq.getTimeSlots()) {
+					SpecialTimeSlot slot = new SpecialTimeSlot();
+					slot.setStartTime(slotReq.getStartTime());
+					slot.setEndTime(slotReq.getEndTime());
+					slot.setIsDiscount(slotReq.getIsDiscount());
+					slot.setPrice(slotReq.getPrice());
+					slot.setSpecialDate(specialDate);
+					slots.add(slot);
+				}
+				specialDate.setTimeSlots(slots);
+				specialDates.add(specialDate);
+			}
+			specialDateRepository.saveAll(specialDates); // 請確保你有注入 specialDateRepository
+		}
+
 
 		// 為 7 天建立 schedule
 		List<StorePricingSchedule> schedules = new ArrayList<>();
@@ -252,7 +282,7 @@ public class AdminStoreService {
 	@Transactional
 	public Store updateStore(String uid, StoreReq storeReq, Long id) throws Exception {
 		return storeRepository.findByUid(uid).map(store -> {
-			// 更新店铺基本信息
+			// 更新店鋪基本信息
 			store.setName(storeReq.getName());
 			store.setAddress(storeReq.getAddress());
 			store.setLat(storeReq.getLat());
@@ -264,6 +294,10 @@ public class AdminStoreService {
 			store.setCancelBookTime(storeReq.getCancelBookTime() == null ? 0 : storeReq.getCancelBookTime());
 			store.setUser(storeReq.getUser());
 
+			if (storeReq.getImgUrl() != null && !storeReq.getImgUrl().isEmpty()) {
+				store.setImgUrl(storeReq.getImgUrl());
+			}
+
 			if (storeReq.getVendor() != null) {
 				store.setVendor(storeReq.getVendor());
 			}
@@ -272,55 +306,91 @@ public class AdminStoreService {
 				store.setPoolTables(storeReq.getPoolTables());
 			}
 
-			// 更新定价计划
-			if (storeReq.getPricingSchedules() != null) {
-				// 删除原有的定价计划及其时段，避免 orphanRemoval 问题
-				store.getPricingSchedules().forEach(storePricingScheduleRepository::delete);
-				store.getPricingSchedules().clear();
-
-				List<StorePricingSchedule> schedules = new ArrayList<>();
-				List<TimeSlot> timeSlots = new ArrayList<>();
-
-				for (StorePricingScheduleReq scheduleReq : storeReq.getPricingSchedules()) {
-					StorePricingSchedule schedule = new StorePricingSchedule();
-					schedule.setDayOfWeek(scheduleReq.getDayOfWeek());
-					schedule.setOpenTime(scheduleReq.getOpenTime());
-					schedule.setCloseTime(scheduleReq.getCloseTime());
-					schedule.setRegularRate(scheduleReq.getRegularRate());
-					schedule.setDiscountRate(scheduleReq.getDiscountRate());
-					schedule.setStore(store);
-
-					// 时段切分逻辑
-					List<TimeSlot> splitTimeSlots;
-					try {
-						splitTimeSlots = splitTimeSlots(scheduleReq.getOpenTime(), scheduleReq.getCloseTime(), scheduleReq.getTimeSlots(), schedule);
-					} catch (Exception e) {
-						throw new RuntimeException("时段切分错误：" + e.getMessage());
-					}
-
-					// 更新定价计划的时段
-					schedule.setTimeSlots(splitTimeSlots);
-					timeSlots.addAll(splitTimeSlots);
-					schedules.add(schedule);
-				}
-
-				// 保存新的定价计划和时段
-				storePricingScheduleRepository.saveAll(schedules);
-				timeSlotRepository.saveAll(timeSlots);
-
-				// 添加新的定价计划
-				store.getPricingSchedules().addAll(schedules);
+			// 刪除原有的特殊日期及其時段
+			if (store.getSpecialDates() != null) {
+				store.getSpecialDates().forEach(specialDate -> {
+					specialDate.getTimeSlots().forEach(timeSlot -> specialTimeSlotRepository.delete(timeSlot));
+					specialDateRepository.delete(specialDate);
+				});
+				store.getSpecialDates().clear();
 			}
 
-			// 更新修改时间和修改用户
+			// 儲存新的特殊日期與時段
+			List<SpecialDate> specialDates = new ArrayList<>();
+			if (storeReq.getSpecialDates() != null) {
+				for (SpecialDateReq dateReq : storeReq.getSpecialDates()) {
+					SpecialDate specialDate = new SpecialDate();
+					specialDate.setDate(dateReq.getDate());
+					specialDate.setOpenTime(dateReq.getOpenTime());
+					specialDate.setCloseTime(dateReq.getCloseTime());
+					specialDate.setRegularRate(dateReq.getRegularRate());
+					specialDate.setStore(store);
+
+					List<SpecialTimeSlot> slots = new ArrayList<>();
+					for (SpecialTimeSlotReq slotReq : dateReq.getTimeSlots()) {
+						SpecialTimeSlot slot = new SpecialTimeSlot();
+						slot.setStartTime(slotReq.getStartTime());
+						slot.setEndTime(slotReq.getEndTime());
+						slot.setIsDiscount(slotReq.getIsDiscount());
+						slot.setPrice(slotReq.getPrice());
+						slot.setSpecialDate(specialDate);
+						slots.add(slot);
+					}
+					specialDate.setTimeSlots(slots);
+					specialDates.add(specialDate);
+				}
+				specialDateRepository.saveAll(specialDates);
+				store.getSpecialDates().addAll(specialDates);
+			}
+
+			// 刪除原有的定價計劃及其時段
+			if (store.getPricingSchedules() != null) {
+				store.getPricingSchedules().forEach(schedule -> {
+					schedule.getTimeSlots().forEach(timeSlot -> timeSlotRepository.delete(timeSlot));
+					storePricingScheduleRepository.delete(schedule);
+				});
+				store.getPricingSchedules().clear();
+			}
+
+			// 為 7 天建立新的 schedule
+			List<StorePricingSchedule> schedules = new ArrayList<>();
+			for (DayOfWeek day : DayOfWeek.values()) {
+				StorePricingSchedule schedule = new StorePricingSchedule();
+				schedule.setDayOfWeek(day.name());
+				schedule.setOpenTime(storeReq.getOpenTime());
+				schedule.setCloseTime(storeReq.getCloseTime());
+				schedule.setRegularRate(storeReq.getRegularRate());
+				schedule.setDiscountRate(storeReq.getDiscountRate());
+				schedule.setStore(store);
+
+				// 時段切分邏輯，與 createStore 保持一致
+				List<TimeSlot> timeSlots;
+				try {
+					timeSlots = splitTimeSlots(
+							storeReq.getOpenTime(),
+							storeReq.getCloseTime(),
+							storeReq.getTimeSlots(),
+							schedule
+					);
+				} catch (Exception e) {
+					throw new RuntimeException("優惠時段錯誤：" + e.getMessage());
+				}
+
+				schedule.setTimeSlots(timeSlots);
+				schedules.add(schedule);
+			}
+
+			storePricingScheduleRepository.saveAll(schedules);
+			store.getPricingSchedules().addAll(schedules);
+
+			// 更新修改時間和修改用戶
 			store.setUpdateTime(LocalDateTime.now());
 			store.setUpdateUserId(id);
 
-			// 保存并返回更新后的 store 实体
+			// 保存並返回更新後的 store 實體
 			return storeRepository.save(store);
 		}).orElseThrow(() -> new Exception("Store not found with uid: " + uid));
 	}
-
 
 
 
@@ -373,9 +443,76 @@ public class AdminStoreService {
 	}
 
 	private StoreRes convertToRes(Store store) {
-		StoreRes res = new StoreRes();
-		BeanUtils.copyProperties(store, res);
-		return res;
+		StoreRes.StoreResBuilder builder = StoreRes.builder()
+				.id(store.getId())
+				.uid(store.getUid())
+				.name(store.getName())
+				.address(store.getAddress())
+				.vendor(store.getVendor())
+				.imgUrl(store.getImgUrl())
+				.lat(store.getLat())
+				.lon(store.getLon())
+				.deposit(store.getDeposit())
+				.hint(store.getHint())
+				.contactPhone(store.getContactPhone())
+				.bookTime(store.getBookTime())
+				.cancelBookTime(store.getCancelBookTime());
+
+		// 設置 poolTables
+		if (store.getPoolTables() != null) {
+			builder.poolTables(store.getPoolTables());
+		}
+
+		// 將 pricingSchedules 轉換為 StorePricingScheduleRes
+		if (store.getPricingSchedules() != null) {
+			builder.pricingSchedules(store.getPricingSchedules().stream()
+					.map(this::convertToStorePricingScheduleRes)
+					.collect(Collectors.toSet()));
+		} else {
+			builder.pricingSchedules(Set.of());  // 如果為 null，設為空集合
+		}
+
+		// 處理特殊日期資訊 - 檢查今天是否有特殊日期
+		if (store.getSpecialDates() != null && !store.getSpecialDates().isEmpty()) {
+			LocalDate today = LocalDate.now();
+			Optional<SpecialDate> todaySpecialDate = store.getSpecialDates().stream()
+					.filter(date -> date.getDate().equals(today.toString()))
+					.findFirst();
+
+			if (todaySpecialDate.isPresent()) {
+				SpecialDate specialDate = todaySpecialDate.get();
+				SpecialDateRes specialDateRes = convertToSpecialDateRes(specialDate);
+				builder.specialDateRes(specialDateRes);
+			}
+		}
+
+		return builder.build();
+	}
+
+	private SpecialDateRes convertToSpecialDateRes(SpecialDate specialDate) {
+		SpecialDateRes.SpecialDateResBuilder builder = SpecialDateRes.builder()
+				.date(String.valueOf(specialDate.getDate()))
+				.openTime(specialDate.getOpenTime())
+				.closeTime(specialDate.getCloseTime())
+				.regularRate(specialDate.getRegularRate());
+
+		if (specialDate.getTimeSlots() != null) {
+			List<SpecialTimeSlotRes> timeSlotResList = specialDate.getTimeSlots().stream()
+					.map(this::convertToSpecialTimeSlotRes)
+					.collect(Collectors.toList());
+			builder.timeSlots(timeSlotResList);
+		}
+
+		return builder.build();
+	}
+
+	private SpecialTimeSlotRes convertToSpecialTimeSlotRes(SpecialTimeSlot slot) {
+		return SpecialTimeSlotRes.builder()
+				.startTime(slot.getStartTime())
+				.endTime(slot.getEndTime())
+				.isDiscount(slot.getIsDiscount())
+				.price(slot.getPrice())
+				.build();
 	}
 
 	public List<AdminStoreRes> getStoresByUserId(Long userId) {
@@ -426,6 +563,53 @@ public class AdminStoreService {
 				.distinct()
 				.map(this::convertToAdminStoreRes)
 				.collect(Collectors.toList());
+	}
+
+
+	public List<SpecialTimeSlot> splitSpecialTimeSlots(String openTime, String closeTime, List<String> timeSlots, SpecialDate specialDate) throws Exception {
+		List<SpecialTimeSlot> specialTimeSlotList = new ArrayList<>();
+
+		// 假设 openTime 和 closeTime 为 HH:mm 格式的字符串，将其转换为 LocalTime
+		LocalTime open = LocalTime.parse(openTime);
+		LocalTime close = LocalTime.parse(closeTime);
+
+		// 如果时段为空或时间格式不正确，抛出异常
+		if (timeSlots == null || timeSlots.isEmpty()) {
+			throw new Exception("时段不能为空");
+		}
+
+		// 将时段字符串转换为 LocalTime
+		List<LocalTime> timeSlotList = new ArrayList<>();
+		for (String slot : timeSlots) {
+			timeSlotList.add(LocalTime.parse(slot));
+		}
+
+		// 切分时段：将时段从 openTime 到 closeTime 进行切分
+		for (int i = 0; i < timeSlotList.size(); i++) {
+			LocalTime start = (i == 0) ? open : timeSlotList.get(i - 1);
+			LocalTime end = timeSlotList.get(i);
+
+			// 确保每个时段的结束时间都在总的 open 和 close 时间范围内
+			if (end.isAfter(close)) {
+				throw new Exception("时段结束时间超出了规定的关闭时间");
+			}
+
+			// 创建新的 SpecialTimeSlot 对象，并添加到列表中
+			SpecialTimeSlot timeSlot = new SpecialTimeSlot();
+			timeSlot.setStartTime(start);
+			timeSlot.setEndTime(end);
+			timeSlot.setSpecialDate(specialDate);
+			specialTimeSlotList.add(timeSlot);
+		}
+
+		// 添加最后一个时段
+		SpecialTimeSlot lastTimeSlot = new SpecialTimeSlot();
+		lastTimeSlot.setStartTime(timeSlotList.get(timeSlotList.size() - 1));
+		lastTimeSlot.setEndTime(close);
+		lastTimeSlot.setSpecialDate(specialDate);
+		specialTimeSlotList.add(lastTimeSlot);
+
+		return specialTimeSlotList;
 	}
 
 }

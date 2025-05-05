@@ -6,6 +6,7 @@ import com.frontend.entity.poolTable.PoolTable;
 import com.frontend.entity.store.StoreEquipment;
 import com.frontend.entity.user.User;
 import com.frontend.entity.vendor.Vendor;
+import com.frontend.req.store.SpecialDateReq;
 import com.frontend.req.store.StorePricingScheduleReq;
 import com.frontend.req.store.TimeSlotReq;
 import lombok.AllArgsConstructor;
@@ -43,4 +44,6 @@ public class StoreReq {
     private LocalTime openTime;
     private LocalTime closeTime;
     private List<TimeSlotReq> timeSlots; // 優惠區間
+    private List<SpecialDateReq> specialDates; // 特殊日期與優惠時段
+
 }

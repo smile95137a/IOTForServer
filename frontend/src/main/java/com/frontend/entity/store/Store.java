@@ -49,10 +49,13 @@ public class Store {
     @JsonManagedReference("poolTableReference")
     private Set<PoolTable> poolTables;
 
-
     @OneToMany(mappedBy = "store", cascade = CascadeType.ALL, fetch = FetchType.LAZY , orphanRemoval = true)
     @JsonManagedReference("pricingScheduleReference")
     private Set<StorePricingSchedule> pricingSchedules;
+
+    @OneToMany(mappedBy = "store", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference("specialDateReference")
+    private Set<SpecialDate> specialDates; // 這一行新增了與 SpecialDate 的關聯
 
     @Column
     private String imgUrl;
@@ -95,7 +98,6 @@ public class Store {
     @OneToMany(mappedBy = "store", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference("routerReference")
     private Set<Router> routers;
-
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", unique = true)

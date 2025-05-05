@@ -8,6 +8,8 @@ import com.frontend.entity.vendor.Vendor;
 import jakarta.persistence.Column;
 import lombok.*;
 
+import java.time.LocalTime;
+import java.util.List;
 import java.util.Set;
 
 @Data
@@ -21,9 +23,7 @@ public class AdminStoreRes {
     private String address;
     private Vendor vendor;
     private String imgUrl;
-    private Set<StoreEquipment> equipments;
     private Set<PoolTable> poolTables;
-    private Set<StorePricingScheduleRes> pricingSchedules;
     private String lat;
     private String lon;
     private Integer deposit;
@@ -32,4 +32,14 @@ public class AdminStoreRes {
     private Integer bookTime;
     private Integer cancelBookTime;
     private User user;
+
+    // 從 PricingSchedule 獲取的基本資料
+    private LocalTime openTime;
+    private LocalTime closeTime;
+    private Integer regularRate;
+    private Integer discountRate;
+    private List<TimeSlotRes> timeSlots;
+    private Set<StorePricingScheduleRes> pricingSchedules;
+    // 特殊日期
+    private List<SpecialDateRes> specialDates;
 }

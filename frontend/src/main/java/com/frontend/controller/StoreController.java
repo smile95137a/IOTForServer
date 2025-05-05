@@ -1,6 +1,8 @@
 package com.frontend.controller;
 
 import com.frontend.config.message.ApiResponse;
+import com.frontend.entity.store.Store;
+import com.frontend.repo.StoreRepository;
 import com.frontend.res.store.StoreRes;
 import com.frontend.service.StoreService;
 import com.frontend.utils.ResponseUtils;
@@ -19,6 +21,9 @@ public class StoreController {
     @Autowired
     private StoreService storeService;
 
+    @Autowired
+    private StoreRepository storeRepository;
+
     // Get all stores with pricing and time slots
     @GetMapping
     public ResponseEntity<ApiResponse<List<StoreRes>>> findAll() {
@@ -31,9 +36,10 @@ public class StoreController {
 
     // Get store by UID, with available pool table count and pricing
     @GetMapping("/{uid}")
-    public ResponseEntity<ApiResponse<List<StoreRes>>> countAvailableAndInUseByUid(@PathVariable String uid) {
-        List<StoreRes> storeRes = storeService.countAvailableAndInUseByUid(uid);
-        if (storeRes.isEmpty()) {
+    public ResponseEntity<ApiResponse<StoreRes>> countAvailableAndInUseByUid(@PathVariable String uid) {
+        Store store = storeRepository.findByUid(uid).get();
+        StoreRes storeRes = storeService.findById(store.getId());
+        if (storeRes == null) {
             return ResponseEntity.ok(ResponseUtils.error(9999, "無此店家", null));
         }
         return ResponseEntity.ok(ResponseUtils.success(storeRes));
