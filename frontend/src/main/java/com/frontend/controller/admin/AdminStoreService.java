@@ -91,12 +91,13 @@ public class AdminStoreService {
 				specialDate.setTimeSlots(slots);
 				specialDates.add(specialDate);
 			}
-			specialDateRepository.saveAll(specialDates); // 請確保你有注入 specialDateRepository
+			specialDateRepository.saveAll(specialDates);
 		}
 
-
-		// 為 7 天建立 schedule
+		// 關鍵修改：只建立一個包含時段設定的 schedule，而不是每天都重複同樣的時段
+		// 為週一到週日建立基本 schedule，但只有週一包含時段設定
 		List<StorePricingSchedule> schedules = new ArrayList<>();
+
 		for (DayOfWeek day : DayOfWeek.values()) {
 			StorePricingSchedule schedule = new StorePricingSchedule();
 			schedule.setDayOfWeek(day.name());
@@ -106,20 +107,25 @@ public class AdminStoreService {
 			schedule.setDiscountRate(storeReq.getDiscountRate());
 			schedule.setStore(savedStore);
 
-			// 時段切分邏輯
-			List<TimeSlot> timeSlots;
-			try {
-				timeSlots = splitTimeSlots(
-						storeReq.getOpenTime(),
-						storeReq.getCloseTime(),
-						storeReq.getTimeSlots(),
-						schedule
-				);
-			} catch (Exception e) {
-				throw new RuntimeException("優惠時段錯誤：" + e.getMessage());
+			// 只有 MONDAY 包含時段設定，其他天不設置時段
+			// 這樣在查詢時，如果特定星期幾沒有時段設定，就使用週一的設定
+			if (day == DayOfWeek.MONDAY) {
+				try {
+					List<TimeSlot> timeSlots = splitTimeSlots(
+							storeReq.getOpenTime(),
+							storeReq.getCloseTime(),
+							storeReq.getTimeSlots(),
+							schedule
+					);
+					schedule.setTimeSlots(timeSlots);
+				} catch (Exception e) {
+					throw new RuntimeException("優惠時段錯誤：" + e.getMessage());
+				}
+			} else {
+				// 其他天設置空的時段列表
+				schedule.setTimeSlots(new ArrayList<>());
 			}
 
-			schedule.setTimeSlots(timeSlots);
 			schedules.add(schedule);
 		}
 
@@ -127,7 +133,6 @@ public class AdminStoreService {
 
 		return savedStore;
 	}
-
 	private List<TimeSlot> splitTimeSlots(LocalTime openTime, LocalTime closeTime,
 										  List<TimeSlotReq> timeSlotsReq, StorePricingSchedule schedule) throws Exception {
 		List<TimeSlot> result = new ArrayList<>();
@@ -401,7 +406,7 @@ public class AdminStoreService {
 				store.getPricingSchedules().clear();
 			}
 
-			// 為 7 天建立新的 schedule
+			// 為 7 天建立新的 schedule，但只有週一設置時段
 			List<StorePricingSchedule> schedules = new ArrayList<>();
 			for (DayOfWeek day : DayOfWeek.values()) {
 				StorePricingSchedule schedule = new StorePricingSchedule();
@@ -412,20 +417,24 @@ public class AdminStoreService {
 				schedule.setDiscountRate(storeReq.getDiscountRate());
 				schedule.setStore(store);
 
-				// 時段切分邏輯，與 createStore 保持一致
-				List<TimeSlot> timeSlots;
-				try {
-					timeSlots = splitTimeSlots(
-							storeReq.getOpenTime(),
-							storeReq.getCloseTime(),
-							storeReq.getTimeSlots(),
-							schedule
-					);
-				} catch (Exception e) {
-					throw new RuntimeException("優惠時段錯誤：" + e.getMessage());
+				// 只有週一設置時段，其他天保持空列表
+				if (day == DayOfWeek.MONDAY) {
+					try {
+						List<TimeSlot> timeSlots = splitTimeSlots(
+								storeReq.getOpenTime(),
+								storeReq.getCloseTime(),
+								storeReq.getTimeSlots(),
+								schedule
+						);
+						schedule.setTimeSlots(timeSlots);
+					} catch (Exception e) {
+						throw new RuntimeException("優惠時段錯誤：" + e.getMessage());
+					}
+				} else {
+					// 其他天設置空的時段列表
+					schedule.setTimeSlots(new ArrayList<>());
 				}
 
-				schedule.setTimeSlots(timeSlots);
 				schedules.add(schedule);
 			}
 
@@ -440,8 +449,6 @@ public class AdminStoreService {
 			return storeRepository.save(store);
 		}).orElseThrow(() -> new Exception("Store not found with uid: " + uid));
 	}
-
-
 
 
 	@Transactional
