@@ -6,9 +6,7 @@ import com.frontend.entity.game.GameOrder;
 import com.frontend.entity.game.GameRecord;
 import com.frontend.entity.poolTable.PoolTable;
 import com.frontend.entity.poolTable.TableEquipment;
-import com.frontend.entity.store.Store;
-import com.frontend.entity.store.StorePricingSchedule;
-import com.frontend.entity.store.TimeSlot;
+import com.frontend.entity.store.*;
 import com.frontend.entity.transection.GameTransactionRecord;
 import com.frontend.entity.user.User;
 import com.frontend.entity.vendor.Vendor;
@@ -361,55 +359,42 @@ public class GameService {
         long totalRawMinutes = adjustMinutes(Duration.between(startTime, endTime));
 
         LocalDateTime currentStart = startTime;
+        Store store = storeRepository.findById(storeId)
+                .orElseThrow(() -> new Exception("找不到店家"));
 
         while (currentStart.isBefore(endTime)) {
-            LocalDateTime nextDay = currentStart.toLocalDate().plusDays(1).atStartOfDay();
+            // 處理每一天的價格
+            LocalDate currentDate = currentStart.toLocalDate();
+            LocalDateTime nextDay = currentDate.plusDays(1).atStartOfDay();
             LocalDateTime currentEnd = endTime.isBefore(nextDay) ? endTime : nextDay;
 
-            String dayOfWeek = currentStart.getDayOfWeek().toString().toLowerCase();
-            StorePricingSchedule schedule = findScheduleForDay(storeId, dayOfWeek);
+            // 檢查當天是否為特殊日期
+            Optional<SpecialDate> specialDate = getTodaySpecialDate(store, currentDate);
 
-            LocalTime openTime = schedule.getOpenTime();
-            LocalTime closeTime = schedule.getCloseTime();
+            if (specialDate.isPresent()) {
+                // 使用特殊日期的價格和時段
+                SpecialDate spDate = specialDate.get();
+                LocalTime openTime = spDate.getOpenTime();
+                LocalTime closeTime = spDate.getCloseTime();
 
-            // 檢查是否24小時營業
-            boolean is24HourOperation = false;
-            if (openTime.equals(LocalTime.of(0, 0)) &&
-                    (closeTime.equals(LocalTime.of(23, 59)) || closeTime.equals(LocalTime.of(23, 59, 59)))) {
-                is24HourOperation = true;
-            }
-            if (openTime.equals(closeTime)) {
-                is24HourOperation = true;
-            }
+                // 處理營業時間
+                LocalDateTime businessStart = currentStart;
+                LocalDateTime businessEnd = currentEnd;
 
-            System.out.println("日期: " + currentStart.toLocalDate() + ", 是否24小時營業: " + is24HourOperation);
-            System.out.println("營業時間: " + openTime + " - " + closeTime);
+                // 檢查是否在營業時間內
+                LocalDateTime dayOpenTime = currentDate.atTime(openTime);
+                LocalDateTime dayCloseTime = currentDate.atTime(closeTime);
 
-            // 計算當日總時間（不考慮營業時間限制）
-            long totalDayMinutes = adjustMinutes(Duration.between(currentStart, currentEnd));
-
-            // 計算營業時間內的時間
-            LocalDateTime businessStart = currentStart;
-            LocalDateTime businessEnd = currentEnd;
-
-            // 非24小時營業時，計算營業時間與非營業時間
-            if (!is24HourOperation) {
-                // 創建營業開始和結束的日期時間
-                LocalDateTime dayOpenTime = currentStart.toLocalDate().atTime(openTime);
-                LocalDateTime dayCloseTime = currentStart.toLocalDate().atTime(closeTime);
-
-                // 處理跨日的情況（例如營業至凌晨）
+                // 處理跨日的情況
                 if (closeTime.isBefore(openTime)) {
                     dayCloseTime = dayCloseTime.plusDays(1);
                 }
 
-                // 計算營業時間內的時段
+                // 調整營業時間內的時段
                 if (currentEnd.isBefore(dayOpenTime) || currentStart.isAfter(dayCloseTime)) {
-                    // 完全在非營業時間內
                     businessStart = null;
                     businessEnd = null;
                 } else {
-                    // 部分或全部在營業時間內
                     if (currentStart.isBefore(dayOpenTime)) {
                         businessStart = dayOpenTime;
                     }
@@ -417,85 +402,199 @@ public class GameService {
                         businessEnd = dayCloseTime;
                     }
                 }
-            }
 
-            // 處理營業時間內的費用計算
-            long businessHoursMinutes = 0;
-            if (businessStart != null && businessEnd != null && businessStart.isBefore(businessEnd)) {
-                businessHoursMinutes = adjustMinutes(Duration.between(businessStart, businessEnd));
+                // 處理營業時間內的費用計算
+                if (businessStart != null && businessEnd != null && businessStart.isBefore(businessEnd)) {
+                    long businessHoursMinutes = adjustMinutes(Duration.between(businessStart, businessEnd));
 
-                // 計算優惠時段
-                TimeSlot discountSlot = schedule.getTimeSlots().stream()
-                        .filter(TimeSlot::getIsDiscount)
-                        .findFirst()
-                        .orElse(null);
+                    // 處理特殊日期的時段
+                    for (SpecialTimeSlot slot : spDate.getTimeSlots()) {
+                        LocalTime slotStart = slot.getStartTime();
+                        LocalTime slotEnd = slot.getEndTime();
 
-                long discountMinutes = 0;
-                if (discountSlot != null) {
-                    LocalTime discountStart = discountSlot.getStartTime();
-                    LocalTime discountEnd = discountSlot.getEndTime();
+                        LocalDateTime slotStartTime = currentDate.atTime(slotStart);
+                        LocalDateTime slotEndTime = currentDate.atTime(slotEnd);
 
-                    LocalDateTime discSlotStart = businessStart.toLocalDate().atTime(discountStart);
-                    LocalDateTime discSlotEnd = businessStart.toLocalDate().atTime(discountEnd);
+                        if (slotEnd.isBefore(slotStart)) {
+                            slotEndTime = slotEndTime.plusDays(1);
+                        }
 
-                    if (discountEnd.isBefore(discountStart)) {
-                        discSlotEnd = discSlotEnd.plusDays(1);
+                        if (slotStartTime.isBefore(businessEnd) && slotEndTime.isAfter(businessStart)) {
+                            LocalDateTime overlapStart = slotStartTime.isAfter(businessStart) ? slotStartTime : businessStart;
+                            LocalDateTime overlapEnd = slotEndTime.isBefore(businessEnd) ? slotEndTime : businessEnd;
+
+                            long slotMinutes = adjustMinutes(Duration.between(overlapStart, overlapEnd));
+
+                            if (slot.getIsDiscount()) {
+                                totalPrice += slotMinutes * slot.getPrice();
+                                totalDiscountMinutes += slotMinutes;
+                            } else {
+                                totalPrice += slotMinutes * spDate.getRegularRate();
+                                totalRegularMinutes += slotMinutes;
+                            }
+
+                            totalEffectiveMinutes += slotMinutes;
+                        }
                     }
 
-                    if (discSlotStart.isBefore(businessEnd) && discSlotEnd.isAfter(businessStart)) {
-                        LocalDateTime overlapStart = discSlotStart.isAfter(businessStart) ? discSlotStart : businessStart;
-                        LocalDateTime overlapEnd = discSlotEnd.isBefore(businessEnd) ? discSlotEnd : businessEnd;
-
-                        discountMinutes = adjustMinutes(Duration.between(overlapStart, overlapEnd));
+                    // 處理未被特殊時段覆蓋的部分
+                    long coveredMinutes = totalDiscountMinutes + totalRegularMinutes;
+                    if (coveredMinutes < businessHoursMinutes) {
+                        long uncoveredMinutes = businessHoursMinutes - coveredMinutes;
+                        totalPrice += uncoveredMinutes * spDate.getRegularRate();
+                        totalRegularMinutes += uncoveredMinutes;
+                        totalEffectiveMinutes += uncoveredMinutes;
                     }
                 }
 
-                long regularMinutes = businessHoursMinutes - discountMinutes;
+                // 處理非營業時間
+                long totalDayMinutes = adjustMinutes(Duration.between(currentStart, currentEnd));
+                long nonBusinessHoursMinutes = totalDayMinutes - (businessStart != null && businessEnd != null ?
+                        adjustMinutes(Duration.between(businessStart, businessEnd)) : 0);
 
-                double discountRate = schedule.getDiscountRate();
-                double regularRate = schedule.getRegularRate();
+                if (nonBusinessHoursMinutes > 0) {
+                    totalPrice += nonBusinessHoursMinutes * spDate.getRegularRate();
+                    totalRegularMinutes += nonBusinessHoursMinutes;
+                    totalNonBusinessHoursMinutes += nonBusinessHoursMinutes;
+                    totalEffectiveMinutes += nonBusinessHoursMinutes;
+                }
+            } else {
+                // 使用一般日期的價格和時段
+                String dayOfWeek = currentDate.getDayOfWeek().toString().toLowerCase();
+                StorePricingSchedule schedule = findScheduleForDay(storeId, dayOfWeek);
 
-                double discountPrice = discountMinutes * discountRate;
-                double regularPrice = regularMinutes * regularRate;
+                // 以下是原有的計算邏輯...
+                LocalTime openTime = schedule.getOpenTime();
+                LocalTime closeTime = schedule.getCloseTime();
 
-                totalPrice += discountPrice + regularPrice;
-                totalDiscountMinutes += discountMinutes;
-                totalRegularMinutes += regularMinutes;
-                totalEffectiveMinutes += businessHoursMinutes;
+                // 檢查是否24小時營業
+                boolean is24HourOperation = false;
+                if (openTime.equals(LocalTime.of(0, 0)) &&
+                        (closeTime.equals(LocalTime.of(23, 59)) || closeTime.equals(LocalTime.of(23, 59, 59)))) {
+                    is24HourOperation = true;
+                }
+                if (openTime.equals(closeTime)) {
+                    is24HourOperation = true;
+                }
 
-                System.out.println("營業時間內: 優惠時段: " + discountMinutes + " 分鐘, 一般時段: " + regularMinutes + " 分鐘");
-                System.out.println("營業時間內金額: " + (discountPrice + regularPrice));
-            }
+                // 計算當日總時間
+                long totalDayMinutes = adjustMinutes(Duration.between(currentStart, currentEnd));
 
-            // 計算非營業時間的費用
-            long nonBusinessHoursMinutes = totalDayMinutes - businessHoursMinutes;
-            if (nonBusinessHoursMinutes > 0) {
-                double regularRate = schedule.getRegularRate();
-                double nonBusinessPrice = nonBusinessHoursMinutes * regularRate;
+                // 計算營業時間內的時間
+                LocalDateTime businessStart = currentStart;
+                LocalDateTime businessEnd = currentEnd;
 
-                totalPrice += nonBusinessPrice;
-                totalRegularMinutes += nonBusinessHoursMinutes;
-                totalNonBusinessHoursMinutes += nonBusinessHoursMinutes;
-                totalEffectiveMinutes += nonBusinessHoursMinutes;
+                // 非24小時營業時，計算營業時間與非營業時間
+                if (!is24HourOperation) {
+                    // 創建營業開始和結束的日期時間
+                    LocalDateTime dayOpenTime = currentDate.atTime(openTime);
+                    LocalDateTime dayCloseTime = currentDate.atTime(closeTime);
 
-                System.out.println("非營業時間: " + nonBusinessHoursMinutes + " 分鐘");
-                System.out.println("非營業時間金額: " + nonBusinessPrice);
+                    // 處理跨日的情況
+                    if (closeTime.isBefore(openTime)) {
+                        dayCloseTime = dayCloseTime.plusDays(1);
+                    }
+
+                    // 計算營業時間內的時段
+                    if (currentEnd.isBefore(dayOpenTime) || currentStart.isAfter(dayCloseTime)) {
+                        businessStart = null;
+                        businessEnd = null;
+                    } else {
+                        if (currentStart.isBefore(dayOpenTime)) {
+                            businessStart = dayOpenTime;
+                        }
+                        if (currentEnd.isAfter(dayCloseTime)) {
+                            businessEnd = dayCloseTime;
+                        }
+                    }
+                }
+
+                // 處理營業時間內的費用計算
+                long businessHoursMinutes = 0;
+                if (businessStart != null && businessEnd != null && businessStart.isBefore(businessEnd)) {
+                    businessHoursMinutes = adjustMinutes(Duration.between(businessStart, businessEnd));
+
+                    // 計算優惠時段
+                    TimeSlot discountSlot = schedule.getTimeSlots().stream()
+                            .filter(TimeSlot::getIsDiscount)
+                            .findFirst()
+                            .orElse(null);
+
+                    long discountMinutes = 0;
+                    if (discountSlot != null) {
+                        LocalTime discountStart = discountSlot.getStartTime();
+                        LocalTime discountEnd = discountSlot.getEndTime();
+
+                        LocalDateTime discSlotStart = businessStart.toLocalDate().atTime(discountStart);
+                        LocalDateTime discSlotEnd = businessStart.toLocalDate().atTime(discountEnd);
+
+                        if (discountEnd.isBefore(discountStart)) {
+                            discSlotEnd = discSlotEnd.plusDays(1);
+                        }
+
+                        if (discSlotStart.isBefore(businessEnd) && discSlotEnd.isAfter(businessStart)) {
+                            LocalDateTime overlapStart = discSlotStart.isAfter(businessStart) ? discSlotStart : businessStart;
+                            LocalDateTime overlapEnd = discSlotEnd.isBefore(businessEnd) ? discSlotEnd : businessEnd;
+
+                            discountMinutes = adjustMinutes(Duration.between(overlapStart, overlapEnd));
+                        }
+                    }
+
+                    long regularMinutes = businessHoursMinutes - discountMinutes;
+
+                    double discountRate = schedule.getDiscountRate();
+                    double regularRate = schedule.getRegularRate();
+
+                    double discountPrice = discountMinutes * discountRate;
+                    double regularPrice = regularMinutes * regularRate;
+
+                    totalPrice += discountPrice + regularPrice;
+                    totalDiscountMinutes += discountMinutes;
+                    totalRegularMinutes += regularMinutes;
+                    totalEffectiveMinutes += businessHoursMinutes;
+                }
+
+                // 計算非營業時間的費用
+                long nonBusinessHoursMinutes = totalDayMinutes - businessHoursMinutes;
+                if (nonBusinessHoursMinutes > 0) {
+                    double regularRate = schedule.getRegularRate();
+                    double nonBusinessPrice = nonBusinessHoursMinutes * regularRate;
+
+                    totalPrice += nonBusinessPrice;
+                    totalRegularMinutes += nonBusinessHoursMinutes;
+                    totalNonBusinessHoursMinutes += nonBusinessHoursMinutes;
+                    totalEffectiveMinutes += nonBusinessHoursMinutes;
+                }
             }
 
             currentStart = currentEnd;
         }
 
-        System.out.println("計算結果:");
-        System.out.println("總共遊玩時間(原始): " + totalRawMinutes + " 分鐘");
-        System.out.println("總有效遊玩時間: " + totalEffectiveMinutes + " 分鐘");
-        System.out.println("總優惠時段: " + totalDiscountMinutes + " 分鐘");
-        System.out.println("總一般時段: " + totalRegularMinutes + " 分鐘");
-        System.out.println("總非營業時間: " + totalNonBusinessHoursMinutes + " 分鐘");
-        System.out.println("總金額: " + totalPrice);
-
         return (int) Math.round(totalPrice);
     }
 
+    // 添加檢查特殊日期的方法，與 StoreService 中的類似
+    private Optional<SpecialDate> getTodaySpecialDate(Store store, LocalDate date) {
+        if (store.getSpecialDates() == null) {
+            return Optional.empty();
+        }
+
+        String dateStr = date.toString(); // 形如 "2025-05-06"
+
+        return store.getSpecialDates().stream()
+                .filter(specialDate -> {
+                    try {
+                        // 如果日期是 LocalDate 類型
+                        if (specialDate.getDate() instanceof LocalDate) {
+                            return ((LocalDate) specialDate.getDate()).equals(date);
+                        }
+                        return false;
+                    } catch (Exception e) {
+                        return false;
+                    }
+                })
+                .findFirst();
+    }
     /**
      * 將秒數無條件進位成整分鐘
      */
