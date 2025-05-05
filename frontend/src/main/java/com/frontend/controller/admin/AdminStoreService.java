@@ -249,6 +249,7 @@ public class AdminStoreService {
 
 			List<TimeSlotRes> allTimeSlots = store.getPricingSchedules().stream()
 					.flatMap(schedule -> schedule.getTimeSlots().stream())
+					.filter(TimeSlot::getIsDiscount) // ✅ 只保留 isDiscount 為 true 的
 					.map(this::convertToTimeSlotRes)
 					.collect(Collectors.toList());
 
