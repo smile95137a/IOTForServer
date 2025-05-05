@@ -18,6 +18,7 @@ import com.frontend.req.store.SpecialTimeSlotReq;
 import com.frontend.req.store.StorePricingScheduleReq;
 import com.frontend.req.store.TimeSlotReq;
 import com.frontend.res.store.*;
+import com.frontend.res.vendor.VendorDto;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -220,28 +221,76 @@ public class AdminStoreService {
 				.name(store.getName())
 				.imgUrl(store.getImgUrl())
 				.address(store.getAddress())
-				.vendor(store.getVendor())
+				.vendor(new VendorDto(
+						store.getVendor().getId()
+				))
 				.lat(store.getLat())
 				.lon(store.getLon())
 				.deposit(store.getDeposit())
-				.poolTables(store.getPoolTables()) // 如果 poolTables 不会导致循环引用，保持这个字段
+				.poolTables(store.getPoolTables())
 				.hint(store.getHint())
 				.contactPhone(store.getContactPhone())
 				.bookTime(store.getBookTime())
 				.cancelBookTime(store.getCancelBookTime())
 				.user(store.getUser());
 
-		// 将 pricingSchedules 转换为 StorePricingScheduleRes
+		// 定義 pricingSchedules 轉換
 		if (store.getPricingSchedules() != null) {
-			builder.pricingSchedules(store.getPricingSchedules().stream()
-					.map(pricingSchedule -> convertToStorePricingScheduleRes(pricingSchedule)) // 转换为 StorePricingScheduleRes
-					.collect(Collectors.toSet()));
+			Set<StorePricingScheduleRes> pricingScheduleResSet = store.getPricingSchedules().stream()
+					.map(this::convertToStorePricingScheduleRes)
+					.collect(Collectors.toSet());
+
+			builder.pricingSchedules(pricingScheduleResSet);
+
+			List<TimeSlotRes> allTimeSlots = store.getPricingSchedules().stream()
+					.flatMap(schedule -> schedule.getTimeSlots().stream())
+					.map(this::convertToTimeSlotRes)
+					.collect(Collectors.toList());
+
+			builder.timeSlots(allTimeSlots);
+
+			store.getPricingSchedules().stream().findFirst().ifPresent(first -> {
+				builder.openTime(first.getOpenTime());
+				builder.closeTime(first.getCloseTime());
+				builder.regularRate(first.getRegularRate());
+				builder.discountRate(first.getDiscountRate());
+			});
 		} else {
-			builder.pricingSchedules(Set.of()); // 如果为 null，设为空集合
+			builder.pricingSchedules(Set.of());
+			builder.timeSlots(List.of());
+		}
+
+		// ✅ 加入 specialDates 的處理邏輯
+		if (store.getSpecialDates() != null) {
+			List<SpecialDateRes> specialDateResList = store.getSpecialDates().stream()
+					.map(specialDate -> SpecialDateRes.builder()
+							.id(specialDate.getId())
+							.date(specialDate.getDate().toString())
+							.openTime(specialDate.getOpenTime())
+							.closeTime(specialDate.getCloseTime())
+							.regularRate(specialDate.getRegularRate())
+							.timeSlots(specialDate.getTimeSlots() != null
+									? specialDate.getTimeSlots().stream()
+									.map(slot -> SpecialTimeSlotRes.builder()
+											.id(slot.getId())
+											.startTime(slot.getStartTime())
+											.endTime(slot.getEndTime())
+											.isDiscount(slot.getIsDiscount())
+											.price(slot.getPrice())
+											.build())
+									.collect(Collectors.toList())
+									: List.of())
+							.build())
+					.collect(Collectors.toList());
+
+			builder.specialDates(specialDateResList);
+		} else {
+			builder.specialDates(List.of());
 		}
 
 		return builder.build();
 	}
+
 
 	// 将 StorePricingSchedule 转换为 StorePricingScheduleRes 的方法
 	private StorePricingScheduleRes convertToStorePricingScheduleRes(StorePricingSchedule pricingSchedule) {

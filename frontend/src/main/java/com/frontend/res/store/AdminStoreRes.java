@@ -5,6 +5,7 @@ import com.frontend.entity.store.StoreEquipment;
 import com.frontend.entity.store.StorePricingSchedule;
 import com.frontend.entity.user.User;
 import com.frontend.entity.vendor.Vendor;
+import com.frontend.res.vendor.VendorDto;
 import jakarta.persistence.Column;
 import lombok.*;
 
@@ -21,7 +22,7 @@ public class AdminStoreRes {
     private String uid;
     private String name;
     private String address;
-    private Vendor vendor;
+    private VendorDto vendor;
     private String imgUrl;
     private Set<PoolTable> poolTables;
     private String lat;
