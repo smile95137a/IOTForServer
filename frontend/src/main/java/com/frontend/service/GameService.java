@@ -117,8 +117,7 @@ public class GameService {
         return gameRecord;
     }
 
-    public GameRes startGame(GameReq gameReq , Long id) throws Exception {
-
+    public GameRes startGame(GameReq gameReq, Long id) throws Exception {
         boolean b = this.checkoutOrder();
         if(b){
             throw new Exception("有尚未結帳的球局，請先結帳後才能使用開台服務");
@@ -129,7 +128,6 @@ public class GameService {
         PoolTable byStoreUid = poolTableRepository.findByUid(gameReq.getPoolTableUId()).orElseThrow(() -> new Exception("找不到桌台"));
         Store store = storeRepository.findById(byStoreUid.getStore().getId()).orElseThrow(() -> new Exception("找不到店家"));
         Vendor vendor = vendorRepository.findById(store.getVendor().getId()).orElseThrow(() -> new Exception("找不到廠商"));
-        List<StorePricingSchedule> pricingSchedules = storePricingScheduleRepository.findByStoreId(store.getId());
 
         if (this.checkPooltable(byStoreUid.getUid())) {
             throw new Exception("球局目前不開放使用，請換別桌進行球局");
@@ -139,15 +137,45 @@ public class GameService {
             throw new Exception("已經有開放中的球局");
         }
 
-        String currentDayString = LocalDate.now().getDayOfWeek().toString().toLowerCase();
-        StorePricingSchedule currentSchedule = pricingSchedules.stream()
-                .filter(s -> s.getDayOfWeek().toLowerCase().equals(currentDayString))
-                .findFirst()
-                .orElseThrow(() -> new Exception("沒有找到當天的訊息"));
+        // 檢查今天是否為特殊日期
+        LocalDate today = LocalDate.now();
+        Optional<SpecialDate> todaySpecialDate = getTodaySpecialDate(store, today);
 
+        LocalTime openTime;
+        LocalTime closeTime;
+        int regularRate;
+        int discountRate;
+        StorePricingSchedule currentSchedule = null;
+
+        if (todaySpecialDate.isPresent()) {
+            // 使用特殊日期的營業時間和價格
+            SpecialDate specialDate = todaySpecialDate.get();
+            openTime = specialDate.getOpenTime();
+            closeTime = specialDate.getCloseTime();
+            regularRate = specialDate.getRegularRate();
+
+            // 特殊日期可能沒有折扣價，使用相同價格
+            discountRate = regularRate;
+        } else {
+            // 使用一般日期的營業時間和價格
+            String currentDayString = today.getDayOfWeek().toString().toLowerCase();
+            List<StorePricingSchedule> pricingSchedules = storePricingScheduleRepository.findByStoreId(store.getId());
+
+            currentSchedule = pricingSchedules.stream()
+                    .filter(s -> s.getDayOfWeek().toLowerCase().equals(currentDayString))
+                    .findFirst()
+                    .orElseThrow(() -> new Exception("沒有找到當天的訊息"));
+
+            openTime = currentSchedule.getOpenTime();
+            closeTime = currentSchedule.getCloseTime();
+            regularRate = currentSchedule.getRegularRate();
+            discountRate = currentSchedule.getDiscountRate();
+        }
+
+        // 檢查是否在營業時間內
         LocalTime nowTime = LocalTime.now();
-        if (nowTime.isBefore(currentSchedule.getOpenTime()) || nowTime.isAfter(currentSchedule.getCloseTime())) {
-            throw new Exception("非營業時間，無法開台。營業時間為：" + currentSchedule.getOpenTime() + " - " + currentSchedule.getCloseTime());
+        if (nowTime.isBefore(openTime) || nowTime.isAfter(closeTime)) {
+            throw new Exception("非營業時間，無法開台。營業時間為：" + openTime + " - " + closeTime);
         }
 
         // ✅ 判斷是否落在已預約時間的前後一小時內，若是，則需要 confirm=true
@@ -228,8 +256,9 @@ public class GameService {
         gameRecord.setPoolTableId(byStoreUid.getId());
         gameRecord.setPoolTableName(byStoreUid.getTableNumber());
         gameRecord.setHint(store.getHint());
-        gameRecord.setRegularRateAmount(currentSchedule.getRegularRate());
-        gameRecord.setDiscountRateAmount(currentSchedule.getDiscountRate());
+        gameRecord.setRegularRateAmount(regularRate);
+        gameRecord.setDiscountRateAmount(discountRate);
+
         gameRecordRepository.save(gameRecord);
 
         // ✅ 更新桌台與設備狀態
@@ -246,7 +275,7 @@ public class GameService {
         return new GameRes(gameRecord, message, endTimeMinutes, vendor);
     }
 
-
+    // 添加檢查特殊日期的方法
     private boolean isTimeInRange(LocalTime currentTime, LocalTime startTime, LocalTime endTime) {
         // 判断当前时间是否在开始时间和结束时间之间
         return !currentTime.isBefore(startTime) && !currentTime.isAfter(endTime);
