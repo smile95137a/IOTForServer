@@ -27,6 +27,23 @@ public class RechargePromotionService {
         this.detailRepository = detailRepository;
     }
 
+    public List<RechargePromotionRes> getAllPromotions() {
+        return promotionRepository.findAll().stream()
+                .map(this::toRes)
+                .collect(Collectors.toList());
+    }
+
+    public RechargePromotionRes getPromotion(Long id) {
+        RechargePromotion promotion = promotionRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Promotion not found"));
+        return toRes(promotion);
+    }
+
+    @Transactional
+    public void deletePromotion(Long id) {
+        promotionRepository.deleteById(id);
+    }
+
     public RechargePromotionRes createPromotion(RechargePromotionReq req) {
         // 檢查是否有時間重疊的促銷
         checkTimeOverlap(req.getStartDate().atStartOfDay(), req.getEndDate().atTime(23, 59, 59));
@@ -64,7 +81,6 @@ public class RechargePromotionService {
 
         // 檢查是否有時間重疊的促銷，並排除自己
         checkTimeOverlap(req.getStartDate().atStartOfDay(), req.getEndDate().atTime(23, 59, 59));
-
         promotion.setName(req.getName());
         promotion.setStartDate(req.getStartDate());
         promotion.setEndDate(req.getEndDate());
@@ -128,4 +144,5 @@ public class RechargePromotionService {
         res.setDetails(detailResList);
         return res;
     }
+
 }
