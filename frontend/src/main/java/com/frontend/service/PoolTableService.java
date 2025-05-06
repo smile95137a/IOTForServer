@@ -59,7 +59,7 @@ public class PoolTableService {
 
         if(poolTable.getIsUse() == true){
             GameRecord gameRecord = gameRecordRepository.findByPoolTableIdAndStatus(poolTable.getId() , "STARTED");
-            return new PoolTableRes(0 , gameRecord.getGameId() , gameRecord.getPoolTableId());
+            return new PoolTableRes(0 , gameRecord.getGameId() , gameRecord.getPoolTableId() , gameRecord.getPoolTableName() , gameRecord.getStoreName());
         }
 
         PoolTableRes poolTableRes = new PoolTableRes();
