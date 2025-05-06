@@ -9,6 +9,7 @@ import com.frontend.req.recharge.RechargePromotionReq;
 import com.frontend.res.recharge.RechargePromotionDetailRes;
 import com.frontend.res.recharge.RechargePromotionRes;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -64,6 +65,7 @@ public class RechargePromotionService {
         return toRes(promotion);
     }
 
+    @Transactional
     public void deletePromotion(Long id) {
         promotionRepository.deleteById(id);
     }
@@ -87,6 +89,7 @@ public class RechargePromotionService {
         return res;
     }
 
+    @Transactional
     public RechargePromotionRes updatePromotion(Long id, RechargePromotionReq req) {
         RechargePromotion promotion = promotionRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Promotion not found"));
@@ -98,7 +101,9 @@ public class RechargePromotionService {
 
         // 先清空舊的 details
         promotion.getDetails().clear();
-        detailRepository.deleteAllByPromotion(promotion); // 你可以自己新增這個方法
+
+        // 刪除資料庫中的舊 details
+        detailRepository.deleteAllByPromotion(promotion); // 確保此方法正確刪除資料庫中的 details
 
         // 加入新的 details
         List<RechargePromotionDetail> newDetails = req.getDetails().stream().map(detailReq -> {
@@ -112,8 +117,10 @@ public class RechargePromotionService {
             return detail;
         }).collect(Collectors.toList());
 
-        promotion.getDetails().addAll(newDetails);
+        // 更新 promotion 的 details 集合
+        promotion.setDetails(newDetails);
 
+        // 保存更新後的 promotion
         RechargePromotion updated = promotionRepository.save(promotion);
         return toRes(updated);
     }
