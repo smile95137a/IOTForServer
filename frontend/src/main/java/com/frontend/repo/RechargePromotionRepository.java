@@ -13,5 +13,5 @@ public interface RechargePromotionRepository extends JpaRepository<RechargePromo
 
     List<RechargePromotion> findByStartDateBeforeAndEndDateAfterAndIdNot(LocalDateTime endDate, LocalDateTime startDate, Long id);
 
-    List<RechargePromotion> findByStartDateBeforeAndEndDateAfter(LocalDateTime endDate, LocalDateTime startDate);
+    List<RechargePromotion> findByStartDateLessThanEqualAndEndDateGreaterThanEqual(LocalDate endDate, LocalDate startDate);
 }
