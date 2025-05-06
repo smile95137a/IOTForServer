@@ -38,7 +38,8 @@ public class UserController {
 	public ResponseEntity<?> getUserInfo() {
 		var userDetails = SecurityUtils.getSecurityUser();
 		if (userDetails == null) {
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+			ApiResponse<String> error = ResponseUtils.error(9999 ,"帳號或密碼錯誤" , null);
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
 		}
 		var user = userService.getUserById(userDetails.getId());
 		if (user == null) {
