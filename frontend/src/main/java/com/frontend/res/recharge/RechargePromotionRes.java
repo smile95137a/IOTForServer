@@ -10,9 +10,9 @@ import java.util.List;
 public class RechargePromotionRes {
     private Long id;
     private String name;
-    @JsonFormat(pattern = "yyyy/MM/dd")
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate startDate;
-    @JsonFormat(pattern = "yyyy/MM/dd")
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate endDate;
     private List<RechargePromotionDetailRes> details;
 }
