@@ -28,6 +28,10 @@ public class RechargePromotionService {
     }
 
     public RechargePromotionRes createPromotion(RechargePromotionReq req) {
+        // 檢查是否有時間重疊的促銷
+        checkTimeOverlap(req.getStartDate().atStartOfDay(), req.getEndDate().atTime(23, 59, 59));
+
+
         RechargePromotion promotion = new RechargePromotion();
         promotion.setName(req.getName());
         promotion.setStartDate(req.getStartDate());
@@ -53,46 +57,13 @@ public class RechargePromotionService {
         return toRes(saved);
     }
 
-    public List<RechargePromotionRes> getAllPromotions() {
-        return promotionRepository.findAll().stream()
-                .map(this::toRes)
-                .collect(Collectors.toList());
-    }
-
-    public RechargePromotionRes getPromotion(Long id) {
-        RechargePromotion promotion = promotionRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Promotion not found"));
-        return toRes(promotion);
-    }
-
-    @Transactional
-    public void deletePromotion(Long id) {
-        promotionRepository.deleteById(id);
-    }
-
-    private RechargePromotionRes toRes(RechargePromotion promotion) {
-        RechargePromotionRes res = new RechargePromotionRes();
-        res.setId(promotion.getId());
-        res.setName(promotion.getName());
-        res.setStartDate(promotion.getStartDate());
-        res.setEndDate(promotion.getEndDate());
-
-        List<RechargePromotionDetailRes> detailResList = promotion.getDetails().stream().map(detail -> {
-            RechargePromotionDetailRes detailRes = new RechargePromotionDetailRes();
-            detailRes.setId(detail.getId());
-            detailRes.setRechargeAmount(detail.getRechargeAmount());
-            detailRes.setBonusAmount(detail.getBonusAmount());
-            return detailRes;
-        }).collect(Collectors.toList());
-
-        res.setDetails(detailResList);
-        return res;
-    }
-
     @Transactional
     public RechargePromotionRes updatePromotion(Long id, RechargePromotionReq req) {
         RechargePromotion promotion = promotionRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Promotion not found"));
+
+        // 檢查是否有時間重疊的促銷，並排除自己
+        checkTimeOverlap(req.getStartDate().atStartOfDay(), req.getEndDate().atTime(23, 59, 59));
 
         promotion.setName(req.getName());
         promotion.setStartDate(req.getStartDate());
@@ -125,4 +96,36 @@ public class RechargePromotionService {
         return toRes(updated);
     }
 
+    private void checkTimeOverlap(LocalDateTime startDate, LocalDateTime endDate) {
+        List<RechargePromotion> overlappingPromotions = promotionRepository.findByStartDateBeforeAndEndDateAfter(endDate, startDate);
+        if (!overlappingPromotions.isEmpty()) {
+            throw new RuntimeException("There are promotions with overlapping time ranges.");
+        }
+    }
+
+    private void checkTimeOverlapForUpdate(RechargePromotion promotion, LocalDateTime startDate, LocalDateTime endDate) {
+        List<RechargePromotion> overlappingPromotions = promotionRepository.findByStartDateBeforeAndEndDateAfterAndIdNot(endDate, startDate, promotion.getId());
+        if (!overlappingPromotions.isEmpty()) {
+            throw new RuntimeException("There are promotions with overlapping time ranges.");
+        }
+    }
+
+    private RechargePromotionRes toRes(RechargePromotion promotion) {
+        RechargePromotionRes res = new RechargePromotionRes();
+        res.setId(promotion.getId());
+        res.setName(promotion.getName());
+        res.setStartDate(promotion.getStartDate());
+        res.setEndDate(promotion.getEndDate());
+
+        List<RechargePromotionDetailRes> detailResList = promotion.getDetails().stream().map(detail -> {
+            RechargePromotionDetailRes detailRes = new RechargePromotionDetailRes();
+            detailRes.setId(detail.getId());
+            detailRes.setRechargeAmount(detail.getRechargeAmount());
+            detailRes.setBonusAmount(detail.getBonusAmount());
+            return detailRes;
+        }).collect(Collectors.toList());
+
+        res.setDetails(detailResList);
+        return res;
+    }
 }
