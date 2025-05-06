@@ -1,74 +1,75 @@
 package com.frontend.controller.admin;
 
-import com.frontend.entity.recharge.RechargeStandard;
+import com.frontend.config.message.ApiResponse;
 import com.frontend.req.store.RechargeStandardReq;
 import com.frontend.res.store.RechargeStandardRes;
 import com.frontend.service.RechargeStandardService;
+import com.frontend.utils.ResponseUtils;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/b/recharge-standards")
+@RequiredArgsConstructor
 public class RechargeStandardController {
+
     private final RechargeStandardService service;
 
-    public RechargeStandardController(RechargeStandardService service) {
-        this.service = service;
-    }
-
     @GetMapping
-    public List<RechargeStandardRes> list() {
-        return service.findAll().stream().map(this::toRes).collect(Collectors.toList());
+    public ResponseEntity<ApiResponse<List<RechargeStandardRes>>> list() {
+        try {
+            List<RechargeStandardRes> data = service.findAll();
+            return ResponseEntity.ok(ResponseUtils.success(data));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.ok(ResponseUtils.error(9999, e.getMessage(), null));
+        }
     }
 
     @GetMapping("/{id}")
-    public RechargeStandardRes get(@PathVariable Long id) {
-        return toRes(service.findById(id));
+    public ResponseEntity<ApiResponse<RechargeStandardRes>> get(@PathVariable Long id) {
+        try {
+            RechargeStandardRes data = service.findById(id);
+            return ResponseEntity.ok(ResponseUtils.success(data));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.ok(ResponseUtils.error(9999, e.getMessage(), null));
+        }
     }
 
     @PostMapping
-    public RechargeStandardRes create(@RequestBody RechargeStandardReq req) {
-        RechargeStandard entity = toEntity(req);
-        entity.setCreateTime(LocalDateTime.now());
-        entity.setUpdateTime(LocalDateTime.now());
-        return toRes(service.save(entity));
+    public ResponseEntity<ApiResponse<RechargeStandardRes>> create(@RequestBody RechargeStandardReq req) {
+        try {
+            RechargeStandardRes data = service.create(req);
+            return ResponseEntity.ok(ResponseUtils.success(data));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.ok(ResponseUtils.error(9999, e.getMessage(), null));
+        }
     }
 
     @PutMapping("/{id}")
-    public RechargeStandardRes update(@PathVariable Long id, @RequestBody RechargeStandardReq req) {
-        RechargeStandard entity = toEntity(req);
-        entity.setId(id);
-        entity.setUpdateTime(LocalDateTime.now());
-        return toRes(service.save(entity));
+    public ResponseEntity<ApiResponse<RechargeStandardRes>> update(@PathVariable Long id, @RequestBody RechargeStandardReq req) {
+        try {
+            RechargeStandardRes data = service.update(id, req);
+            return ResponseEntity.ok(ResponseUtils.success(data));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.ok(ResponseUtils.error(9999, e.getMessage(), null));
+        }
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id) {
-        service.delete(id);
-    }
-
-    // ---------- Mapping Methods ----------
-
-    private RechargeStandardRes toRes(RechargeStandard entity) {
-        if (entity == null) return null;
-        RechargeStandardRes res = new RechargeStandardRes();
-        res.setId(entity.getId());
-        res.setRechargeAmount(entity.getRechargeAmount());
-        res.setBonusAmount(entity.getBonusAmount());
-        res.setStatus(entity.getStatus());
-        res.setCreateTime(entity.getCreateTime());
-        res.setUpdateTime(entity.getUpdateTime());
-        return res;
-    }
-
-    private RechargeStandard toEntity(RechargeStandardReq req) {
-        RechargeStandard entity = new RechargeStandard();
-        entity.setRechargeAmount(req.getRechargeAmount());
-        entity.setBonusAmount(req.getBonusAmount());
-        entity.setStatus(req.getStatus());
-        return entity;
+    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Long id) {
+        try {
+            service.delete(id);
+            return ResponseEntity.ok(ResponseUtils.success(null));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.ok(ResponseUtils.error(9999, e.getMessage(), null));
+        }
     }
 }
