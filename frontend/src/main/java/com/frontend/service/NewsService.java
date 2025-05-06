@@ -43,7 +43,7 @@ public class NewsService {
                 .content(newsReq.getContent())
                 .status(newsReq.getStatus())
                 .createdDate(LocalDateTime.now())  // 设置创建时间
-                .imageUrl("")  // 默认图片列表为空（可以根据需求修改）
+                .imageUrl("[]")  // 使用合法的空 JSON 陣列
                 .author(byId.get().getName())  // 需要额外参数传入
                 .isRead(false)  // 默认为未读
                 .build();
