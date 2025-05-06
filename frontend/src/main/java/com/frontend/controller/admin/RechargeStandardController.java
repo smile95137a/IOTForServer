@@ -14,7 +14,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/b/recharge-standards")
 @RequiredArgsConstructor
-public class RechargeStandardController {
+    public class RechargeStandardController {
 
     private final RechargeStandardService service;
 
