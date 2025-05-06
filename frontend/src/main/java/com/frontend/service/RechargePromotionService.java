@@ -80,20 +80,19 @@ public class RechargePromotionService {
         RechargePromotion promotion = promotionRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Promotion not found"));
 
-        // 檢查是否有時間重疊的促銷，並排除自己
-        checkTimeOverlap(req.getStartDate(), req.getEndDate());
+        // 正確：檢查重疊但排除自己
+        checkTimeOverlapForUpdate(promotion, req.getStartDate(), req.getEndDate());
+
         promotion.setName(req.getName());
         promotion.setStartDate(req.getStartDate());
         promotion.setEndDate(req.getEndDate());
         promotion.setUpdateTime(LocalDateTime.now());
 
-        // 先清空舊的 details
+        // 清除舊資料
         promotion.getDetails().clear();
+        detailRepository.deleteAllByPromotion(promotion);
 
-        // 刪除資料庫中的舊 details
-        detailRepository.deleteAllByPromotion(promotion); // 確保此方法正確刪除資料庫中的 details
-
-        // 加入新的 details
+        // 加入新資料
         List<RechargePromotionDetail> newDetails = req.getDetails().stream().map(detailReq -> {
             RechargePromotionDetail detail = new RechargePromotionDetail();
             detail.setRechargeAmount(detailReq.getRechargeAmount());
@@ -105,10 +104,7 @@ public class RechargePromotionService {
             return detail;
         }).collect(Collectors.toList());
 
-        // 更新 promotion 的 details 集合
         promotion.setDetails(newDetails);
-
-        // 保存更新後的 promotion
         RechargePromotion updated = promotionRepository.save(promotion);
         return toRes(updated);
     }
@@ -120,12 +116,14 @@ public class RechargePromotionService {
         }
     }
 
-    private void checkTimeOverlapForUpdate(RechargePromotion promotion, LocalDateTime startDate, LocalDateTime endDate) {
-        List<RechargePromotion> overlappingPromotions = promotionRepository.findByStartDateBeforeAndEndDateAfterAndIdNot(endDate, startDate, promotion.getId());
+    private void checkTimeOverlapForUpdate(RechargePromotion promotion, LocalDate startDate, LocalDate endDate) {
+        List<RechargePromotion> overlappingPromotions =
+                promotionRepository.findByStartDateLessThanEqualAndEndDateGreaterThanEqualAndIdNot(endDate, startDate, promotion.getId());
         if (!overlappingPromotions.isEmpty()) {
-            throw new RuntimeException("日期重疊，請確認後重新加入活動日期");
+            throw new RuntimeException("已有重疊的促銷活動日期");
         }
     }
+
 
     private RechargePromotionRes toRes(RechargePromotion promotion) {
         RechargePromotionRes res = new RechargePromotionRes();

@@ -11,7 +11,7 @@ import java.util.List;
 public interface RechargePromotionRepository extends JpaRepository<RechargePromotion, Long> {
     List<RechargePromotion> findByStatusAndStartDateLessThanEqualAndEndDateGreaterThanEqual(PromotionStatus status, LocalDate start, LocalDate end);
 
-    List<RechargePromotion> findByStartDateBeforeAndEndDateAfterAndIdNot(LocalDateTime endDate, LocalDateTime startDate, Long id);
-
     List<RechargePromotion> findByStartDateLessThanEqualAndEndDateGreaterThanEqual(LocalDate endDate, LocalDate startDate);
+
+    List<RechargePromotion> findByStartDateLessThanEqualAndEndDateGreaterThanEqualAndIdNot(LocalDate endDate, LocalDate startDate, Long id);
 }
