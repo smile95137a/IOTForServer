@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/recharge-standards")
+@RequestMapping("/api/b/recharge-standards")
 public class RechargeStandardController {
     private final RechargeStandardService service;
 
