@@ -272,7 +272,7 @@ public class GameService {
         }
 
         // ✅ 回傳資料
-        return new GameRes(gameRecord, message, endTimeMinutes, vendor);
+        return new GameRes(gameRecord, message, endTimeMinutes, vendor , store.getContactPhone());
     }
 
     // 添加檢查特殊日期的方法
@@ -322,7 +322,8 @@ public class GameService {
         // 退還押金
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new Exception("用户信息未找到"));
-        user.setPoint(user.getPoint() + store.getDeposit());
+        user.setAmount(user.getAmount() + store.getDeposit());
+        user.setBalance(user.getAmount() + user.getPoint());
         userRepository.save(user);
 
         // 計算價格
@@ -685,8 +686,6 @@ public class GameService {
         Integer totalPrice = (int)gameResponse.getTotalPrice();
 
         String gameId = gameResponse.getGameId();
-        System.out.println("user" + user.getAmount());
-        System.out.println("total" + totalPrice);
         switch (checkoutReq.getPayType()) {
             case "1": // 儲值金支付
                 int remainingAmount = totalPrice;
@@ -719,17 +718,14 @@ public class GameService {
                 break;
 
             case "2": // Apple Pay
-                // 在这里处理Apple Pay支付（可以调用第三方支付接口）
-                // 这里只是示意，实际支付处理需要集成相关支付SDK
+
                 break;
 
             case "3": // Google Pay
-                // 在这里处理Google Pay支付（可以调用第三方支付接口）
-                // 这里只是示意，实际支付处理需要集成相关支付SDK
+
                 break;
             case "4": // Google Pay
-                // 在这里处理Google Pay支付（可以调用第三方支付接口）
-                // 这里只是示意，实际支付处理需要集成相关支付SDK
+
                 break;
             default:
                 throw new GameBookingException("无效的支付方式");

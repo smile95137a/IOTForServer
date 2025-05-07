@@ -30,6 +30,7 @@ public class GameRecordRes {
     private Long vendorId;
     private String vendorName;
     private String contactInfo;
+    private String storePhone;
     private Long poolTableId;
     private String poolTableName;
 

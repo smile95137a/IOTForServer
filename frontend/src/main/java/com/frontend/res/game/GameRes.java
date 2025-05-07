@@ -9,15 +9,16 @@ public class GameRes {
     private GameRecord gameRecord;
     private String message;
     private long endTimeMinutes;
-
+    private String storePhone;
     private Vendor vendor;
 
     // 构造函数
-    public GameRes(GameRecord gameRecord, String message, long endTimeMinutes , Vendor vendor) {
+    public GameRes(GameRecord gameRecord, String message, long endTimeMinutes , Vendor vendor , String storePhone) {
         this.gameRecord = gameRecord;
         this.message = message;
         this.endTimeMinutes = endTimeMinutes;
         this.vendor = vendor;
+        this.storePhone = storePhone;
     }
 
     @Override
