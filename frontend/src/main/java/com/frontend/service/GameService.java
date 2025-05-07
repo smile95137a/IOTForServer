@@ -754,7 +754,7 @@ public class GameService {
         game.setStatus("IS_PAY");
         gameOrderRepository.save(game);
 
-        return new GameRes(null , null , 0L , vendor);
+        return new GameRes(null , null , 0L , vendor , store.getContactPhone());
     }
 
     public GameRecord bookGame(BookGameReq gameReq) throws Exception {
