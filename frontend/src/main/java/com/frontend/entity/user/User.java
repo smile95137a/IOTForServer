@@ -66,9 +66,10 @@ public class User implements Serializable {
 	@Column
 	private String userImg;
 
-	@OneToOne(mappedBy = "user")
+	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
 	@JsonManagedReference("userReference")
-	private Store store;
+	private Set<Store> stores = new HashSet<>();
+
 
 
 	@ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)

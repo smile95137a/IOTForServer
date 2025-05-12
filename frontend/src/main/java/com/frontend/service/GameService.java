@@ -326,7 +326,7 @@ public class GameService {
         userRepository.save(user);
 
         // 計算價格
-        int adjustedPrice = calculateAdjustedPrice(store.getId(), gameRecord.getStartTime(), endDateTime);
+        int adjustedPrice = (int)calculateAdjustedPrice(store.getId(), gameRecord.getStartTime(), endDateTime).getTotalPrice();
         System.out.println("計算出的價格: " + adjustedPrice);
 
         // 取得桌台資訊
@@ -362,7 +362,7 @@ public class GameService {
         GameResponse response = new GameResponse();
         response.setTotalSeconds(duration.toSeconds());
         if(bookGame != null){
-            int i = calculateAdjustedPrice(store.getId(), gameRecord.getStartTime(), LocalDateTime.now());
+            int i = (int) calculateAdjustedPrice(store.getId(), gameRecord.getStartTime(), LocalDateTime.now()).getTotalPrice();
             response.setTotalPrice(i);
         }else{
             response.setTotalPrice(adjustedPrice);
@@ -377,13 +377,13 @@ public class GameService {
         return response;
     }
 
-    private int calculateAdjustedPrice(Long storeId, LocalDateTime startTime, LocalDateTime endTime) throws Exception {
+    private GamePriceRes calculateAdjustedPrice(Long storeId, LocalDateTime startTime, LocalDateTime endTime) throws Exception {
         double totalPrice = 0;
         long totalDiscountMinutes = 0;
         long totalRegularMinutes = 0;
         long totalEffectiveMinutes = 0;
         long totalNonBusinessHoursMinutes = 0;
-
+        GamePriceRes gamePriceRes = new GamePriceRes();
         // 原始總分鐘，使用調整後的計時規則
         long totalRawMinutes = adjustMinutes(Duration.between(startTime, endTime));
 
@@ -581,6 +581,9 @@ public class GameService {
                     totalDiscountMinutes += discountMinutes;
                     totalRegularMinutes += regularMinutes;
                     totalEffectiveMinutes += businessHoursMinutes;
+
+                    gamePriceRes.setDiscountPrice(discountPrice);
+                    gamePriceRes.setRegularPrice(regularPrice);
                 }
 
                 // 計算非營業時間的費用
@@ -599,7 +602,19 @@ public class GameService {
             currentStart = currentEnd;
         }
 
-        return (int) Math.round(totalPrice);
+
+        System.out.println("計算結果:");
+        System.out.println("總共遊玩時間(原始): " + totalRawMinutes + " 分鐘");
+        System.out.println("總優惠時段: " + totalDiscountMinutes + " 分鐘");
+        System.out.println("總一般時段: " + totalRegularMinutes + " 分鐘");
+        System.out.println("總非營業時間: " + totalNonBusinessHoursMinutes + " 分鐘");
+        System.out.println("總金額: " + totalPrice);
+        gamePriceRes.setDeposit(store.getDeposit());
+        gamePriceRes.setTotalRawMinutes(totalRawMinutes);
+        gamePriceRes.setTotalDiscountMinutes(totalDiscountMinutes);
+        gamePriceRes.setTotalRegularMinutes(totalRegularMinutes);
+        gamePriceRes.setTotalPrice(totalPrice);
+        return gamePriceRes;
     }
 
     // 添加檢查特殊日期的方法，與 StoreService 中的類似
@@ -1168,10 +1183,10 @@ public class GameService {
 
         try {
             // 使用與endGame相同的價格計算邏輯
-            int totalPrice = calculateAdjustedPrice(byGameId.getStoreId(), startTime, endTime);
-
+            GamePriceRes totalPrice = calculateAdjustedPrice(byGameId.getStoreId(), startTime, endTime);
+            totalPrice.setSecond(totalSeconds);
             // 回傳計算結果
-            return new GamePriceRes((double) totalPrice, totalSeconds);
+            return totalPrice;
         } catch (Exception e) {
             throw new Exception("計算價格時發生錯誤: " + e.getMessage());
         }

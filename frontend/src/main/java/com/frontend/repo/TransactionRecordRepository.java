@@ -26,20 +26,23 @@ public interface TransactionRecordRepository extends JpaRepository<TransactionRe
 
     @Query("SELECT new com.frontend.res.transaction.TransactionsRes( " +
             "CAST(COALESCE(SUM(t.amount), 0) AS BigDecimal), " +
-            "CAST(COUNT(t) AS Integer)) " +
+            "CAST(COUNT(t) AS Integer), " +
+            "s.id) " +  // 加入店铺 ID 作为查询的一部分
             "FROM TransactionRecord t " +
             "JOIN t.user u " +
-            "LEFT JOIN u.store s " +
+            "LEFT JOIN u.stores s " +
             "LEFT JOIN s.vendor v " +
             "WHERE t.transactionType = 'DEPOSIT' " +
             "AND FUNCTION('DATE', t.transactionDate) = CURRENT_DATE " +
             "AND (:highestRoleId = 1 OR " +  // 超级管理员可以看所有
             "    (:highestRoleId = 2 AND v.id = :vendorId) OR " +  // 加盟商只看自己的
-            "    (:highestRoleId = 5 AND s.id = :storeId))")  // 店家只看自己的
-    TransactionsRes getTodayTotalDeposits(
+            "    (:highestRoleId = 5 AND s.id IN :storeIds)) " +  // 店家只看自己的店铺
+            "GROUP BY s.id")  // 按照店铺 ID 分组
+    List<TransactionsRes> getTodayTotalDeposits(
             @Param("highestRoleId") Long highestRoleId,
             @Param("vendorId") Long vendorId,
-            @Param("storeId") Long storeId);
+            @Param("storeIds") List<Long> storeIds);
+
 
 
 

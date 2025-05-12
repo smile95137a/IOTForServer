@@ -51,6 +51,8 @@ public class AdminStoreService {
 
 	@Autowired
 	private SpecialTimeSlotRepository specialTimeSlotRepository;
+    @Autowired
+    private VendorRepository vendorRepository;
 
 
 	// Create a new store
@@ -63,8 +65,13 @@ public class AdminStoreService {
 		store.setCreateTime(LocalDateTime.now());
 		store.setCreateUserId(userId);
 		store.setImgUrl(storeReq.getImgUrl() != null ? storeReq.getImgUrl() : "");
-		store.setUser(storeReq.getUser());
-
+		if(storeReq.getUser().equals("") || storeReq.getUser() == null) {
+			Vendor vendor = vendorRepository.findById(storeReq.getVendor().getId()).get();
+			User user = userRepository.findById(vendor.getUserId()).get();
+			store.setUser(user);
+		}else{
+			store.setUser(storeReq.getUser());
+		}
 		Store savedStore = storeRepository.save(store);
 
 		// 儲存特殊日期與時段

@@ -38,7 +38,8 @@ public interface GameOrderRepository extends JpaRepository<GameOrder, Long> {
 
     @Query("SELECT new com.frontend.res.transaction.TransactionsRes( " +
             "CAST(COALESCE(SUM(g.totalPrice), 0) AS BigDecimal), " +
-            "CAST(COUNT(g) AS Integer)) " +
+            "CAST(COUNT(g) AS Integer), " +
+            "s.id) " +  // 加入店铺 ID 作为查询的一部分
             "FROM GameOrder g " +
             "JOIN PoolTable pt ON g.poolTableUid = pt.uid " +
             "JOIN pt.store s " +
@@ -47,15 +48,18 @@ public interface GameOrderRepository extends JpaRepository<GameOrder, Long> {
             "AND FUNCTION('DATE', g.startTime) = CURRENT_DATE " +
             "AND (:highestRoleId = 1 OR " +  // 超级管理员可以看所有
             "    (:highestRoleId = 2 AND v.id = :vendorId) OR " +  // 加盟商只看自己的
-            "    (:highestRoleId = 5 AND s.id = :storeId))")  // 店家只看自己的
-    TransactionsRes getTodayTotalConsumption(
+            "    (:highestRoleId = 5 AND s.id IN :storeIds)) " +  // 店家只看自己的店铺
+            "GROUP BY s.id")  // 按照店铺 ID 分组
+    List<TransactionsRes> getTodayTotalConsumption(
             @Param("highestRoleId") Long highestRoleId,
             @Param("vendorId") Long vendorId,
-            @Param("storeId") Long storeId);
+            @Param("storeIds") List<Long> storeIds);
+
 
     @Query("SELECT new com.frontend.res.transaction.TransactionsRes( " +
             "CAST(COALESCE(SUM(g.totalPrice), 0) AS BigDecimal), " +
-            "CAST(COUNT(g) AS Integer)) " +
+            "CAST(COUNT(g) AS Integer), " +
+            "s.id) " +  // 加入店铺 ID 作为查询的一部分
             "FROM GameOrder g " +
             "JOIN PoolTable pt ON g.poolTableUid = pt.uid " +
             "JOIN pt.store s " +
@@ -65,12 +69,12 @@ public interface GameOrderRepository extends JpaRepository<GameOrder, Long> {
             "AND FUNCTION('YEAR', g.startTime) = FUNCTION('YEAR', CURRENT_DATE) " +
             "AND (:highestRoleId = 1 OR " +  // 超级管理员可以看所有
             "    (:highestRoleId = 2 AND v.id = :vendorId) OR " +  // 加盟商只看自己的
-            "    (:highestRoleId = 5 AND s.id = :storeId))")  // 店家只看自己的
-    TransactionsRes getMonthTotalConsumption(
+            "    (:highestRoleId = 5 AND s.id IN :storeIds)) " +  // 店家只看自己的店铺
+            "GROUP BY s.id")  // 按照店铺 ID 分组
+    List<TransactionsRes> getMonthTotalConsumption(
             @Param("highestRoleId") Long highestRoleId,
             @Param("vendorId") Long vendorId,
-            @Param("storeId") Long storeId);
-
+            @Param("storeIds") List<Long> storeIds);
 
     @Query("SELECT new com.frontend.entity.transection.UserTransactionsRes( " +
             "CAST(COALESCE(SUM(g.totalPrice), 0) AS BigDecimal), " +

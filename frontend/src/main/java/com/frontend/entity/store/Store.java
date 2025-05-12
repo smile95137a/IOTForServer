@@ -99,8 +99,8 @@ public class Store {
     @JsonManagedReference("routerReference")
     private Set<Router> routers;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", unique = true)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
     @JsonBackReference("userReference")
     private User user;
 
