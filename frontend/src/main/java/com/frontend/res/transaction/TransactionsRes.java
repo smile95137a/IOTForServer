@@ -16,10 +16,17 @@ public class TransactionsRes {
     private Integer todayTopupCount;             // 今日充值笔数
     private BigDecimal monthTotalAmount;         // 本月总金额
     private Integer monthTransactionCount;       // 本月交易笔数
+    private Long storeId;                        // 店铺 ID
 
-    // 通常用于JPA查询结果的二参数构造函数
+    public TransactionsRes(BigDecimal amount, Integer count, Long storeId) {
+        this.todayTotalAmount = amount;
+        this.todayTransactionCount = count;
+        this.storeId = storeId;
+    }
+
     public TransactionsRes(BigDecimal amount, Integer count) {
         this.todayTotalAmount = amount;
         this.todayTransactionCount = count;
     }
 }
+

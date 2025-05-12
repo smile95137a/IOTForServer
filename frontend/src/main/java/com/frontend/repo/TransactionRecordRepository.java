@@ -119,8 +119,8 @@ public interface TransactionRecordRepository extends JpaRepository<TransactionRe
             "CAST(COALESCE(SUM(t.amount), 0) AS BigDecimal), " +
             "CAST(COUNT(t) AS Integer)) " +
             "FROM TransactionRecord t " +
-            "JOIN t.user u " +  // 使用实体关系进行JOIN
-            "JOIN u.store s " +
+            "JOIN t.user u " +
+            "JOIN u.stores s " +  // Changed from u.store to u.stores
             "WHERE t.transactionType = 'DEPOSIT' " +
             "AND s.uid = :storeUid " +
             "AND FUNCTION('DATE', t.transactionDate) = CURRENT_DATE")
