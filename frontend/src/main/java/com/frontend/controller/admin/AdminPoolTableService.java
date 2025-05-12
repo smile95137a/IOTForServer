@@ -118,9 +118,6 @@ public class AdminPoolTableService {
             PoolTable poolTable = poolTableRepository.findByUid(uid).get();
             List<GameRecord> book = gameRecordRepository.findAllByPoolTableIdAndStatus(poolTable.getId(), "BOOK");
 
-
-
-
             for (GameRecord gameRecord : book) {
                 User user = userRepository.findByUid(gameRecord.getUserUid());
                 List<BookGame> byUserUId = bookGameRepository.findByUserUId(user.getUid());
@@ -229,7 +226,7 @@ public class AdminPoolTableService {
         // 退還押金
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new Exception("用户信息未找到"));
-        user.setPoint(user.getPoint() + store.getDeposit());
+        user.setAmount(user.getAmount() + store.getDeposit());
         user.setBalance(user.getAmount() + user.getPoint());
         userRepository.save(user);
 

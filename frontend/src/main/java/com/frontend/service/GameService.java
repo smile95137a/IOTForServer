@@ -272,7 +272,7 @@ public class GameService {
         }
 
         // ✅ 回傳資料
-        return new GameRes(gameRecord, message, endTimeMinutes, vendor);
+        return new GameRes(gameRecord, message, endTimeMinutes, vendor , store.getContactPhone());
     }
 
     // 添加檢查特殊日期的方法
@@ -322,7 +322,8 @@ public class GameService {
         // 退還押金
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new Exception("用户信息未找到"));
-        user.setPoint(user.getPoint() + store.getDeposit());
+        user.setAmount(user.getAmount() + store.getDeposit());
+        user.setBalance(user.getAmount() + user.getPoint());
         userRepository.save(user);
 
         // 計算價格
@@ -700,8 +701,6 @@ public class GameService {
         Integer totalPrice = (int)gameResponse.getTotalPrice();
 
         String gameId = gameResponse.getGameId();
-        System.out.println("user" + user.getAmount());
-        System.out.println("total" + totalPrice);
         switch (checkoutReq.getPayType()) {
             case "1": // 儲值金支付
                 int remainingAmount = totalPrice;
@@ -734,17 +733,14 @@ public class GameService {
                 break;
 
             case "2": // Apple Pay
-                // 在这里处理Apple Pay支付（可以调用第三方支付接口）
-                // 这里只是示意，实际支付处理需要集成相关支付SDK
+
                 break;
 
             case "3": // Google Pay
-                // 在这里处理Google Pay支付（可以调用第三方支付接口）
-                // 这里只是示意，实际支付处理需要集成相关支付SDK
+
                 break;
             case "4": // Google Pay
-                // 在这里处理Google Pay支付（可以调用第三方支付接口）
-                // 这里只是示意，实际支付处理需要集成相关支付SDK
+
                 break;
             default:
                 throw new GameBookingException("无效的支付方式");
@@ -773,7 +769,7 @@ public class GameService {
         game.setStatus("IS_PAY");
         gameOrderRepository.save(game);
 
-        return new GameRes(null , null , 0L , vendor);
+        return new GameRes(null , null , 0L , vendor , store.getContactPhone());
     }
 
     public GameRecord bookGame(BookGameReq gameReq) throws Exception {
@@ -982,16 +978,45 @@ public class GameService {
         boolean isToday = bookingDate.equals(LocalDate.now());
         LocalTime now = LocalTime.now();
 
-        StorePricingSchedule schedule = storePricingScheduleRepository.findByStoreId(storeId)
-                .stream()
-                .filter(s -> s.getDayOfWeek().equalsIgnoreCase(bookingDate.getDayOfWeek().toString()))
-                .findFirst()
-                .orElseThrow(() -> new Exception("未找到對應日期的時段"));
+        // 檢查是否是特殊日期
+        Store store = storeRepository.findById(storeId)
+                .orElseThrow(() -> new Exception("未找到指定商店"));
+
+        // 檢查是否為特殊日期
+        Optional<SpecialDate> specialDateOpt = store.getSpecialDates().stream()
+                .filter(sd -> {
+                    if (sd.getDate() instanceof LocalDate) {
+                        return ((LocalDate) sd.getDate()).equals(bookingDate);
+                    }
+                    return false;
+                })
+                .findFirst();
+
+        LocalTime openTime;
+        LocalTime closeTime;
+        int regularRate;
+
+        if (specialDateOpt.isPresent()) {
+            // 如果是特殊日期，使用特殊日期的營業時間和費率
+            SpecialDate specialDate = specialDateOpt.get();
+            openTime = specialDate.getOpenTime();
+            closeTime = specialDate.getCloseTime();
+            regularRate = specialDate.getRegularRate();
+        } else {
+            // 如果不是特殊日期，使用正常排程
+            StorePricingSchedule schedule = storePricingScheduleRepository.findByStoreId(storeId)
+                    .stream()
+                    .filter(s -> s.getDayOfWeek().equalsIgnoreCase(bookingDate.getDayOfWeek().toString()))
+                    .findFirst()
+                    .orElseThrow(() -> new Exception("未找到對應日期的時段"));
+
+            openTime = schedule.getOpenTime();
+            closeTime = schedule.getCloseTime();
+            regularRate = schedule.getRegularRate();
+        }
 
         PoolTable poolTable = poolTableRepository.findById(poolTableId)
                 .orElseThrow(() -> new Exception("未找到指定桌台"));
-
-        List<TimeSlot> timeSlots = schedule.getTimeSlots();
 
         List<Object[]> results = gameRecordRepository.findGameIdsByStoreIdStatusAndPoolTableId(storeId, poolTableId);
 
@@ -1006,11 +1031,7 @@ public class GameService {
         Map<String, List<Map<String, Object>>> availableTimesMap = new HashMap<>();
         List<Map<String, Object>> availableTimes = new ArrayList<>();
 
-        // 處理營業時間
-        LocalTime openTime = schedule.getOpenTime();
-        LocalTime closeTime = schedule.getCloseTime();
-
-        // 生成時段 (嚴格限制在當天的 00:00 到 23:59)
+        // 生成時段 (嚴格限制在營業時間內)
         List<LocalTime> availableStartTimes = generateTimeSlots(openTime, closeTime);
 
         // 如果是今天，過濾掉已經過去的時段
@@ -1057,7 +1078,20 @@ public class GameService {
                 endTime = startTime.plusHours(duration);
             }
 
-            int rate = getRateForTime(timeSlots, schedule, startTime);
+            // 根據特殊日期或一般排程獲取費率
+            int rate;
+            if (specialDateOpt.isPresent()) {
+                rate = getRateForSpecialDate(specialDateOpt.get(), startTime, regularRate);
+            } else {
+                // 獲取普通日期的費率
+                StorePricingSchedule schedule = storePricingScheduleRepository.findByStoreId(storeId)
+                        .stream()
+                        .filter(s -> s.getDayOfWeek().equalsIgnoreCase(bookingDate.getDayOfWeek().toString()))
+                        .findFirst()
+                        .orElseThrow(() -> new Exception("未找到對應日期的時段"));
+
+                rate = getRateForNormalDate(schedule, startTime);
+            }
 
             Map<String, Object> availableTimeSlot = new HashMap<>();
             availableTimeSlot.put("start", startTime.toString());
@@ -1070,7 +1104,7 @@ public class GameService {
         return availableTimesMap;
     }
 
-    // 生成當天的所有小時時段（嚴格在當天範圍內）
+    // 生成營業時間內的所有小時時段
     private List<LocalTime> generateTimeSlots(LocalTime openTime, LocalTime closeTime) {
         List<LocalTime> timeSlots = new ArrayList<>();
 
@@ -1081,7 +1115,7 @@ public class GameService {
         // 特殊情況：closeTime 接近午夜（如 23:59）且需要包含 23:00 時段
         boolean closeAtMidnight = closeTime.getHour() == 23 && closeTime.getMinute() >= 59;
 
-        // 生成當天的所有小時時段
+        // 生成時段，但限制在營業時間內
         for (int hour = 0; hour < 24; hour++) {
             LocalTime currentTime = LocalTime.of(hour, 0);
 
@@ -1103,7 +1137,7 @@ public class GameService {
                         }
                     } else {
                         // 一般情況
-                        if (!currentTime.isAfter(closeTime)) {
+                        if (currentTime.isBefore(closeTime)) {
                             timeSlots.add(currentTime);
                         }
                     }
@@ -1112,6 +1146,28 @@ public class GameService {
         }
 
         return timeSlots;
+    }
+
+    // 獲取特殊日期的費率
+    private int getRateForSpecialDate(SpecialDate specialDate, LocalTime startTime, int defaultRate) {
+        // 查詢特殊日期的 SpecialTimeSlot
+        for (SpecialTimeSlot slot : specialDate.getTimeSlots()) {
+            if (!startTime.isBefore(slot.getStartTime()) && startTime.isBefore(slot.getEndTime())) {
+                return slot.getIsDiscount() ? slot.getPrice() : defaultRate;
+            }
+        }
+        return defaultRate;
+    }
+
+    // 獲取普通日期的費率
+    private int getRateForNormalDate(StorePricingSchedule schedule, LocalTime startTime) {
+        // 查詢普通日期的 TimeSlot
+        for (TimeSlot slot : schedule.getTimeSlots()) {
+            if (!startTime.isBefore(slot.getStartTime()) && startTime.isBefore(slot.getEndTime())) {
+                return slot.getIsDiscount() ? schedule.getDiscountRate() : schedule.getRegularRate();
+            }
+        }
+        return schedule.getRegularRate();
     }
     // 過濾掉已預約的時段
     private List<LocalTime> filterBookedTimeSlots(List<LocalTime> availableStartTimes,

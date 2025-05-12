@@ -491,6 +491,8 @@ public class AdminStoreService {
 		// 解除 vendor 的關聯（如果你不想移除 vendor，可略過這一行）
 		store.setVendor(null);
 
+		store.setDeleted(true);
+
 		// 最後儲存變更
 		storeRepository.save(store);
 	}

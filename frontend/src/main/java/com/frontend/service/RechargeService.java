@@ -30,7 +30,7 @@ public class RechargeService {
             List<RechargeStandard> promoPlans = promo.getDetails().stream()
                     .map(d -> {
                         RechargeStandard rs = new RechargeStandard();
-                        rs.setId(promo.getId());
+                        rs.setId(d.getId());
                         rs.setRechargeAmount(d.getRechargeAmount());
                         rs.setBonusAmount(d.getBonusAmount());
                         rs.setStatus(promo.getStatus());

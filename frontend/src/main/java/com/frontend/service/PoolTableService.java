@@ -52,18 +52,18 @@ public class PoolTableService {
     public PoolTableRes getPoolTableById(String uid) throws Exception {
         PoolTable poolTable = poolTableRepository.findByUid(uid).get();
         Integer dep = 0;
+        String storeName = "";
         if(poolTable != null) {
             Store store = storeRepository.findById(poolTable.getStore().getId()).get();
             dep = store.getDeposit();
+            storeName = store.getName();
         }
 
         if(poolTable.getIsUse() == true){
             GameRecord gameRecord = gameRecordRepository.findByPoolTableIdAndStatus(poolTable.getId() , "STARTED");
-            return new PoolTableRes(0 , gameRecord.getGameId() , gameRecord.getPoolTableId());
+            return new PoolTableRes(0 , gameRecord.getGameId() , gameRecord.getPoolTableId() , gameRecord.getPoolTableName() , gameRecord.getStoreName());
         }
 
-        PoolTableRes poolTableRes = new PoolTableRes();
-        poolTableRes.setDeposit(dep);
-        return poolTableRes;
+        return new PoolTableRes(dep , null , poolTable.getId() , poolTable.getTableNumber() ,storeName);
     }
 }

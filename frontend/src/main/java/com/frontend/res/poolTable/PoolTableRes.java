@@ -15,4 +15,8 @@ public class PoolTableRes {
 
     private Long poolTableId;
 
+    private String poolTableName;
+
+    private String storeName;
+
 }

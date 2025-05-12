@@ -69,7 +69,7 @@ public class GameRecordService {
             }
 
             // 转换为 GameRecordRes 对象
-            GameRecordRes gameRecordRes = convertToGameRecordRes(game, vendor);
+            GameRecordRes gameRecordRes = convertToGameRecordRes(game, vendor , store);
 
             // 设置特殊日期标志（如果 GameRecordRes 有这个字段）
             // gameRecordRes.setIsSpecialDate(specialDateOpt.isPresent());
@@ -137,14 +137,14 @@ public class GameRecordService {
         Vendor vendor = store.getVendor();
         List<GameRecordRes> result = new ArrayList<>();
         allGameRecords.forEach(game -> {
-            GameRecordRes gameRecordRes = convertToGameRecordRes(game, vendor);
+            GameRecordRes gameRecordRes = convertToGameRecordRes(game, vendor , store);
             result.add(gameRecordRes);
         });
         return result;
     }
 
 
-    public GameRecordRes convertToGameRecordRes(GameRecord gameRecord, Vendor vendor) {
+    public GameRecordRes convertToGameRecordRes(GameRecord gameRecord, Vendor vendor , Store store) {
         GameRecordRes res = new GameRecordRes();
         res.setId(gameRecord.getId());
         res.setGameId(gameRecord.getGameId());
@@ -159,6 +159,7 @@ public class GameRecordService {
         res.setContactInfo(gameRecord.getContactInfo());
         res.setPoolTableId(gameRecord.getPoolTableId());
         res.setPoolTableName(gameRecord.getPoolTableName());
+        res.setStorePhone(store.getContactPhone());
         res.setRegularRateAmount(gameRecord.getRegularRateAmount());
         res.setDiscountRateAmount(gameRecord.getDiscountRateAmount());
         res.setHint(gameRecord.getHint());

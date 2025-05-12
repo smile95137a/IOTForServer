@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 @EqualsAndHashCode(exclude = {"timeSlots"})
 @ToString(exclude = {"timeSlots"})
 @Where(clause = "is_deleted = false")
-public class StorePricingSchedule {
+    public class StorePricingSchedule {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

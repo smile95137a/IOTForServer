@@ -9,7 +9,9 @@ import com.frontend.req.recharge.RechargePromotionReq;
 import com.frontend.res.recharge.RechargePromotionDetailRes;
 import com.frontend.res.recharge.RechargePromotionRes;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -26,7 +28,28 @@ public class RechargePromotionService {
         this.detailRepository = detailRepository;
     }
 
+    public List<RechargePromotionRes> getAllPromotions() {
+        return promotionRepository.findAll().stream()
+                .map(this::toRes)
+                .collect(Collectors.toList());
+    }
+
+    public RechargePromotionRes getPromotion(Long id) {
+        RechargePromotion promotion = promotionRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Promotion not found"));
+        return toRes(promotion);
+    }
+
+    @Transactional
+    public void deletePromotion(Long id) {
+        promotionRepository.deleteById(id);
+    }
+
     public RechargePromotionRes createPromotion(RechargePromotionReq req) {
+        // 檢查是否有時間重疊的促銷
+        checkTimeOverlap(req.getStartDate(), req.getEndDate());
+
+
         RechargePromotion promotion = new RechargePromotion();
         promotion.setName(req.getName());
         promotion.setStartDate(req.getStartDate());
@@ -52,21 +75,55 @@ public class RechargePromotionService {
         return toRes(saved);
     }
 
-    public List<RechargePromotionRes> getAllPromotions() {
-        return promotionRepository.findAll().stream()
-                .map(this::toRes)
-                .collect(Collectors.toList());
-    }
-
-    public RechargePromotionRes getPromotion(Long id) {
+    @Transactional
+    public RechargePromotionRes updatePromotion(Long id, RechargePromotionReq req) {
         RechargePromotion promotion = promotionRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Promotion not found"));
-        return toRes(promotion);
+
+        // 正確：檢查重疊但排除自己
+        checkTimeOverlapForUpdate(promotion, req.getStartDate(), req.getEndDate());
+
+        promotion.setName(req.getName());
+        promotion.setStartDate(req.getStartDate());
+        promotion.setEndDate(req.getEndDate());
+        promotion.setUpdateTime(LocalDateTime.now());
+
+        // 清除舊資料
+        promotion.getDetails().clear();
+        detailRepository.deleteAllByPromotion(promotion);
+
+        // 加入新資料
+        List<RechargePromotionDetail> newDetails = req.getDetails().stream().map(detailReq -> {
+            RechargePromotionDetail detail = new RechargePromotionDetail();
+            detail.setRechargeAmount(detailReq.getRechargeAmount());
+            detail.setBonusAmount(detailReq.getBonusAmount());
+            detail.setStatus(PromotionStatus.AVAILABLE);
+            detail.setCreateTime(LocalDateTime.now());
+            detail.setUpdateTime(LocalDateTime.now());
+            detail.setPromotion(promotion);
+            return detail;
+        }).collect(Collectors.toList());
+
+        promotion.setDetails(newDetails);
+        RechargePromotion updated = promotionRepository.save(promotion);
+        return toRes(updated);
     }
 
-    public void deletePromotion(Long id) {
-        promotionRepository.deleteById(id);
+    private void checkTimeOverlap(LocalDate startDate, LocalDate endDate) {
+        List<RechargePromotion> overlappingPromotions = promotionRepository.findByStartDateLessThanEqualAndEndDateGreaterThanEqual(endDate, startDate);
+        if (!overlappingPromotions.isEmpty()) {
+            throw new RuntimeException("日期重疊，請確認後重新加入活動日期");
+        }
     }
+
+    private void checkTimeOverlapForUpdate(RechargePromotion promotion, LocalDate startDate, LocalDate endDate) {
+        List<RechargePromotion> overlappingPromotions =
+                promotionRepository.findByStartDateLessThanEqualAndEndDateGreaterThanEqualAndIdNot(endDate, startDate, promotion.getId());
+        if (!overlappingPromotions.isEmpty()) {
+            throw new RuntimeException("已有重疊的促銷活動日期");
+        }
+    }
+
 
     private RechargePromotionRes toRes(RechargePromotion promotion) {
         RechargePromotionRes res = new RechargePromotionRes();
@@ -85,37 +142,6 @@ public class RechargePromotionService {
 
         res.setDetails(detailResList);
         return res;
-    }
-
-    public RechargePromotionRes updatePromotion(Long id, RechargePromotionReq req) {
-        RechargePromotion promotion = promotionRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Promotion not found"));
-
-        promotion.setName(req.getName());
-        promotion.setStartDate(req.getStartDate());
-        promotion.setEndDate(req.getEndDate());
-        promotion.setUpdateTime(LocalDateTime.now());
-
-        // 先清空舊的 details
-        promotion.getDetails().clear();
-        detailRepository.deleteAllByPromotion(promotion); // 你可以自己新增這個方法
-
-        // 加入新的 details
-        List<RechargePromotionDetail> newDetails = req.getDetails().stream().map(detailReq -> {
-            RechargePromotionDetail detail = new RechargePromotionDetail();
-            detail.setRechargeAmount(detailReq.getRechargeAmount());
-            detail.setBonusAmount(detailReq.getBonusAmount());
-            detail.setStatus(PromotionStatus.AVAILABLE);
-            detail.setCreateTime(LocalDateTime.now());
-            detail.setUpdateTime(LocalDateTime.now());
-            detail.setPromotion(promotion);
-            return detail;
-        }).collect(Collectors.toList());
-
-        promotion.getDetails().addAll(newDetails);
-
-        RechargePromotion updated = promotionRepository.save(promotion);
-        return toRes(updated);
     }
 
 }
