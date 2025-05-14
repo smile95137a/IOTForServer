@@ -50,16 +50,21 @@ public interface TransactionRecordRepository extends JpaRepository<TransactionRe
 
 
 
-    @Query("SELECT " +
-            "  CASE WHEN :type = 'DAY' THEN CAST(DATE(t.transactionDate) AS string) " +
-            "       WHEN :type = 'WEEK' THEN CONCAT(YEAR(t.transactionDate), '-', WEEK(t.transactionDate)) " +
-            "       WHEN :type = 'MONTH' THEN CONCAT(YEAR(t.transactionDate), '-', MONTH(t.transactionDate)) " +
-            "       WHEN :type = 'YEAR' THEN CAST(YEAR(t.transactionDate) AS string) " +
-            "  END AS period, " +
-            "  SUM(t.amount) AS total_deposit " +
-            "FROM TransactionRecord t " +
-            "WHERE t.transactionType = 'DEPOSIT' AND t.transactionDate BETWEEN :startDate AND :endDate " +
-            "GROUP BY period ")
+    @Query(value = """
+    SELECT 
+        CASE 
+            WHEN :type = 'DAY' THEN DATE_FORMAT(transaction_date, '%Y-%m-%d')
+            WHEN :type = 'WEEK' THEN CONCAT(YEAR(transaction_date), '-', LPAD(WEEK(transaction_date), 2, '0'))
+            WHEN :type = 'MONTH' THEN DATE_FORMAT(transaction_date, '%Y-%m')
+            WHEN :type = 'YEAR' THEN CAST(YEAR(transaction_date) AS CHAR)
+        END AS period,
+        SUM(amount) AS total_deposit
+    FROM transaction_records
+    WHERE transaction_type = 'DEPOSIT' 
+    AND transaction_date BETWEEN :startDate AND :endDate
+    GROUP BY period
+    ORDER BY period
+""", nativeQuery = true)
     List<Object[]> getTotalDepositAmountByPeriod(
             @Param("type") String type,
             @Param("startDate") LocalDateTime startDate,

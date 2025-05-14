@@ -29,11 +29,38 @@ public class ReportController {
         UserPrinciple securityUser = SecurityUtils.getSecurityUser();
         Long id = securityUser.getId();
 
-        // 先取今天的日期
+        // 調試日期參數
+        System.out.println("Raw startDate: " + request.getStartDate());
+        System.out.println("Raw endDate: " + request.getEndDate());
+
+        // 處理開始日期
+        LocalDateTime startDateTime;
+        if (isValidDateString(request.getStartDate())) {
+            LocalDate parsedStartDate = parseToLocalDate(request.getStartDate());
+            System.out.println("Parsed startDate: " + parsedStartDate);
+            startDateTime = convertToStartOfDay(parsedStartDate);
+        } else {
+            startDateTime = convertToStartOfDay(null);  // 使用當前日期
+        }
+
+        // 處理結束日期
+        LocalDateTime endDateTime;
+        if (isValidDateString(request.getEndDate())) {
+            LocalDate parsedEndDate = parseToLocalDate(request.getEndDate());
+            System.out.println("Parsed endDate: " + parsedEndDate);
+            endDateTime = convertToEndOfDay(parsedEndDate);
+        } else {
+            endDateTime = convertToEndOfDay(null);  // 使用當前日期
+        }
+
+        System.out.println("Final startDateTime: " + startDateTime);
+        System.out.println("Final endDateTime: " + endDateTime);
+
+        // 呼叫服務
         Object reportData = reportService.getReportData(
                 request.getReportType(),
-                isValidDateString(String.valueOf(request.getStartDate())) ? convertToStartOfDay(parseToLocalDate(String.valueOf(request.getStartDate()))) : convertToStartOfDay(null),
-                isValidDateString(String.valueOf(request.getEndDate())) ? convertToEndOfDay(parseToLocalDate(String.valueOf(request.getEndDate()))) : convertToEndOfDay(null),
+                startDateTime,
+                endDateTime,
                 request.getStoreId(),
                 request.getVendorId(),
                 request.getPeriodType(),
@@ -43,7 +70,6 @@ public class ReportController {
         ApiResponse<Object> success = ResponseUtils.success(reportData);
         return ResponseEntity.ok(success);
     }
-
 
     /**
      * 将日期转换为当天的开始时间 (00:00:00)
@@ -75,7 +101,19 @@ public class ReportController {
      * 检查字符串是否为有效的日期字符串
      */
     private boolean isValidDateString(String dateStr) {
-        return dateStr != null && !dateStr.isEmpty() && !dateStr.isBlank();
+        if (dateStr == null || dateStr.isEmpty() || dateStr.isBlank()) {
+            return false;
+        }
+
+        try {
+            // 嘗試解析日期
+            LocalDate.parse(dateStr);
+            return true;
+        } catch (Exception e) {
+            // 如果解析失敗，記錄錯誤並返回 false
+            System.err.println("Invalid date string: " + dateStr + ". Error: " + e.getMessage());
+            return false;
+        }
     }
 
     /**
@@ -83,10 +121,12 @@ public class ReportController {
      */
     private LocalDate parseToLocalDate(String dateStr) {
         try {
-            // 根据您的日期格式进行调整，以下假设格式为yyyy-MM-dd
+            // 嘗試解析日期
             return LocalDate.parse(dateStr);
         } catch (Exception e) {
-            // 解析失败时返回当天日期
+            // 記錄錯誤並提供更詳細的信息
+            System.err.println("Failed to parse date string: " + dateStr + ". Error: " + e.getMessage());
+            System.err.println("Using current date as fallback.");
             return LocalDate.now();
         }
     }
