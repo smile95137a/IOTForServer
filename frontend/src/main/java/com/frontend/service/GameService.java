@@ -776,6 +776,9 @@ public class GameService {
                 .createdAt(LocalDateTime.now())
                 .transactionType("CONSUME")
                 .user(user)
+                .vendorId(vendor.getId())
+                .storeId(store.getId())
+                .tableId(poolTable.getId())
                 .build();
 
         // 保存交易记录

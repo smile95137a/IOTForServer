@@ -78,47 +78,62 @@ public interface TransactionRecordRepository extends JpaRepository<TransactionRe
             "AND t.user.id = :id")
     UserTransactionsRes getTotalDepositsAmountAndCount(@Param("id") Long id);
 
-    @Query("SELECT " +
-            "CASE WHEN :type = 'DAY' THEN CAST(DATE(t.transactionDate) AS string) " +
-            "     WHEN :type = 'WEEK' THEN CONCAT(YEAR(t.transactionDate), '-', WEEK(t.transactionDate)) " +
-            "     WHEN :type = 'MONTH' THEN CONCAT(YEAR(t.transactionDate), '-', MONTH(t.transactionDate)) " +
-            "     WHEN :type = 'YEAR' THEN CAST(YEAR(t.transactionDate) AS string) " +
-            "END AS period, " +
-            "COUNT(t) AS deposit_count " +
-            "FROM TransactionRecord t " +
-            "WHERE t.transactionType = 'DEPOSIT' AND t.transactionDate BETWEEN :startDate AND :endDate " +
-            "GROUP BY period")
-    List<Object[]> getDepositCountByPeriod(@Param("type") String type,
-                                           @Param("startDate") LocalDateTime startDate,
-                                           @Param("endDate") LocalDateTime endDate);
+    @Query(value = """
+    SELECT 
+        CASE 
+            WHEN :type = 'DAY' THEN DATE_FORMAT(transaction_date, '%Y-%m-%d')
+            WHEN :type = 'WEEK' THEN CONCAT(YEAR(transaction_date), '-', LPAD(WEEK(transaction_date), 2, '0'))
+            WHEN :type = 'MONTH' THEN DATE_FORMAT(transaction_date, '%Y-%m')
+            WHEN :type = 'YEAR' THEN CAST(YEAR(transaction_date) AS CHAR)
+        END AS period,
+        COUNT(*) AS deposit_count
+    FROM transaction_record
+    WHERE transaction_type = 'DEPOSIT' AND transaction_date BETWEEN :startDate AND :endDate
+    GROUP BY period
+    ORDER BY period
+""", nativeQuery = true)
+    List<Object[]> getDepositCountByPeriod(
+            @Param("type") String type,
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate);
 
-    @Query("SELECT " +
-            "CASE WHEN :type = 'DAY' THEN CAST(DATE(t.transactionDate) AS string) " +
-            "     WHEN :type = 'WEEK' THEN CONCAT(YEAR(t.transactionDate), '-', WEEK(t.transactionDate)) " +
-            "     WHEN :type = 'MONTH' THEN CONCAT(YEAR(t.transactionDate), '-', MONTH(t.transactionDate)) " +
-            "     WHEN :type = 'YEAR' THEN CAST(YEAR(t.transactionDate) AS string) " +
-            "END AS period, " +
-            "COUNT(t) AS consumption_count " +
-            "FROM GameTransactionRecord t " +
-            "WHERE t.transactionDate BETWEEN :startDate AND :endDate " +
-            "GROUP BY period")
-    List<Object[]> getConsumptionCountByPeriod(@Param("type") String type,
-                                               @Param("startDate") LocalDateTime startDate,
-                                               @Param("endDate") LocalDateTime endDate);
+    @Query(value = """
+    SELECT 
+        CASE 
+            WHEN :type = 'DAY' THEN DATE_FORMAT(transaction_date, '%Y-%m-%d')
+            WHEN :type = 'WEEK' THEN CONCAT(YEAR(transaction_date), '-', LPAD(WEEK(transaction_date), 2, '0'))
+            WHEN :type = 'MONTH' THEN DATE_FORMAT(transaction_date, '%Y-%m')
+            WHEN :type = 'YEAR' THEN CAST(YEAR(transaction_date) AS CHAR)
+        END AS period,
+        COUNT(*) AS consumption_count
+    FROM game_transaction_record
+    WHERE transaction_date BETWEEN :startDate AND :endDate
+    GROUP BY period
+    ORDER BY period
+""", nativeQuery = true)
+    List<Object[]> getConsumptionCountByPeriod(
+            @Param("type") String type,
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate);
 
-    @Query("SELECT " +
-            "CASE WHEN :type = 'DAY' THEN CAST(DATE(u.createTime) AS string) " +
-            "     WHEN :type = 'WEEK' THEN CONCAT(YEAR(u.createTime), '-', WEEK(u.createTime)) " +
-            "     WHEN :type = 'MONTH' THEN CONCAT(YEAR(u.createTime), '-', MONTH(u.createTime)) " +
-            "     WHEN :type = 'YEAR' THEN CAST(YEAR(u.createTime) AS string) " +
-            "END AS period, " +
-            "COUNT(u) AS user_count " +
-            "FROM User u " +
-            "WHERE u.createTime BETWEEN :startDate AND :endDate " +
-            "GROUP BY period")
-    List<Object[]> getUserCountByPeriod(@Param("type") String type,
-                                        @Param("startDate") LocalDateTime startDate,
-                                        @Param("endDate") LocalDateTime endDate);
+    @Query(value = """
+    SELECT 
+        CASE 
+            WHEN :type = 'DAY' THEN DATE_FORMAT(create_time, '%Y-%m-%d')
+            WHEN :type = 'WEEK' THEN CONCAT(YEAR(create_time), '-', LPAD(WEEK(create_time), 2, '0'))
+            WHEN :type = 'MONTH' THEN DATE_FORMAT(create_time, '%Y-%m')
+            WHEN :type = 'YEAR' THEN CAST(YEAR(create_time) AS CHAR)
+        END AS period,
+        COUNT(*) AS user_count
+    FROM user
+    WHERE create_time BETWEEN :startDate AND :endDate
+    GROUP BY period
+    ORDER BY period
+""", nativeQuery = true)
+    List<Object[]> getUserCountByPeriod(
+            @Param("type") String type,
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate);
 
     @Query("SELECT new com.frontend.res.transaction.TransactionsRes( " +
             "CAST(COALESCE(SUM(t.amount), 0) AS BigDecimal), " +

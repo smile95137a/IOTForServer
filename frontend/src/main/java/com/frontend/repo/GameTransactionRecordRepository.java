@@ -25,81 +25,101 @@ public interface GameTransactionRecordRepository extends JpaRepository<GameTrans
     // 根據交易金額查詢交易記錄
     List<GameTransactionRecord> findByAmountGreaterThan(Integer amount);
 
-    @Query("SELECT " +
-            "  CASE WHEN :type = 'DAY' THEN CAST(DATE(g.transactionDate) AS string) " +
-            "       WHEN :type = 'WEEK' THEN CONCAT(YEAR(g.transactionDate), '-', WEEK(g.transactionDate)) " +
-            "       WHEN :type = 'MONTH' THEN CONCAT(YEAR(g.transactionDate), '-', MONTH(g.transactionDate)) " +
-            "       WHEN :type = 'YEAR' THEN CAST(YEAR(g.transactionDate) AS string) " +
-            "  END AS period, " +
-            "  SUM(g.amount) AS total_amount " +
-            "FROM GameTransactionRecord g " +
-            "WHERE g.transactionDate BETWEEN :startDate AND :endDate " +
-            "GROUP BY period ")
+    @Query(value = """
+    SELECT 
+        CASE 
+            WHEN :type = 'DAY' THEN DATE_FORMAT(transaction_date, '%Y-%m-%d')
+            WHEN :type = 'WEEK' THEN CONCAT(YEAR(transaction_date), '-', LPAD(WEEK(transaction_date), 2, '0'))
+            WHEN :type = 'MONTH' THEN DATE_FORMAT(transaction_date, '%Y-%m')
+            WHEN :type = 'YEAR' THEN CAST(YEAR(transaction_date) AS CHAR)
+        END AS period,
+        SUM(amount) AS total_amount
+    FROM game_transaction_record
+    WHERE transaction_date BETWEEN :startDate AND :endDate
+    GROUP BY period
+    ORDER BY period
+""", nativeQuery = true)
     List<Object[]> getTotalConsumptionByPeriod(
             @Param("type") String type,
             @Param("startDate") LocalDateTime startDate,
             @Param("endDate") LocalDateTime endDate);
 
 
-    @Query("SELECT " +
-            "  CASE WHEN :type = 'DAY' THEN CAST(DATE(g.transactionDate) AS string) " +
-            "       WHEN :type = 'WEEK' THEN CONCAT(YEAR(g.transactionDate), '-', WEEK(g.transactionDate)) " +
-            "       WHEN :type = 'MONTH' THEN CONCAT(YEAR(g.transactionDate), '-', MONTH(g.transactionDate)) " +
-            "       WHEN :type = 'YEAR' THEN CAST(YEAR(g.transactionDate) AS string) " +
-            "  END AS period, " +
-            "  SUM(g.amount) AS total_revenue " +
-            "FROM GameTransactionRecord g " +
-            "WHERE g.storeName = :storeName AND g.transactionDate BETWEEN :startDate AND :endDate " +
-            "GROUP BY period ")
+    @Query(value = """
+    SELECT 
+        CASE 
+            WHEN :type = 'DAY' THEN DATE_FORMAT(transaction_date, '%Y-%m-%d')
+            WHEN :type = 'WEEK' THEN CONCAT(YEAR(transaction_date), '-', LPAD(WEEK(transaction_date), 2, '0'))
+            WHEN :type = 'MONTH' THEN DATE_FORMAT(transaction_date, '%Y-%m')
+            WHEN :type = 'YEAR' THEN CAST(YEAR(transaction_date) AS CHAR)
+        END AS period,
+        SUM(amount) AS total_revenue
+    FROM game_transaction_record
+    WHERE store_name = :storeName AND transaction_date BETWEEN :startDate AND :endDate
+    GROUP BY period
+    ORDER BY period
+""", nativeQuery = true)
     List<Object[]> getStoreRevenueByPeriod(
             @Param("type") String type,
             @Param("storeName") String storeName,
             @Param("startDate") LocalDateTime startDate,
             @Param("endDate") LocalDateTime endDate);
 
-    @Query("SELECT " +
-            "  CASE WHEN :type = 'DAY' THEN CAST(DATE(g.transactionDate) AS string) " +
-            "       WHEN :type = 'WEEK' THEN CONCAT(YEAR(g.transactionDate), '-', WEEK(g.transactionDate)) " +
-            "       WHEN :type = 'MONTH' THEN CONCAT(YEAR(g.transactionDate), '-', MONTH(g.transactionDate)) " +
-            "       WHEN :type = 'YEAR' THEN CAST(YEAR(g.transactionDate) AS string) " +
-            "  END AS period, " +
-            "  SUM(g.amount) AS total_revenue " +
-            "FROM GameTransactionRecord g " +
-            "WHERE g.vendorName = :vendorName AND g.transactionDate BETWEEN :startDate AND :endDate " +
-            "GROUP BY period ")
+    @Query(value = """
+    SELECT 
+        CASE 
+            WHEN :type = 'DAY' THEN DATE_FORMAT(transaction_date, '%Y-%m-%d')
+            WHEN :type = 'WEEK' THEN CONCAT(YEAR(transaction_date), '-', LPAD(WEEK(transaction_date), 2, '0'))
+            WHEN :type = 'MONTH' THEN DATE_FORMAT(transaction_date, '%Y-%m')
+            WHEN :type = 'YEAR' THEN CAST(YEAR(transaction_date) AS CHAR)
+        END AS period,
+        SUM(amount) AS total_revenue
+    FROM game_transaction_record
+    WHERE vendor_name = :vendorName AND transaction_date BETWEEN :startDate AND :endDate
+    GROUP BY period
+    ORDER BY period
+""", nativeQuery = true)
     List<Object[]> getVendorRevenueByPeriod(
             @Param("type") String type,
             @Param("vendorName") String vendorName,
             @Param("startDate") LocalDateTime startDate,
             @Param("endDate") LocalDateTime endDate);
 
-
-    // Admin 查询所有店铺或厂商的营收数据
-    @Query("SELECT " +
-            "  CASE WHEN :type = 'DAY' THEN CAST(DATE(g.transactionDate) AS string) " +
-            "       WHEN :type = 'WEEK' THEN CONCAT(YEAR(g.transactionDate), '-', WEEK(g.transactionDate)) " +
-            "       WHEN :type = 'MONTH' THEN CONCAT(YEAR(g.transactionDate), '-', MONTH(g.transactionDate)) " +
-            "       WHEN :type = 'YEAR' THEN CAST(YEAR(g.transactionDate) AS string) " +
-            "  END AS period, " +
-            "  SUM(g.amount) AS total_revenue " +
-            "FROM GameTransactionRecord g " +
-            "WHERE g.transactionDate BETWEEN :startDate AND :endDate " +
-            "GROUP BY period")
+    // Admin 查詢所有店鋪的營收數據
+    @Query(value = """
+    SELECT 
+        CASE 
+            WHEN :type = 'DAY' THEN DATE_FORMAT(transaction_date, '%Y-%m-%d')
+            WHEN :type = 'WEEK' THEN CONCAT(YEAR(transaction_date), '-', LPAD(WEEK(transaction_date), 2, '0'))
+            WHEN :type = 'MONTH' THEN DATE_FORMAT(transaction_date, '%Y-%m')
+            WHEN :type = 'YEAR' THEN CAST(YEAR(transaction_date) AS CHAR)
+        END AS period,
+        SUM(amount) AS total_revenue
+    FROM game_transaction_record
+    WHERE transaction_date BETWEEN :startDate AND :endDate
+    GROUP BY period
+    ORDER BY period
+""", nativeQuery = true)
     List<Object[]> getStoreRevenueByPeriodForAdmin(
             @Param("type") String type,
             @Param("startDate") LocalDateTime startDate,
             @Param("endDate") LocalDateTime endDate);
 
-    @Query("SELECT " +
-            "  CASE WHEN :type = 'DAY' THEN CAST(DATE(g.transactionDate) AS string) " +
-            "       WHEN :type = 'WEEK' THEN CONCAT(YEAR(g.transactionDate), '-', WEEK(g.transactionDate)) " +
-            "       WHEN :type = 'MONTH' THEN CONCAT(YEAR(g.transactionDate), '-', MONTH(g.transactionDate)) " +
-            "       WHEN :type = 'YEAR' THEN CAST(YEAR(g.transactionDate) AS string) " +
-            "  END AS period, " +
-            "  SUM(g.amount) AS total_revenue " +
-            "FROM GameTransactionRecord g " +
-            "WHERE g.transactionDate BETWEEN :startDate AND :endDate " +
-            "GROUP BY period")
+    // Admin 查詢所有廠商的營收數據
+    @Query(value = """
+    SELECT 
+        CASE 
+            WHEN :type = 'DAY' THEN DATE_FORMAT(transaction_date, '%Y-%m-%d')
+            WHEN :type = 'WEEK' THEN CONCAT(YEAR(transaction_date), '-', LPAD(WEEK(transaction_date), 2, '0'))
+            WHEN :type = 'MONTH' THEN DATE_FORMAT(transaction_date, '%Y-%m')
+            WHEN :type = 'YEAR' THEN CAST(YEAR(transaction_date) AS CHAR)
+        END AS period,
+        SUM(amount) AS total_revenue
+    FROM game_transaction_record
+    WHERE transaction_date BETWEEN :startDate AND :endDate
+    GROUP BY period
+    ORDER BY period
+""", nativeQuery = true)
     List<Object[]> getVendorRevenueByPeriodForAdmin(
             @Param("type") String type,
             @Param("startDate") LocalDateTime startDate,

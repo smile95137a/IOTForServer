@@ -36,41 +36,43 @@ public interface GameOrderRepository extends JpaRepository<GameOrder, Long> {
     List<GameOrder> findByGameIds(@Param("gameIds") List<String> gameIds);
 
 
+    // 今日消費查詢 - 使用 GameOrder 實體
+    // 今日消費查詢 - 使用 GameTransactionRecord 實體
     @Query("SELECT new com.frontend.res.transaction.TransactionsRes( " +
-            "CAST(COALESCE(SUM(g.totalPrice), 0) AS BigDecimal), " +
+            "CAST(COALESCE(SUM(g.amount), 0) AS BigDecimal), " +
             "CAST(COUNT(g) AS Integer), " +
-            "s.id) " +  // 加入店铺 ID 作为查询的一部分
-            "FROM GameOrder g " +
-            "JOIN PoolTable pt ON g.poolTableUid = pt.uid " +
+            "s.id) " +
+            "FROM GameTransactionRecord g " +
+            "JOIN PoolTable pt ON g.tableId = pt.id " +  // 使用 tableUID 關聯
             "JOIN pt.store s " +
             "JOIN s.vendor v " +
-            "WHERE g.status = 'IS_PAY' " +
-            "AND FUNCTION('DATE', g.startTime) = CURRENT_DATE " +
-            "AND (:highestRoleId = 1 OR " +  // 超级管理员可以看所有
-            "    (:highestRoleId = 2 AND v.id = :vendorId) OR " +  // 加盟商只看自己的
-            "    (:highestRoleId = 5 AND s.id IN :storeIds)) " +  // 店家只看自己的店铺
-            "GROUP BY s.id")  // 按照店铺 ID 分组
+            "WHERE g.transactionType = 'CONSUME' " +
+            "AND FUNCTION('DATE', g.transactionDate) = CURRENT_DATE " +  // 今天的日期
+            "AND (:highestRoleId = 1 OR " +
+            "    (:highestRoleId = 2 AND v.id = :vendorId) OR " +
+            "    (:highestRoleId = 5 AND s.id IN :storeIds)) " +
+            "GROUP BY s.id")
     List<TransactionsRes> getTodayTotalConsumption(
             @Param("highestRoleId") Long highestRoleId,
             @Param("vendorId") Long vendorId,
             @Param("storeIds") List<Long> storeIds);
 
-
+    // 當月消費查詢 - 使用 GameTransactionRecord 實體
     @Query("SELECT new com.frontend.res.transaction.TransactionsRes( " +
-            "CAST(COALESCE(SUM(g.totalPrice), 0) AS BigDecimal), " +
+            "CAST(COALESCE(SUM(g.amount), 0) AS BigDecimal), " +
             "CAST(COUNT(g) AS Integer), " +
-            "s.id) " +  // 加入店铺 ID 作为查询的一部分
-            "FROM GameOrder g " +
-            "JOIN PoolTable pt ON g.poolTableUid = pt.uid " +
+            "s.id) " +
+            "FROM GameTransactionRecord g " +
+            "JOIN PoolTable pt ON g.tableId = pt.id " +  // 使用 tableUID 關聯
             "JOIN pt.store s " +
             "JOIN s.vendor v " +
-            "WHERE g.status = 'IS_PAY' " +
-            "AND FUNCTION('MONTH', g.startTime) = FUNCTION('MONTH', CURRENT_DATE) " +
-            "AND FUNCTION('YEAR', g.startTime) = FUNCTION('YEAR', CURRENT_DATE) " +
-            "AND (:highestRoleId = 1 OR " +  // 超级管理员可以看所有
-            "    (:highestRoleId = 2 AND v.id = :vendorId) OR " +  // 加盟商只看自己的
-            "    (:highestRoleId = 5 AND s.id IN :storeIds)) " +  // 店家只看自己的店铺
-            "GROUP BY s.id")  // 按照店铺 ID 分组
+            "WHERE g.transactionType = 'CONSUME' " +
+            "AND FUNCTION('YEAR', g.transactionDate) = FUNCTION('YEAR', CURRENT_DATE) " +  // 當年
+            "AND FUNCTION('MONTH', g.transactionDate) = FUNCTION('MONTH', CURRENT_DATE) " +  // 當月
+            "AND (:highestRoleId = 1 OR " +
+            "    (:highestRoleId = 2 AND v.id = :vendorId) OR " +
+            "    (:highestRoleId = 5 AND s.id IN :storeIds)) " +
+            "GROUP BY s.id")
     List<TransactionsRes> getMonthTotalConsumption(
             @Param("highestRoleId") Long highestRoleId,
             @Param("vendorId") Long vendorId,

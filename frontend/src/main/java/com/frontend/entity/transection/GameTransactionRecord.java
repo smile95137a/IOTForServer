@@ -44,4 +44,13 @@ public class GameTransactionRecord {
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User user; // 關聯到 User 表
+
+    @Column
+    private Long vendorId;
+
+    @Column
+    private Long storeId;
+
+    @Column
+    private Long tableId;
 }
