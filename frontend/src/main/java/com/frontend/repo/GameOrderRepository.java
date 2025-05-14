@@ -57,6 +57,24 @@ public interface GameOrderRepository extends JpaRepository<GameOrder, Long> {
             @Param("vendorId") Long vendorId,
             @Param("storeIds") List<Long> storeIds);
 
+    @Query("SELECT new com.frontend.res.transaction.TransactionsRes( " +
+            "CAST(COALESCE(SUM(g.amount), 0) AS BigDecimal), " +
+            "CAST(COUNT(g) AS Integer), " +
+            "s.id) " +
+            "FROM GameTransactionRecord g " +
+            "JOIN PoolTable pt ON g.tableId = pt.id " +
+            "JOIN pt.store s " +
+            "JOIN s.vendor v " +
+            "WHERE g.transactionType = 'CONSUME' " +
+            "AND (:highestRoleId = 1 OR " +  // 超級管理員可以看所有
+            "    (:highestRoleId = 2 AND v.id = :vendorId) OR " +  // 加盟商只看自己的
+            "    (:highestRoleId = 5 AND s.id IN :storeIds)) " +  // 店家只看自己的店鋪
+            "GROUP BY s.id")
+    List<TransactionsRes> getTotalConsumptionFiltered(
+            @Param("highestRoleId") Long highestRoleId,
+            @Param("vendorId") Long vendorId,
+            @Param("storeIds") List<Long> storeIds);
+
     // 當月消費查詢 - 使用 GameTransactionRecord 實體
     @Query("SELECT new com.frontend.res.transaction.TransactionsRes( " +
             "CAST(COALESCE(SUM(g.amount), 0) AS BigDecimal), " +

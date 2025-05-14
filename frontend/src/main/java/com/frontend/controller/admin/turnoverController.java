@@ -79,6 +79,12 @@ public class turnoverController {
         // 获取本月的总消费金额和笔数 (根据角色过滤)
         TransactionsRes monthConsumption = getMonthTotalConsumption(highestRoleId, vendorId, storeIds);
 
+        // 獲取儲值總額 (不按店家和廠商過濾)
+        TransactionsRes totalDeposits = getTotalDeposits();
+
+        // 獲取消費總額 (按店家和廠商過濾)
+        TransactionsRes totalConsumption = getTotalConsumptionFiltered(highestRoleId, vendorId, storeIds);
+
         // 创建一个汇总对象，适配前端需要的字段名
         TransactionsRes summaryRes = new TransactionsRes();
 
@@ -93,6 +99,14 @@ public class turnoverController {
         // 设置本月消费数据
         summaryRes.setMonthTotalAmount(monthConsumption.getTodayTotalAmount());
         summaryRes.setMonthTransactionCount(monthConsumption.getTodayTransactionCount());
+
+        // 設置儲值總額數據 (不按店家和廠商過濾)
+        summaryRes.setTotalDepositAmount(totalDeposits.getTodayTotalAmount());
+        summaryRes.setTotalDepositCount(totalDeposits.getTodayTransactionCount());
+
+        // 設置消費總額數據 (按店家和廠商過濾)
+        summaryRes.setTotalConsumptionAmount(totalConsumption.getTodayTotalAmount());
+        summaryRes.setTotalConsumptionCount(totalConsumption.getTodayTransactionCount());
 
         // 返回响应
         return ResponseEntity.ok(ResponseUtils.success(200, null, summaryRes));
@@ -173,6 +187,33 @@ public class turnoverController {
     }
 
 
+    // 獲取儲值總額（不按店家和廠商過濾）
+    private TransactionsRes getTotalDeposits() {
+        List<TransactionsRes> totalDeposits = transactionRecordRepository.getTotalDeposits();
+        BigDecimal totalAmount = BigDecimal.ZERO;
+        Integer transactionCount = 0;
+
+        for (TransactionsRes res : totalDeposits) {
+            totalAmount = totalAmount.add(res.getTodayTotalAmount());
+            transactionCount += res.getTodayTransactionCount();
+        }
+
+        return new TransactionsRes(totalAmount, transactionCount);
+    }
+
+    // 獲取消費總額（按店家和廠商過濾）
+    private TransactionsRes getTotalConsumptionFiltered(Long highestRoleId, Long vendorId, List<Long> storeIds) {
+        List<TransactionsRes> totalConsumption = gameOrderRepository.getTotalConsumptionFiltered(highestRoleId, vendorId, storeIds);
+        BigDecimal totalAmount = BigDecimal.ZERO;
+        Integer transactionCount = 0;
+
+        for (TransactionsRes res : totalConsumption) {
+            totalAmount = totalAmount.add(res.getTodayTotalAmount());
+            transactionCount += res.getTodayTransactionCount();
+        }
+
+        return new TransactionsRes(totalAmount, transactionCount);
+    }
 
 
 

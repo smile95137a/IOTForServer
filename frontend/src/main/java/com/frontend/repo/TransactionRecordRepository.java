@@ -43,7 +43,13 @@ public interface TransactionRecordRepository extends JpaRepository<TransactionRe
             @Param("vendorId") Long vendorId,
             @Param("storeIds") List<Long> storeIds);
 
-
+    @Query("SELECT new com.frontend.res.transaction.TransactionsRes( " +
+            "CAST(COALESCE(SUM(t.amount), 0) AS BigDecimal), " +
+            "CAST(COUNT(t) AS Integer), " +
+            "null) " +  // 不需要店鋪ID
+            "FROM TransactionRecord t " +
+            "WHERE t.transactionType = 'DEPOSIT'")
+    List<TransactionsRes> getTotalDeposits();
 
 
 

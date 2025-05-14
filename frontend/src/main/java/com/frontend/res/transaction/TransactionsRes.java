@@ -17,6 +17,10 @@ public class TransactionsRes {
     private BigDecimal monthTotalAmount;         // 本月总金额
     private Integer monthTransactionCount;       // 本月交易笔数
     private Long storeId;                        // 店铺 ID
+    private BigDecimal totalDepositAmount;
+    private Integer totalDepositCount;
+    private BigDecimal totalConsumptionAmount;
+    private Integer totalConsumptionCount;
 
     public TransactionsRes(BigDecimal amount, Integer count, Long storeId) {
         this.todayTotalAmount = amount;
