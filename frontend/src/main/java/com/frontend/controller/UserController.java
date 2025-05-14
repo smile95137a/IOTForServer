@@ -36,16 +36,19 @@ public class UserController {
 
 	@GetMapping("/getUserInfo")
 	public ResponseEntity<?> getUserInfo() {
-		var userDetails = SecurityUtils.getSecurityUser();
-		if (userDetails == null) {
+		try {
+			var userDetails = SecurityUtils.getSecurityUser();
+			var user = userService.getUserById(userDetails.getId());
+			if (user == null) {
+				return ResponseEntity.ok(ResponseUtils.error(999, "找不到使用者", user));
+			}
+			return ResponseEntity.ok(ResponseUtils.success(200, null, user));
+		}catch (Exception e){
 			ApiResponse<String> error = ResponseUtils.error(9999 ,"帳號或密碼錯誤" , null);
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
 		}
-		var user = userService.getUserById(userDetails.getId());
-		if (user == null) {
-			return ResponseEntity.ok(ResponseUtils.error(999, "找不到使用者", user));
-		}
-		return ResponseEntity.ok(ResponseUtils.success(200, null, user));
+
+
 	}
 
 	@PostMapping("/register")
