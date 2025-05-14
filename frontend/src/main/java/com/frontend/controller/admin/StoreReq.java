@@ -30,8 +30,8 @@ public class StoreReq {
     private Set<StoreEquipment> equipments; // 店铺设备
     private String lat; // 店铺纬度
     private String lon; // 店铺经度
-    private Integer regularRate; // 普通时段价格
-    private Integer discountRate; // 优惠时段价格
+    private Double regularRate; // 普通时段价格
+    private Double discountRate; // 优惠时段价格
     private Integer deposit; // 店铺押金
     private String imgUrl; // 店铺图片 URL
     @JsonManagedReference("storePricingSchedulesReference")

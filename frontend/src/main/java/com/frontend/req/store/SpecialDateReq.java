@@ -15,7 +15,7 @@ public class SpecialDateReq {
     private LocalDate date;
     private LocalTime openTime;
     private LocalTime closeTime;
-    private Integer regularRate;
-    private Integer discountRate;
+    private Double regularRate;
+    private Double discountRate;
     private List<SpecialTimeSlotReq> timeSlots;
 }

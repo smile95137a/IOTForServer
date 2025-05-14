@@ -19,6 +19,6 @@ public class SpecialTimeSlotRes {
     @JsonFormat(pattern = "HH:mm")
     private LocalTime endTime;  // 結束時間
     private Boolean isDiscount;  // 是否為折扣時段
-    private Integer price;  // 該時段的價格
+    private Double price;  // 該時段的價格
 
 }

@@ -50,9 +50,9 @@ public class GameRecord {
 
     // 新增字段
     @Column
-    private Integer regularRateAmount; // 一班时段的金额
+    private Double regularRateAmount; // 一班时段的金额
     @Column
-    private Integer discountRateAmount; // 优惠时段的金额
+    private Double discountRateAmount; // 优惠时段的金额
 
     private String hint;
 }

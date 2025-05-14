@@ -17,5 +17,5 @@ public class TimeSlotRes {
     @JsonFormat(pattern = "HH:mm")
     private LocalTime endTime;
     private Boolean isDiscount;
-    private Integer regularRate;
+    private Double regularRate;
 }

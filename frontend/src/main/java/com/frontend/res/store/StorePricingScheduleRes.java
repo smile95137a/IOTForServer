@@ -18,8 +18,8 @@ public class StorePricingScheduleRes {
     private String dayOfWeek;            // 星期几
     private List<TimeSlotRes> regularTimeSlots; // 普通时段
     private List<TimeSlotRes> discountTimeSlots; // 优惠时段
-    private Integer regularRate;         // 普通时段价格
-    private Integer discountRate;        // 优惠时段价格
+    private Double regularRate;         // 普通时段价格
+    private Double discountRate;        // 优惠时段价格
     @JsonFormat(pattern = "HH:mm")
     private LocalTime openTime;
     @JsonFormat(pattern = "HH:mm")

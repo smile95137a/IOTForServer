@@ -40,8 +40,8 @@ public class AdminStoreRes {
     private LocalTime openTime;
     @JsonFormat(pattern = "HH:mm")
     private LocalTime closeTime;
-    private Integer regularRate;
-    private Integer discountRate;
+    private Double regularRate;
+    private Double discountRate;
     private List<TimeSlotRes> timeSlots;
     private Set<StorePricingScheduleRes> pricingSchedules;
     // 特殊日期

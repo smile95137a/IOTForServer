@@ -48,10 +48,10 @@ import java.util.stream.Collectors;
     private LocalTime closeTime;
 
     @Column(nullable = false)
-    private Integer regularRate;
+    private Double regularRate;
 
     @Column(nullable = false)
-        private Integer discountRate;
+        private Double discountRate;
 
     @Column(name = "is_deleted", nullable = false)
     private boolean isDeleted = false;

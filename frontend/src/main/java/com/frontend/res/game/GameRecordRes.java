@@ -35,8 +35,8 @@ public class GameRecordRes {
     private String poolTableName;
 
     // 新增字段
-    private Integer regularRateAmount; // 一班时段的金额
-    private Integer discountRateAmount; // 优惠时段的金额
+    private Double regularRateAmount; // 一班时段的金额
+    private Double discountRateAmount; // 优惠时段的金额
 
     private String hint;
 

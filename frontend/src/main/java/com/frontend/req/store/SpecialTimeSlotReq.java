@@ -13,5 +13,5 @@ public class SpecialTimeSlotReq {
     private LocalTime startTime;
     private LocalTime endTime;
     private Boolean isDiscount;
-    private Integer price;
+    private Double price;
 }

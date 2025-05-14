@@ -33,7 +33,7 @@ public class SpecialDate {
     @JsonFormat(pattern = "HH:mm:ss")
     private LocalTime closeTime;
 
-    private Integer regularRate;
+    private Double regularRate;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "store_id")

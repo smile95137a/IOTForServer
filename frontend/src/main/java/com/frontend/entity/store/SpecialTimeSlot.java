@@ -27,7 +27,7 @@ public class SpecialTimeSlot {
 
     private Boolean isDiscount;
 
-    private Integer price;
+    private Double price;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "special_date_id")

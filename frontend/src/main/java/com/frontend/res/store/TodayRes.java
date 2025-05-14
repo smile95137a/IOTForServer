@@ -31,10 +31,10 @@ public class TodayRes {
     private LocalTime closeTime;
     
     // 一般價格
-    private Integer regularRate;
+    private Double regularRate;
     
     // 優惠價格（如果不是特殊日期）
-    private Integer discountRate;
+    private Double discountRate;
     
     // 時段列表
     private List<TimeSlotRes> timeSlots;

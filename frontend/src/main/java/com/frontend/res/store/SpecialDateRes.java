@@ -20,7 +20,7 @@ public class SpecialDateRes {
     private LocalTime openTime;  // 開放時間
     @JsonFormat(pattern = "HH:mm")
     private LocalTime closeTime;  // 關閉時間
-    private Integer regularRate;  // 正常時段的費用（如果有）
+    private Double regularRate;  // 正常時段的費用（如果有）
     private List<SpecialTimeSlotRes> timeSlots;  // 特殊時段列表
 
 }

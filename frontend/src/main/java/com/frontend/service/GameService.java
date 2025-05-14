@@ -143,8 +143,8 @@ public class GameService {
 
         LocalTime openTime;
         LocalTime closeTime;
-        int regularRate;
-        int discountRate;
+        Double regularRate;
+        Double discountRate;
         StorePricingSchedule currentSchedule = null;
 
         if (todaySpecialDate.isPresent()) {
@@ -384,6 +384,8 @@ public class GameService {
         long totalRegularMinutes = 0;
         long totalEffectiveMinutes = 0;
         long totalNonBusinessHoursMinutes = 0;
+        double discountPrice = 0.0;
+        double regularPrice = 0.0;
         GamePriceRes gamePriceRes = new GamePriceRes();
         // 原始總分鐘，使用調整後的計時規則
         long totalRawMinutes = adjustMinutes(Duration.between(startTime, endTime));
@@ -456,10 +458,14 @@ public class GameService {
                             long slotMinutes = adjustMinutes(Duration.between(overlapStart, overlapEnd));
 
                             if (slot.getIsDiscount()) {
-                                totalPrice += slotMinutes * slot.getPrice();
+                                double slotPrice = slotMinutes * slot.getPrice();
+                                totalPrice += slotPrice;
+                                discountPrice += slotPrice;  // 累加到優惠價格
                                 totalDiscountMinutes += slotMinutes;
                             } else {
-                                totalPrice += slotMinutes * spDate.getRegularRate();
+                                double regPrice = slotMinutes * spDate.getRegularRate();
+                                totalPrice += regPrice;
+                                regularPrice += regPrice;  // 累加到一般價格
                                 totalRegularMinutes += slotMinutes;
                             }
 
@@ -471,7 +477,9 @@ public class GameService {
                     long coveredMinutes = totalDiscountMinutes + totalRegularMinutes;
                     if (coveredMinutes < businessHoursMinutes) {
                         long uncoveredMinutes = businessHoursMinutes - coveredMinutes;
-                        totalPrice += uncoveredMinutes * spDate.getRegularRate();
+                        double uncoveredPrice = uncoveredMinutes * spDate.getRegularRate();
+                        totalPrice += uncoveredPrice;
+                        regularPrice += uncoveredPrice;  // 累加到一般價格
                         totalRegularMinutes += uncoveredMinutes;
                         totalEffectiveMinutes += uncoveredMinutes;
                     }
@@ -483,7 +491,9 @@ public class GameService {
                         adjustMinutes(Duration.between(businessStart, businessEnd)) : 0);
 
                 if (nonBusinessHoursMinutes > 0) {
-                    totalPrice += nonBusinessHoursMinutes * spDate.getRegularRate();
+                    double nonBusinessPrice = nonBusinessHoursMinutes * spDate.getRegularRate();
+                    totalPrice += nonBusinessPrice;
+                    regularPrice += nonBusinessPrice;  // 累加到一般價格
                     totalRegularMinutes += nonBusinessHoursMinutes;
                     totalNonBusinessHoursMinutes += nonBusinessHoursMinutes;
                     totalEffectiveMinutes += nonBusinessHoursMinutes;
@@ -575,16 +585,17 @@ public class GameService {
                     double discountRate = schedule.getDiscountRate();
                     double regularRate = schedule.getRegularRate();
 
-                    double discountPrice = discountMinutes * discountRate;
-                    double regularPrice = regularMinutes * regularRate;
+                    // 計算並累加優惠時段的價格和一般時段的價格
+                    double currentDiscountPrice = discountMinutes * discountRate;
+                    double currentRegularPrice = regularMinutes * regularRate;
 
-                    totalPrice += discountPrice + regularPrice;
+                    discountPrice += currentDiscountPrice;
+                    regularPrice += currentRegularPrice;
+                    totalPrice += currentDiscountPrice + currentRegularPrice;
+
                     totalDiscountMinutes += discountMinutes;
                     totalRegularMinutes += regularMinutes;
                     totalEffectiveMinutes += businessHoursMinutes;
-
-                    gamePriceRes.setDiscountPrice(discountPrice);
-                    gamePriceRes.setRegularPrice(regularPrice);
                 }
 
                 // 計算非營業時間的費用
@@ -594,6 +605,7 @@ public class GameService {
                     double nonBusinessPrice = nonBusinessHoursMinutes * regularRate;
 
                     totalPrice += nonBusinessPrice;
+                    regularPrice += nonBusinessPrice;  // 累加到一般價格
                     totalRegularMinutes += nonBusinessHoursMinutes;
                     totalNonBusinessHoursMinutes += nonBusinessHoursMinutes;
                     totalEffectiveMinutes += nonBusinessHoursMinutes;
@@ -603,13 +615,17 @@ public class GameService {
             currentStart = currentEnd;
         }
 
-
         System.out.println("計算結果:");
         System.out.println("總共遊玩時間(原始): " + totalRawMinutes + " 分鐘");
         System.out.println("總優惠時段: " + totalDiscountMinutes + " 分鐘");
         System.out.println("總一般時段: " + totalRegularMinutes + " 分鐘");
         System.out.println("總非營業時間: " + totalNonBusinessHoursMinutes + " 分鐘");
         System.out.println("總金額: " + totalPrice);
+        System.out.println("優惠金額: " + discountPrice);
+        System.out.println("一般金額: " + regularPrice);
+
+        gamePriceRes.setDiscountPrice(discountPrice);
+        gamePriceRes.setRegularPrice(regularPrice);
         gamePriceRes.setDeposit(store.getDeposit());
         gamePriceRes.setTotalRawMinutes(totalRawMinutes);
         gamePriceRes.setTotalDiscountMinutes(totalDiscountMinutes);
@@ -617,7 +633,6 @@ public class GameService {
         gamePriceRes.setTotalPrice(totalPrice);
         return gamePriceRes;
     }
-
     // 添加檢查特殊日期的方法，與 StoreService 中的類似
     private Optional<SpecialDate> getTodaySpecialDate(Store store, LocalDate date) {
         if (store.getSpecialDates() == null) {
@@ -805,8 +820,8 @@ public class GameService {
                 .orElseThrow(() -> new Exception("沒有找到當天的優惠或定價訊息"));
 
         // ➡️ 計算費率
-        int discountRateAmount = currentSchedule.getDiscountRate();
-        int regularRateAmount = currentSchedule.getRegularRate();
+        Double discountRateAmount = currentSchedule.getDiscountRate();
+        Double regularRateAmount = currentSchedule.getRegularRate();
         long durationHours = Duration.between(gameReq.getStartTime(), gameReq.getEndTime()).toHours();
         if (durationHours <= 0) {
             throw new Exception("預約時間必須至少為1小時");
@@ -994,7 +1009,7 @@ public class GameService {
 
         LocalTime openTime;
         LocalTime closeTime;
-        int regularRate;
+        Double regularRate;
 
         if (specialDateOpt.isPresent()) {
             // 如果是特殊日期，使用特殊日期的營業時間和費率
@@ -1079,7 +1094,7 @@ public class GameService {
             }
 
             // 根據特殊日期或一般排程獲取費率
-            int rate;
+            Double rate;
             if (specialDateOpt.isPresent()) {
                 rate = getRateForSpecialDate(specialDateOpt.get(), startTime, regularRate);
             } else {
@@ -1149,7 +1164,7 @@ public class GameService {
     }
 
     // 獲取特殊日期的費率
-    private int getRateForSpecialDate(SpecialDate specialDate, LocalTime startTime, int defaultRate) {
+    private Double getRateForSpecialDate(SpecialDate specialDate, LocalTime startTime, Double defaultRate) {
         // 查詢特殊日期的 SpecialTimeSlot
         for (SpecialTimeSlot slot : specialDate.getTimeSlots()) {
             if (!startTime.isBefore(slot.getStartTime()) && startTime.isBefore(slot.getEndTime())) {
@@ -1160,7 +1175,7 @@ public class GameService {
     }
 
     // 獲取普通日期的費率
-    private int getRateForNormalDate(StorePricingSchedule schedule, LocalTime startTime) {
+    private Double getRateForNormalDate(StorePricingSchedule schedule, LocalTime startTime) {
         // 查詢普通日期的 TimeSlot
         for (TimeSlot slot : schedule.getTimeSlots()) {
             if (!startTime.isBefore(slot.getStartTime()) && startTime.isBefore(slot.getEndTime())) {
@@ -1203,7 +1218,7 @@ public class GameService {
                 })
                 .collect(Collectors.toList());
     }
-    private static int getRateForTime(List<TimeSlot> timeSlots, StorePricingSchedule schedule, LocalTime startTime) {
+    private static Double getRateForTime(List<TimeSlot> timeSlots, StorePricingSchedule schedule, LocalTime startTime) {
         for (TimeSlot slot : timeSlots) {
             if (!startTime.isBefore(slot.getStartTime()) && startTime.isBefore(slot.getEndTime())) {
                 return slot.getIsDiscount() ? schedule.getRegularRate() : schedule.getDiscountRate();

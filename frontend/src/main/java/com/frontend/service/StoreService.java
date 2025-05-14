@@ -171,8 +171,8 @@ public class StoreService {
                         .date(LocalDate.now().toString())
                         .openTime(LocalTime.of(0, 0))
                         .closeTime(LocalTime.of(23, 59))
-                        .regularRate(0)
-                        .discountRate(0)
+                        .regularRate(0.0)
+                        .discountRate(0.0)
                         .timeSlots(List.of()) // 空列表，因為沒有時段
                         .build();
 
