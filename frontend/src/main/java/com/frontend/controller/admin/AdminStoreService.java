@@ -65,7 +65,7 @@ public class AdminStoreService {
 		store.setCreateTime(LocalDateTime.now());
 		store.setCreateUserId(userId);
 		store.setImgUrl(storeReq.getImgUrl() != null ? storeReq.getImgUrl() : "");
-		if(storeReq.getUser().equals("") || storeReq.getUser() == null) {
+		if(storeReq.getUser() == null) {
 			Vendor vendor = vendorRepository.findById(storeReq.getVendor().getId()).get();
 			User user = userRepository.findById(vendor.getUserId()).get();
 			store.setUser(user);
