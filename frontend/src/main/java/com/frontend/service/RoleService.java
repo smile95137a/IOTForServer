@@ -73,9 +73,10 @@ public class RoleService {
 
             if (roleId == 2) {
                 isUsed = user.getVendor() != null;
-            } else if (roleId == 5) {
-                isUsed = user.getStores() != null;
             }
+//            else if (roleId == 5) {
+//                isUsed = user.getStores() != null;
+//            }
 
             UserRoleRes roleRes = new UserRoleRes();
             roleRes.setId(user.getId());

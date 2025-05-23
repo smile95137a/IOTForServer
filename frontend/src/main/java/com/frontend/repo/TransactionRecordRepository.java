@@ -93,7 +93,7 @@ public interface TransactionRecordRepository extends JpaRepository<TransactionRe
             WHEN :type = 'YEAR' THEN CAST(YEAR(transaction_date) AS CHAR)
         END AS period,
         COUNT(*) AS deposit_count
-    FROM transaction_record
+    FROM transaction_records
     WHERE transaction_type = 'DEPOSIT' AND transaction_date BETWEEN :startDate AND :endDate
     GROUP BY period
     ORDER BY period
@@ -131,7 +131,7 @@ public interface TransactionRecordRepository extends JpaRepository<TransactionRe
             WHEN :type = 'YEAR' THEN CAST(YEAR(create_time) AS CHAR)
         END AS period,
         COUNT(*) AS user_count
-    FROM user
+    FROM users
     WHERE create_time BETWEEN :startDate AND :endDate
     GROUP BY period
     ORDER BY period

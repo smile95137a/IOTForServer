@@ -38,15 +38,16 @@ public class RechargeService {
                         rs.setUpdateTime(promo.getUpdateTime());
                         return rs;
                     })
-                    .sorted(Comparator.comparing(RechargeStandard::getRechargeAmount))
+                    .sorted(Comparator.comparing(RechargeStandard::getRechargeAmount).reversed()) // 金額大到小
                     .collect(Collectors.toList());
             return promoPlans;
         }
 
-        // 如果沒活動，返回標準方案
+        // 如果沒活動，返回標準方案，並同樣金額由大到小排序
         return standardRepo.findAll()
                 .stream()
-                .sorted(Comparator.comparing(RechargeStandard::getRechargeAmount))
+                .sorted(Comparator.comparing(RechargeStandard::getRechargeAmount).reversed()) // 金額大到小
                 .collect(Collectors.toList());
     }
+
 }
