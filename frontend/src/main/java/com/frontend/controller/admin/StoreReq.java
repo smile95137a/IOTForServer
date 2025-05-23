@@ -9,6 +9,7 @@ import com.frontend.entity.vendor.Vendor;
 import com.frontend.req.store.SpecialDateReq;
 import com.frontend.req.store.StorePricingScheduleReq;
 import com.frontend.req.store.TimeSlotReq;
+import com.frontend.req.store.WeekendScheduleReq;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -41,9 +42,15 @@ public class StoreReq {
     private Integer bookTime;
     private Integer cancelBookTime;
     private User user;
+
+    // 平日設定 (週一到週五)
     private LocalTime openTime;
     private LocalTime closeTime;
-    private List<TimeSlotReq> timeSlots; // 優惠區間
-    private List<SpecialDateReq> specialDates; // 特殊日期與優惠時段
+    private List<TimeSlotReq> timeSlots; // 平日優惠區間
 
+    // 週末設定 (週六、週日共用)
+    private WeekendScheduleReq weekendSchedule; // 週末時段設定
+
+    // 特殊日期設定
+    private List<SpecialDateReq> specialDates; // 特殊日期與優惠時段
 }

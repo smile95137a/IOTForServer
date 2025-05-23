@@ -13,10 +13,7 @@ import com.frontend.entity.store.*;
 import com.frontend.entity.user.User;
 import com.frontend.entity.vendor.Vendor;
 import com.frontend.repo.*;
-import com.frontend.req.store.SpecialDateReq;
-import com.frontend.req.store.SpecialTimeSlotReq;
-import com.frontend.req.store.StorePricingScheduleReq;
-import com.frontend.req.store.TimeSlotReq;
+import com.frontend.req.store.*;
 import com.frontend.res.store.*;
 import com.frontend.res.vendor.VendorDto;
 import org.springframework.beans.BeanUtils;
@@ -65,16 +62,29 @@ public class AdminStoreService {
 		store.setCreateTime(LocalDateTime.now());
 		store.setCreateUserId(userId);
 		store.setImgUrl(storeReq.getImgUrl() != null ? storeReq.getImgUrl() : "");
+
 		if(storeReq.getUser() == null) {
 			Vendor vendor = vendorRepository.findById(storeReq.getVendor().getId()).get();
 			User user = userRepository.findById(vendor.getUserId()).get();
 			store.setUser(user);
-		}else{
+		} else {
 			store.setUser(storeReq.getUser());
 		}
+
 		Store savedStore = storeRepository.save(store);
 
 		// 儲存特殊日期與時段
+		saveSpecialDates(storeReq, savedStore);
+
+		// 建立週間排程
+		List<StorePricingSchedule> schedules = createWeeklySchedules(storeReq, savedStore);
+		storePricingScheduleRepository.saveAll(schedules);
+
+		return savedStore;
+	}
+
+	// 輔助方法：儲存特殊日期
+	private void saveSpecialDates(StoreReq storeReq, Store savedStore) {
 		List<SpecialDate> specialDates = new ArrayList<>();
 		if (storeReq.getSpecialDates() != null) {
 			for (SpecialDateReq dateReq : storeReq.getSpecialDates()) {
@@ -100,45 +110,82 @@ public class AdminStoreService {
 			}
 			specialDateRepository.saveAll(specialDates);
 		}
+	}
 
-		// 關鍵修改：只建立一個包含時段設定的 schedule，而不是每天都重複同樣的時段
-		// 為週一到週日建立基本 schedule，但只有週一包含時段設定
+	// 輔助方法：建立週間排程
+	private List<StorePricingSchedule> createWeeklySchedules(StoreReq storeReq, Store savedStore) {
 		List<StorePricingSchedule> schedules = new ArrayList<>();
+
+		// 檢查是否啟用週末獨立設定
+		boolean hasWeekendSetting = storeReq.getWeekendSchedule() != null &&
+				storeReq.getWeekendSchedule().getEnableWeekendSetting();
 
 		for (DayOfWeek day : DayOfWeek.values()) {
 			StorePricingSchedule schedule = new StorePricingSchedule();
 			schedule.setDayOfWeek(day.name());
-			schedule.setOpenTime(storeReq.getOpenTime());
-			schedule.setCloseTime(storeReq.getCloseTime());
-			schedule.setRegularRate(storeReq.getRegularRate());
-			schedule.setDiscountRate(storeReq.getDiscountRate());
 			schedule.setStore(savedStore);
 
-			// 只有 MONDAY 包含時段設定，其他天不設置時段
-			// 這樣在查詢時，如果特定星期幾沒有時段設定，就使用週一的設定
-			if (day == DayOfWeek.MONDAY) {
-				try {
-					List<TimeSlot> timeSlots = splitTimeSlots(
-							storeReq.getOpenTime(),
-							storeReq.getCloseTime(),
-							storeReq.getTimeSlots(),
-							schedule
-					);
-					schedule.setTimeSlots(timeSlots);
-				} catch (Exception e) {
-					throw new RuntimeException("優惠時段錯誤：" + e.getMessage());
-				}
+			// 判斷是平日還是週末
+			boolean isWeekend = (day == DayOfWeek.SATURDAY || day == DayOfWeek.SUNDAY);
+
+			if (isWeekend && hasWeekendSetting) {
+				// 週末使用獨立設定
+				setWeekendSchedule(schedule, storeReq.getWeekendSchedule(), day);
 			} else {
-				// 其他天設置空的時段列表
-				schedule.setTimeSlots(new ArrayList<>());
+				// 平日使用預設設定
+				setWeekdaySchedule(schedule, storeReq, day);
 			}
 
 			schedules.add(schedule);
 		}
 
-		storePricingScheduleRepository.saveAll(schedules);
+		return schedules;
+	}
 
-		return savedStore;
+	// 設定平日排程
+	private void setWeekdaySchedule(StorePricingSchedule schedule, StoreReq storeReq, DayOfWeek day) {
+		schedule.setOpenTime(storeReq.getOpenTime());
+		schedule.setCloseTime(storeReq.getCloseTime());
+		schedule.setRegularRate(storeReq.getRegularRate());
+		schedule.setDiscountRate(storeReq.getDiscountRate());
+
+		// 只有 MONDAY 包含時段設定，其他平日使用相同設定但不重複儲存時段
+		if (day == DayOfWeek.MONDAY) {
+			try {
+				List<TimeSlot> timeSlots = splitTimeSlots(
+						storeReq.getOpenTime(),
+						storeReq.getCloseTime(),
+						storeReq.getTimeSlots(),
+						schedule
+				);
+				schedule.setTimeSlots(timeSlots);
+			} catch (Exception e) {
+				throw new RuntimeException("平日優惠時段錯誤：" + e.getMessage());
+			}
+		} else {
+			// 其他平日設置空的時段列表
+			schedule.setTimeSlots(new ArrayList<>());
+		}
+	}
+
+	// 設定週末排程
+	private void setWeekendSchedule(StorePricingSchedule schedule, WeekendScheduleReq weekendReq, DayOfWeek day) {
+		schedule.setOpenTime(weekendReq.getOpenTime());
+		schedule.setCloseTime(weekendReq.getCloseTime());
+		schedule.setRegularRate(weekendReq.getRegularRate());
+		schedule.setDiscountRate(weekendReq.getDiscountRate());
+
+		try {
+			List<TimeSlot> timeSlots = splitTimeSlots(
+					weekendReq.getOpenTime(),
+					weekendReq.getCloseTime(),
+					weekendReq.getTimeSlots(),
+					schedule
+			);
+			schedule.setTimeSlots(timeSlots);
+		} catch (Exception e) {
+			throw new RuntimeException("週末優惠時段錯誤（" + day.name() + "）：" + e.getMessage());
+		}
 	}
 	private List<TimeSlot> splitTimeSlots(LocalTime openTime, LocalTime closeTime,
 										  List<TimeSlotReq> timeSlotsReq, StorePricingSchedule schedule) throws Exception {
