@@ -35,15 +35,21 @@ public class AdminStoreRes {
     private Integer cancelBookTime;
     private User user;
 
-    // 從 PricingSchedule 獲取的基本資料.
+    // 平日設定 (週一到週五) - 從週一的 PricingSchedule 獲取
     @JsonFormat(pattern = "HH:mm")
     private LocalTime openTime;
     @JsonFormat(pattern = "HH:mm")
     private LocalTime closeTime;
     private Double regularRate;
     private Double discountRate;
-    private List<TimeSlotRes> timeSlots;
+    private List<TimeSlotRes> timeSlots; // 平日優惠時段
+
+    // 週末設定 (週六、週日共用) - 如果有啟用的話
+    private WeekendScheduleRes weekendSchedule;
+
+    // 完整的 pricing schedules（包含所有天的詳細資料）
     private Set<StorePricingScheduleRes> pricingSchedules;
-    // 特殊日期
+
+    // 特殊日期設定
     private List<SpecialDateRes> specialDates;
 }

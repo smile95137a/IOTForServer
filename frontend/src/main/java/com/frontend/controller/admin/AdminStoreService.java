@@ -301,26 +301,112 @@ public class AdminStoreService {
 
 			builder.pricingSchedules(pricingScheduleResSet);
 
-			List<TimeSlotRes> allTimeSlots = store.getPricingSchedules().stream()
-					.flatMap(schedule -> schedule.getTimeSlots().stream())
-					.filter(TimeSlot::getIsDiscount) // ✅ 只保留 isDiscount 為 true 的
-					.map(this::convertToTimeSlotRes)
-					.collect(Collectors.toList());
+			// 取得平日設定（週一代表平日）
+			Optional<StorePricingSchedule> weekdaySchedule = store.getPricingSchedules().stream()
+					.filter(schedule -> "MONDAY".equals(schedule.getDayOfWeek()))
+					.findFirst();
 
-			builder.timeSlots(allTimeSlots);
+			// 取得週末設定
+			Optional<StorePricingSchedule> saturdaySchedule = store.getPricingSchedules().stream()
+					.filter(schedule -> "SATURDAY".equals(schedule.getDayOfWeek()))
+					.findFirst();
 
-			store.getPricingSchedules().stream().findFirst().ifPresent(first -> {
-				builder.openTime(first.getOpenTime());
-				builder.closeTime(first.getCloseTime());
-				builder.regularRate(first.getRegularRate());
-				builder.discountRate(first.getDiscountRate());
-			});
+			Optional<StorePricingSchedule> sundaySchedule = store.getPricingSchedules().stream()
+					.filter(schedule -> "SUNDAY".equals(schedule.getDayOfWeek()))
+					.findFirst();
+
+			// 設定平日基本資料
+			if (weekdaySchedule.isPresent()) {
+				StorePricingSchedule weekday = weekdaySchedule.get();
+				builder.openTime(weekday.getOpenTime());
+				builder.closeTime(weekday.getCloseTime());
+				builder.regularRate(weekday.getRegularRate());
+				builder.discountRate(weekday.getDiscountRate());
+
+				// 平日優惠時段（只取週一的時段，因為其他平日共用）
+				List<TimeSlotRes> weekdayTimeSlots = weekday.getTimeSlots() != null ?
+						weekday.getTimeSlots().stream()
+								.filter(TimeSlot::getIsDiscount)
+								.map(this::convertToTimeSlotRes)
+								.collect(Collectors.toList()) :
+						List.of();
+
+				builder.timeSlots(weekdayTimeSlots);
+			}
+
+			// 檢查是否有週末獨立設定
+			if (weekdaySchedule.isPresent() && saturdaySchedule.isPresent()) {
+				StorePricingSchedule weekday = weekdaySchedule.get();
+				StorePricingSchedule saturday = saturdaySchedule.get();
+
+				// 判斷週末設定是否與平日不同
+				boolean hasWeekendSetting = !Objects.equals(weekday.getOpenTime(), saturday.getOpenTime()) ||
+						!Objects.equals(weekday.getCloseTime(), saturday.getCloseTime()) ||
+						!Objects.equals(weekday.getRegularRate(), saturday.getRegularRate()) ||
+						!Objects.equals(weekday.getDiscountRate(), saturday.getDiscountRate()) ||
+						(saturday.getTimeSlots() != null && !saturday.getTimeSlots().isEmpty());
+
+				if (hasWeekendSetting) {
+					// 週末優惠時段
+					List<TimeSlotRes> weekendTimeSlots = saturday.getTimeSlots() != null ?
+							saturday.getTimeSlots().stream()
+									.filter(TimeSlot::getIsDiscount)
+									.map(this::convertToTimeSlotRes)
+									.collect(Collectors.toList()) :
+							List.of();
+
+					// 構建週末設定
+					WeekendScheduleRes weekendSchedule = WeekendScheduleRes.builder()
+							.enableWeekendSetting(true)
+							.openTime(saturday.getOpenTime())
+							.closeTime(saturday.getCloseTime())
+							.regularRate(saturday.getRegularRate())
+							.discountRate(saturday.getDiscountRate())
+							.timeSlots(weekendTimeSlots)
+							.build();
+
+					builder.weekendSchedule(weekendSchedule);
+
+					// 合併所有優惠時段（平日 + 週末）
+					List<TimeSlotRes> allTimeSlots = new ArrayList<>();
+					if (weekdaySchedule.get().getTimeSlots() != null) {
+						List<TimeSlotRes> weekdaySlots = weekdaySchedule.get().getTimeSlots().stream()
+								.filter(TimeSlot::getIsDiscount)
+								.map(this::convertToTimeSlotRes)
+								.collect(Collectors.toList());
+						allTimeSlots.addAll(weekdaySlots);
+					}
+					allTimeSlots.addAll(weekendTimeSlots);
+
+					builder.timeSlots(allTimeSlots);
+				}
+			}
+
+			// 如果沒有平日設定，使用第一個可用的設定作為預設
+			if (weekdaySchedule.isEmpty()) {
+				store.getPricingSchedules().stream().findFirst().ifPresent(first -> {
+					builder.openTime(first.getOpenTime());
+					builder.closeTime(first.getCloseTime());
+					builder.regularRate(first.getRegularRate());
+					builder.discountRate(first.getDiscountRate());
+				});
+
+				// 取得所有優惠時段
+				List<TimeSlotRes> allTimeSlots = store.getPricingSchedules().stream()
+						.filter(schedule -> schedule.getTimeSlots() != null && !schedule.getTimeSlots().isEmpty())
+						.flatMap(schedule -> schedule.getTimeSlots().stream())
+						.filter(TimeSlot::getIsDiscount)
+						.map(this::convertToTimeSlotRes)
+						.collect(Collectors.toList());
+
+				builder.timeSlots(allTimeSlots);
+			}
 		} else {
 			builder.pricingSchedules(Set.of());
 			builder.timeSlots(List.of());
 		}
 
-		// ✅ 加入 specialDates 的處理邏輯
+		// 加入 specialDates 的處理邏輯
 		if (store.getSpecialDates() != null) {
 			List<SpecialDateRes> specialDateResList = store.getSpecialDates().stream()
 					.map(specialDate -> SpecialDateRes.builder()
@@ -350,7 +436,6 @@ public class AdminStoreService {
 
 		return builder.build();
 	}
-
 
 	// 将 StorePricingSchedule 转换为 StorePricingScheduleRes 的方法
 	private StorePricingScheduleRes convertToStorePricingScheduleRes(StorePricingSchedule pricingSchedule) {
@@ -537,7 +622,6 @@ public class AdminStoreService {
 				.uid(store.getUid())
 				.name(store.getName())
 				.address(store.getAddress())
-				.vendor(store.getVendor())
 				.imgUrl(store.getImgUrl())
 				.lat(store.getLat())
 				.lon(store.getLon())
