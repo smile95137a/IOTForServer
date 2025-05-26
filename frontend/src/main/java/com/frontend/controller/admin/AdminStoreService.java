@@ -428,32 +428,7 @@ public class AdminStoreService {
 			}
 
 			// 儲存新的特殊日期與時段
-			List<SpecialDate> specialDates = new ArrayList<>();
-			if (storeReq.getSpecialDates() != null) {
-				for (SpecialDateReq dateReq : storeReq.getSpecialDates()) {
-					SpecialDate specialDate = new SpecialDate();
-					specialDate.setDate(dateReq.getDate());
-					specialDate.setOpenTime(dateReq.getOpenTime());
-					specialDate.setCloseTime(dateReq.getCloseTime());
-					specialDate.setRegularRate(dateReq.getRegularRate());
-					specialDate.setStore(store);
-
-					List<SpecialTimeSlot> slots = new ArrayList<>();
-					for (SpecialTimeSlotReq slotReq : dateReq.getTimeSlots()) {
-						SpecialTimeSlot slot = new SpecialTimeSlot();
-						slot.setStartTime(slotReq.getStartTime());
-						slot.setEndTime(slotReq.getEndTime());
-						slot.setIsDiscount(slotReq.getIsDiscount());
-						slot.setPrice(slotReq.getPrice());
-						slot.setSpecialDate(specialDate);
-						slots.add(slot);
-					}
-					specialDate.setTimeSlots(slots);
-					specialDates.add(specialDate);
-				}
-				specialDateRepository.saveAll(specialDates);
-				store.getSpecialDates().addAll(specialDates);
-			}
+			updateSpecialDates(storeReq, store);
 
 			// 刪除原有的定價計劃及其時段
 			if (store.getPricingSchedules() != null) {
@@ -464,38 +439,8 @@ public class AdminStoreService {
 				store.getPricingSchedules().clear();
 			}
 
-			// 為 7 天建立新的 schedule，但只有週一設置時段
-			List<StorePricingSchedule> schedules = new ArrayList<>();
-			for (DayOfWeek day : DayOfWeek.values()) {
-				StorePricingSchedule schedule = new StorePricingSchedule();
-				schedule.setDayOfWeek(day.name());
-				schedule.setOpenTime(storeReq.getOpenTime());
-				schedule.setCloseTime(storeReq.getCloseTime());
-				schedule.setRegularRate(storeReq.getRegularRate());
-				schedule.setDiscountRate(storeReq.getDiscountRate());
-				schedule.setStore(store);
-
-				// 只有週一設置時段，其他天保持空列表
-				if (day == DayOfWeek.MONDAY) {
-					try {
-						List<TimeSlot> timeSlots = splitTimeSlots(
-								storeReq.getOpenTime(),
-								storeReq.getCloseTime(),
-								storeReq.getTimeSlots(),
-								schedule
-						);
-						schedule.setTimeSlots(timeSlots);
-					} catch (Exception e) {
-						throw new RuntimeException("優惠時段錯誤：" + e.getMessage());
-					}
-				} else {
-					// 其他天設置空的時段列表
-					schedule.setTimeSlots(new ArrayList<>());
-				}
-
-				schedules.add(schedule);
-			}
-
+			// 建立新的週間排程（支援週末獨立設定）
+			List<StorePricingSchedule> schedules = createWeeklySchedules(storeReq, store);
 			storePricingScheduleRepository.saveAll(schedules);
 			store.getPricingSchedules().addAll(schedules);
 
@@ -508,7 +453,35 @@ public class AdminStoreService {
 		}).orElseThrow(() -> new Exception("Store not found with uid: " + uid));
 	}
 
+	// 輔助方法：更新特殊日期
+	private void updateSpecialDates(StoreReq storeReq, Store store) {
+		List<SpecialDate> specialDates = new ArrayList<>();
+		if (storeReq.getSpecialDates() != null) {
+			for (SpecialDateReq dateReq : storeReq.getSpecialDates()) {
+				SpecialDate specialDate = new SpecialDate();
+				specialDate.setDate(dateReq.getDate());
+				specialDate.setOpenTime(dateReq.getOpenTime());
+				specialDate.setCloseTime(dateReq.getCloseTime());
+				specialDate.setRegularRate(dateReq.getRegularRate());
+				specialDate.setStore(store);
 
+				List<SpecialTimeSlot> slots = new ArrayList<>();
+				for (SpecialTimeSlotReq slotReq : dateReq.getTimeSlots()) {
+					SpecialTimeSlot slot = new SpecialTimeSlot();
+					slot.setStartTime(slotReq.getStartTime());
+					slot.setEndTime(slotReq.getEndTime());
+					slot.setIsDiscount(slotReq.getIsDiscount());
+					slot.setPrice(slotReq.getPrice());
+					slot.setSpecialDate(specialDate);
+					slots.add(slot);
+				}
+				specialDate.setTimeSlots(slots);
+				specialDates.add(specialDate);
+			}
+			specialDateRepository.saveAll(specialDates);
+			store.getSpecialDates().addAll(specialDates);
+		}
+	}
 	@Transactional
 	public void deleteStore(String uid) {
 		Store store = storeRepository.findByUid(uid)
