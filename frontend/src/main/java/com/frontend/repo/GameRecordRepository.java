@@ -43,4 +43,5 @@ public interface GameRecordRepository extends CrudRepository<GameRecord, Long> {
 
     List<GameRecord> findAllByPoolTableIdAndStatus(Long id, String status);
 
+    List<GameRecord> findByUserUidAndStatusAndStartTimeBetween(String uid, String started, LocalDateTime startOfDay, LocalDateTime endOfDay);
 }

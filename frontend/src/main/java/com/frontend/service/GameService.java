@@ -14,6 +14,7 @@ import com.frontend.repo.*;
 import com.frontend.req.game.BookGameReq;
 import com.frontend.req.game.CheckoutReq;
 import com.frontend.req.game.GameReq;
+import com.frontend.req.store.TimeSlotInfo;
 import com.frontend.res.game.GamePriceRes;
 import com.frontend.res.game.GameRes;
 import com.frontend.res.game.GameResponse;
@@ -271,8 +272,137 @@ public class GameService {
             tableEquipmentRepository.save(table);
         }
 
-        // ✅ 回傳資料
-        return new GameRes(gameRecord, message, endTimeMinutes, vendor , store.getContactPhone());
+        // **新增：获取当前时段信息**
+        TimeSlotInfo currentTimeSlot = getCurrentTimeSlotInfo(store, today);
+
+        // ✅ 回傳資料（包含时段信息）
+        GameRes gameRes = new GameRes(gameRecord, message, endTimeMinutes, vendor, store.getContactPhone());
+        gameRes.setCurrentTimeSlot(currentTimeSlot);
+
+        return gameRes;
+    }
+
+    /**
+     * 获取当前时段信息的方法（复用之前的逻辑）
+     * @param store 店铺信息
+     * @param targetDate 目标日期
+     * @return 当前时段信息
+     */
+    private TimeSlotInfo getCurrentTimeSlotInfo(Store store, LocalDate targetDate) {
+        LocalTime currentTime = LocalTime.now();
+
+        // 1. 首先检查是否为特殊日期
+        Optional<SpecialDate> specialDateOpt = getTodaySpecialDate(store, targetDate);
+
+        if (specialDateOpt.isPresent()) {
+            SpecialDate specialDate = specialDateOpt.get();
+
+            // 在特殊日期的时段中查找当前时间
+            if (specialDate.getTimeSlots() != null) {
+                for (SpecialTimeSlot slot : specialDate.getTimeSlots()) {
+                    if (isTimeInSlot(currentTime, slot.getStartTime(), slot.getEndTime())) {
+                        return TimeSlotInfo.builder()
+                                .isDiscount(slot.getIsDiscount())
+                                .startTime(slot.getStartTime())
+                                .endTime(slot.getEndTime())
+                                .rate(slot.getIsDiscount() ? slot.getPrice() : specialDate.getRegularRate())
+                                .isSpecialDate(true)
+                                .timeSlotType(slot.getIsDiscount() ? "DISCOUNT" : "REGULAR")
+                                .build();
+                    }
+                }
+            }
+
+            // 如果不在任何时段内，返回特殊日期的默认信息
+            return TimeSlotInfo.builder()
+                    .isDiscount(false)
+                    .startTime(specialDate.getOpenTime())
+                    .endTime(specialDate.getCloseTime())
+                    .rate(specialDate.getRegularRate())
+                    .isSpecialDate(true)
+                    .timeSlotType("REGULAR")
+                    .build();
+        }
+
+        // 2. 不是特殊日期，查找正常营业时段
+        String currentDay = targetDate.getDayOfWeek().toString();
+
+        // 获取当天的排程
+        Optional<StorePricingSchedule> todaySchedule = store.getPricingSchedules().stream()
+                .filter(schedule -> schedule.getDayOfWeek().equalsIgnoreCase(currentDay))
+                .findFirst();
+
+        if (todaySchedule.isPresent()) {
+            StorePricingSchedule schedule = todaySchedule.get();
+            List<TimeSlot> slots = schedule.getTimeSlots();
+
+            // 如果当天没有时段，查找周一的时段
+            if (slots == null || slots.isEmpty()) {
+                Optional<StorePricingSchedule> mondaySchedule = store.getPricingSchedules().stream()
+                        .filter(s -> s.getDayOfWeek().equalsIgnoreCase("MONDAY"))
+                        .findFirst();
+
+                if (mondaySchedule.isPresent() && !mondaySchedule.get().getTimeSlots().isEmpty()) {
+                    slots = mondaySchedule.get().getTimeSlots();
+                }
+            }
+
+            // 在时段中查找当前时间
+            if (slots != null) {
+                for (TimeSlot slot : slots) {
+                    if (isTimeInSlot(currentTime, slot.getStartTime(), slot.getEndTime())) {
+                        return TimeSlotInfo.builder()
+                                .isDiscount(slot.getIsDiscount())
+                                .startTime(slot.getStartTime())
+                                .endTime(slot.getEndTime())
+                                .rate(slot.getIsDiscount() ? schedule.getDiscountRate() : schedule.getRegularRate())
+                                .isSpecialDate(false)
+                                .timeSlotType(slot.getIsDiscount() ? "DISCOUNT" : "REGULAR")
+                                .build();
+                    }
+                }
+            }
+
+            // 如果不在任何时段内，返回默认的一般时段
+            return TimeSlotInfo.builder()
+                    .isDiscount(false)
+                    .startTime(schedule.getOpenTime())
+                    .endTime(schedule.getCloseTime())
+                    .rate(schedule.getRegularRate())
+                    .isSpecialDate(false)
+                    .timeSlotType("REGULAR")
+                    .build();
+        }
+
+        // 3. 如果找不到任何排程，返回默认值
+        return TimeSlotInfo.builder()
+                .isDiscount(false)
+                .startTime(LocalTime.of(0, 0))
+                .endTime(LocalTime.of(23, 59))
+                .rate(0.0)
+                .isSpecialDate(false)
+                .timeSlotType("REGULAR")
+                .build();
+    }
+
+    /**
+     * 判断当前时间是否在指定时段内
+     * @param currentTime 当前时间
+     * @param startTime 开始时间
+     * @param endTime 结束时间
+     * @return 是否在时段内
+     */
+    private boolean isTimeInSlot(LocalTime currentTime, LocalTime startTime, LocalTime endTime) {
+        // 处理跨午夜的情况
+        if (endTime.isBefore(startTime)) {
+            // 跨午夜：例如 22:00 - 02:00
+            return currentTime.isAfter(startTime) || currentTime.isBefore(endTime) ||
+                    currentTime.equals(startTime) || currentTime.equals(endTime);
+        } else {
+            // 正常情况：例如 09:00 - 17:00
+            return (currentTime.isAfter(startTime) || currentTime.equals(startTime)) &&
+                    (currentTime.isBefore(endTime) || currentTime.equals(endTime));
+        }
     }
 
     // 添加檢查特殊日期的方法
@@ -281,15 +411,14 @@ public class GameService {
         return !currentTime.isBefore(startTime) && !currentTime.isAfter(endTime);
     }
 
-    private boolean gameIsUse(String uid){
-        boolean isUse = false;
-        List<GameRecord> started = gameRecordRepository.findByUserUidAndStatus(uid, "STARTED");
-        if(!started.isEmpty()){
-            isUse = true;
-           
-        }
+    public boolean gameIsUse(String uid){
+        LocalDateTime startOfDay = LocalDate.now().atStartOfDay();
+        LocalDateTime endOfDay = LocalDate.now().atTime(23, 59, 59);
 
-        return isUse;
+        List<GameRecord> started = gameRecordRepository
+                .findByUserUidAndStatusAndStartTimeBetween(uid, "STARTED", startOfDay, endOfDay);
+
+        return !started.isEmpty();
     }
 
 
@@ -1243,6 +1372,10 @@ public class GameService {
             throw new Exception("找不到遊戲紀錄");
         }
 
+        // 取得店家信息
+        Store store = storeRepository.findById(byGameId.getStoreId())
+                .orElseThrow(() -> new Exception("找不到店家"));
+
         // 取得開始和結束時間
         LocalDateTime startTime = byGameId.getStartTime();
         LocalDateTime endTime = LocalDateTime.now();
@@ -1257,15 +1390,34 @@ public class GameService {
 
         try {
             // 使用與endGame相同的價格計算邏輯
-            GamePriceRes totalPrice = calculateAdjustedPrice(byGameId.getStoreId(), startTime, endTime);
-            totalPrice.setSecond(totalSeconds);
+            GamePriceRes gamePriceRes = calculateAdjustedPrice(byGameId.getStoreId(), startTime, endTime);
+            gamePriceRes.setSecond(totalSeconds);
+
+            // **新增：计算并设置新字段**
+
+            // 获取费率信息 (需要从游戏记录或重新计算)
+            double regularRate = byGameId.getRegularRateAmount(); // 每分钟费率
+            double discountRate = byGameId.getDiscountRateAmount(); // 每分钟费率
+
+            // 设置每小时费率
+            gamePriceRes.setRegularHourlyRate(regularRate * 60);
+            gamePriceRes.setDiscountHourlyRate(discountRate * 60);
+
+            // 设置球台租金 (负数，表示已支付)
+            gamePriceRes.setTableRental(-store.getDeposit().doubleValue());
+
+            // 计算最终金额 = 游戏费用 - 已付押金
+            // 如果是负数 = 要退款给客户
+            // 如果是正数 = 客户还要付钱
+            double finalAmount = gamePriceRes.getTotalPrice() - store.getDeposit();
+            gamePriceRes.setFinalAmount(finalAmount);
+
             // 回傳計算結果
-            return totalPrice;
+            return gamePriceRes;
         } catch (Exception e) {
             throw new Exception("計算價格時發生錯誤: " + e.getMessage());
         }
     }
-
     private boolean checkoutOrder() {
         User user = userRepository.findById(SecurityUtils.getSecurityUser().getId()).get();
         List<GameRecord> unpaid = gameRecordRepository.findByUserUidAndStatus(user.getUid(), "UNPAID");

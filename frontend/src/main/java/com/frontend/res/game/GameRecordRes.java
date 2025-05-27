@@ -2,6 +2,7 @@ package com.frontend.res.game;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.frontend.entity.vendor.Vendor;
+import com.frontend.req.store.TimeSlotInfo;
 import jakarta.persistence.Column;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -41,4 +42,14 @@ public class GameRecordRes {
     private String hint;
 
     private Vendor vendor;
+
+
+    /**
+     * 当前时段信息
+     * 用于前端判断显示颜色：
+     * - 一般时段：显示橘色
+     * - 优惠时段：显示不同颜色
+     */
+    private TimeSlotInfo currentTimeSlot;
+
 }

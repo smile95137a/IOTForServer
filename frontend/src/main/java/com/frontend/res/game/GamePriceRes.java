@@ -26,4 +26,12 @@ public class GamePriceRes {
     private double regularPrice; //一班金額
 
     private double totalPrice; //總金額
+
+    private double regularHourlyRate; //一般時段每小時費率
+
+    private double discountHourlyRate; //優惠時段每小時費率
+
+    private double tableRental; //球台租金 (負數，表示已支付/退款)
+
+    private double finalAmount; //最終金額 (負數=退款給客戶，正數=客戶要付錢)
 }

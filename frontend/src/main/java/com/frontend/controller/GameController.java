@@ -4,6 +4,8 @@ import com.frontend.config.message.ApiResponse;
 import com.frontend.config.service.UserPrinciple;
 import com.frontend.entity.game.BookGame;
 import com.frontend.entity.game.GameRecord;
+import com.frontend.entity.user.User;
+import com.frontend.repo.UserRepository;
 import com.frontend.req.game.BookGameReq;
 import com.frontend.req.game.CheckoutReq;
 import com.frontend.req.game.GameReq;
@@ -32,6 +34,8 @@ public class GameController {
 
     @Autowired
     private GameService gameService;
+    @Autowired
+    private UserRepository userRepository;
 
     @PostMapping("/start")
     public ResponseEntity<ApiResponse<?>> startGame(@RequestBody GameReq gameReq) {
@@ -163,6 +167,23 @@ public class GameController {
         try {
              GamePriceRes gamePrice = gameService.getGamePrice(gameReq);
             return ResponseEntity.ok(ResponseUtils.success(gamePrice));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.ok(ResponseUtils.error(9999, e.getMessage(), null));
+        }
+    }
+
+
+    @GetMapping("/isUse")
+    public ResponseEntity<ApiResponse<?>> isUse() {
+        try {
+            UserPrinciple userPrinciple = SecurityUtils.getSecurityUser();
+            User user = userRepository.findById(userPrinciple.getId()).get();
+            boolean b = gameService.gameIsUse(user.getUid());
+            if(b){
+                throw new Exception("今天已經有開放球局，不能預約當天");
+            }
+            return ResponseEntity.ok(ResponseUtils.success(true));
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.ok(ResponseUtils.error(9999, e.getMessage(), null));
