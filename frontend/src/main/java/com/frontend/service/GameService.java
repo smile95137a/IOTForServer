@@ -272,14 +272,113 @@ public class GameService {
             tableEquipmentRepository.save(table);
         }
 
-        // **新增：获取当前时段信息**
-        TimeSlotInfo currentTimeSlot = getCurrentTimeSlotInfo(store, today);
+        // **新增：获取当天所有时段信息**
+        List<TimeSlotInfo> allTimeSlots = getAllTimeSlotsForDate(store, today);
 
         // ✅ 回傳資料（包含时段信息）
         GameRes gameRes = new GameRes(gameRecord, message, endTimeMinutes, vendor, store.getContactPhone());
-        gameRes.setCurrentTimeSlot(currentTimeSlot);
+        gameRes.setTimeSlots(allTimeSlots);
 
         return gameRes;
+    }
+
+    /**
+     * 获取指定日期的所有时段信息
+     * @param store 店铺信息
+     * @param targetDate 目标日期
+     * @return 当天所有时段信息列表
+     */
+    private List<TimeSlotInfo> getAllTimeSlotsForDate(Store store, LocalDate targetDate) {
+        List<TimeSlotInfo> timeSlots = new ArrayList<>();
+
+        // 1. 首先检查是否为特殊日期
+        Optional<SpecialDate> specialDateOpt = getTodaySpecialDate(store, targetDate);
+
+        if (specialDateOpt.isPresent()) {
+            // 特殊日期：使用特殊日期的时段
+            SpecialDate specialDate = specialDateOpt.get();
+
+            if (specialDate.getTimeSlots() != null && !specialDate.getTimeSlots().isEmpty()) {
+                // 转换特殊日期的时段
+                for (SpecialTimeSlot slot : specialDate.getTimeSlots()) {
+                    TimeSlotInfo timeSlotInfo = TimeSlotInfo.builder()
+                            .isDiscount(slot.getIsDiscount())
+                            .startTime(slot.getStartTime())
+                            .endTime(slot.getEndTime())
+                            .rate(slot.getIsDiscount() ? slot.getPrice() : specialDate.getRegularRate())
+                            .isSpecialDate(true)
+                            .timeSlotType(slot.getIsDiscount() ? "DISCOUNT" : "REGULAR")
+                            .build();
+                    timeSlots.add(timeSlotInfo);
+                }
+            } else {
+                // 特殊日期没有具体时段，返回整天作为一个时段
+                TimeSlotInfo timeSlotInfo = TimeSlotInfo.builder()
+                        .isDiscount(false)
+                        .startTime(specialDate.getOpenTime())
+                        .endTime(specialDate.getCloseTime())
+                        .rate(specialDate.getRegularRate())
+                        .isSpecialDate(true)
+                        .timeSlotType("REGULAR")
+                        .build();
+                timeSlots.add(timeSlotInfo);
+            }
+        } else {
+            // 2. 普通日期：使用正常的营业时段
+            String currentDay = targetDate.getDayOfWeek().toString();
+
+            // 获取当天的排程
+            Optional<StorePricingSchedule> todaySchedule = store.getPricingSchedules().stream()
+                    .filter(schedule -> schedule.getDayOfWeek().equalsIgnoreCase(currentDay))
+                    .findFirst();
+
+            if (todaySchedule.isPresent()) {
+                StorePricingSchedule schedule = todaySchedule.get();
+                List<TimeSlot> slots = schedule.getTimeSlots();
+
+                // 如果当天没有时段，查找周一的时段
+                if (slots == null || slots.isEmpty()) {
+                    Optional<StorePricingSchedule> mondaySchedule = store.getPricingSchedules().stream()
+                            .filter(s -> s.getDayOfWeek().equalsIgnoreCase("MONDAY"))
+                            .findFirst();
+
+                    if (mondaySchedule.isPresent() && !mondaySchedule.get().getTimeSlots().isEmpty()) {
+                        slots = mondaySchedule.get().getTimeSlots();
+                    }
+                }
+
+                // 转换所有时段
+                if (slots != null && !slots.isEmpty()) {
+                    for (TimeSlot slot : slots) {
+                        TimeSlotInfo timeSlotInfo = TimeSlotInfo.builder()
+                                .isDiscount(slot.getIsDiscount())
+                                .startTime(slot.getStartTime())
+                                .endTime(slot.getEndTime())
+                                .rate(slot.getIsDiscount() ? schedule.getDiscountRate() : schedule.getRegularRate())
+                                .isSpecialDate(false)
+                                .timeSlotType(slot.getIsDiscount() ? "DISCOUNT" : "REGULAR")
+                                .build();
+                        timeSlots.add(timeSlotInfo);
+                    }
+                } else {
+                    // 没有具体时段，返回整个营业时间作为一个时段
+                    TimeSlotInfo timeSlotInfo = TimeSlotInfo.builder()
+                            .isDiscount(false)
+                            .startTime(schedule.getOpenTime())
+                            .endTime(schedule.getCloseTime())
+                            .rate(schedule.getRegularRate())
+                            .isSpecialDate(false)
+                            .timeSlotType("REGULAR")
+                            .build();
+                    timeSlots.add(timeSlotInfo);
+                }
+            }
+        }
+
+        // 按开始时间排序
+        timeSlots.sort((a, b) -> a.getStartTime().compareTo(b.getStartTime()));
+
+        return timeSlots;
     }
 
     /**
