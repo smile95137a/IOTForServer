@@ -12,6 +12,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -50,6 +51,6 @@ public class GameRecordRes {
      * - 一般时段：显示橘色
      * - 优惠时段：显示不同颜色
      */
-    private TimeSlotInfo currentTimeSlot;
+    private List<TimeSlotInfo> timeSlots;
 
 }

@@ -1,5 +1,6 @@
 package com.frontend.req.store;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,7 +14,9 @@ import java.time.LocalTime;
     @AllArgsConstructor
     public class TimeSlotInfo {
         private Boolean isDiscount;        // 是否为优惠时段
+    @JsonFormat(pattern = "HH:mm:ss")
         private LocalTime startTime;       // 开始时间
+    @JsonFormat(pattern = "HH:mm:ss")
         private LocalTime endTime;         // 结束时间
         private Double rate;               // 当前时段价格
         private Boolean isSpecialDate;     // 是否为特殊日期
