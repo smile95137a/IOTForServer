@@ -556,28 +556,24 @@ public class AdminStoreService {
 				store.setPoolTables(storeReq.getPoolTables());
 			}
 
-			// 刪除原有的特殊日期及其時段
-			if (store.getSpecialDates() != null) {
-				store.getSpecialDates().forEach(specialDate -> {
-					specialDate.getTimeSlots().forEach(timeSlot -> specialTimeSlotRepository.delete(timeSlot));
-					specialDateRepository.delete(specialDate);
-				});
-				store.getSpecialDates().clear();
+			// **修正：只更新新增的特殊日期，保留原有的**
+			// 只有當 storeReq 中有新的特殊日期時才進行處理
+			if (storeReq.getSpecialDates() != null && !storeReq.getSpecialDates().isEmpty()) {
+				updateSpecialDates(storeReq, store);
 			}
 
-			// 儲存新的特殊日期與時段
-			updateSpecialDates(storeReq, store);
-
-			// 刪除原有的定價計劃及其時段
+			// 刪除原有的定價計劃及其時段（週間排程需要重建）
 			if (store.getPricingSchedules() != null) {
 				store.getPricingSchedules().forEach(schedule -> {
-					schedule.getTimeSlots().forEach(timeSlot -> timeSlotRepository.delete(timeSlot));
+					if (schedule.getTimeSlots() != null) {
+						schedule.getTimeSlots().forEach(timeSlot -> timeSlotRepository.delete(timeSlot));
+					}
 					storePricingScheduleRepository.delete(schedule);
 				});
 				store.getPricingSchedules().clear();
 			}
 
-			// 建立新的週間排程（支援週末獨立設定）
+			// 建立新的週間排程(支援週末獨立設定)
 			List<StorePricingSchedule> schedules = createWeeklySchedules(storeReq, store);
 			storePricingScheduleRepository.saveAll(schedules);
 			store.getPricingSchedules().addAll(schedules);
@@ -591,11 +587,20 @@ public class AdminStoreService {
 		}).orElseThrow(() -> new Exception("Store not found with uid: " + uid));
 	}
 
-	// 輔助方法：更新特殊日期
+	// 輔助方法:更新特殊日期（保留原有日期，只新增新的）
 	private void updateSpecialDates(StoreReq storeReq, Store store) {
-		List<SpecialDate> specialDates = new ArrayList<>();
-		if (storeReq.getSpecialDates() != null) {
-			for (SpecialDateReq dateReq : storeReq.getSpecialDates()) {
+		List<SpecialDate> newSpecialDates = new ArrayList<>();
+
+		for (SpecialDateReq dateReq : storeReq.getSpecialDates()) {
+			// 檢查是否已存在相同日期的特殊日期
+			boolean dateExists = false;
+			if (store.getSpecialDates() != null) {
+				dateExists = store.getSpecialDates().stream()
+						.anyMatch(existingDate -> existingDate.getDate().equals(dateReq.getDate()));
+			}
+
+			// 如果日期不存在，才新增
+			if (!dateExists) {
 				SpecialDate specialDate = new SpecialDate();
 				specialDate.setDate(dateReq.getDate());
 				specialDate.setOpenTime(dateReq.getOpenTime());
@@ -604,20 +609,110 @@ public class AdminStoreService {
 				specialDate.setStore(store);
 
 				List<SpecialTimeSlot> slots = new ArrayList<>();
-				for (SpecialTimeSlotReq slotReq : dateReq.getTimeSlots()) {
-					SpecialTimeSlot slot = new SpecialTimeSlot();
-					slot.setStartTime(slotReq.getStartTime());
-					slot.setEndTime(slotReq.getEndTime());
-					slot.setIsDiscount(slotReq.getIsDiscount());
-					slot.setPrice(slotReq.getPrice());
-					slot.setSpecialDate(specialDate);
-					slots.add(slot);
+				if (dateReq.getTimeSlots() != null) {
+					for (SpecialTimeSlotReq slotReq : dateReq.getTimeSlots()) {
+						SpecialTimeSlot slot = new SpecialTimeSlot();
+						slot.setStartTime(slotReq.getStartTime());
+						slot.setEndTime(slotReq.getEndTime());
+						slot.setIsDiscount(slotReq.getIsDiscount());
+						slot.setPrice(slotReq.getPrice());
+						slot.setSpecialDate(specialDate);
+						slots.add(slot);
+					}
 				}
 				specialDate.setTimeSlots(slots);
-				specialDates.add(specialDate);
+				newSpecialDates.add(specialDate);
+			} else {
+				System.out.println("特殊日期 " + dateReq.getDate() + " 已存在，跳過新增");
 			}
-			specialDateRepository.saveAll(specialDates);
-			store.getSpecialDates().addAll(specialDates);
+		}
+
+		// 只儲存新的特殊日期
+		if (!newSpecialDates.isEmpty()) {
+			specialDateRepository.saveAll(newSpecialDates);
+
+			store.getSpecialDates().addAll(newSpecialDates);
+			System.out.println("新增了 " + newSpecialDates.size() + " 個特殊日期");
+		}
+	}
+
+	// 如果你希望能夠覆蓋更新特殊日期，可以使用這個版本
+	private void updateSpecialDatesWithOverride(StoreReq storeReq, Store store) {
+		List<SpecialDate> newSpecialDates = new ArrayList<>();
+
+		for (SpecialDateReq dateReq : storeReq.getSpecialDates()) {
+			// 尋找是否已存在相同日期的特殊日期
+			SpecialDate existingDate = null;
+			if (store.getSpecialDates() != null) {
+				existingDate = store.getSpecialDates().stream()
+						.filter(date -> date.getDate().equals(dateReq.getDate()))
+						.findFirst()
+						.orElse(null);
+			}
+
+			if (existingDate != null) {
+				// 更新現有的特殊日期
+				existingDate.setOpenTime(dateReq.getOpenTime());
+				existingDate.setCloseTime(dateReq.getCloseTime());
+				existingDate.setRegularRate(dateReq.getRegularRate());
+
+				// 刪除舊的時段
+				if (existingDate.getTimeSlots() != null) {
+					existingDate.getTimeSlots().forEach(slot -> specialTimeSlotRepository.delete(slot));
+					existingDate.getTimeSlots().clear();
+				}
+
+				// 新增新的時段
+				List<SpecialTimeSlot> slots = new ArrayList<>();
+				if (dateReq.getTimeSlots() != null) {
+					for (SpecialTimeSlotReq slotReq : dateReq.getTimeSlots()) {
+						SpecialTimeSlot slot = new SpecialTimeSlot();
+						slot.setStartTime(slotReq.getStartTime());
+						slot.setEndTime(slotReq.getEndTime());
+						slot.setIsDiscount(slotReq.getIsDiscount());
+						slot.setPrice(slotReq.getPrice());
+						slot.setSpecialDate(existingDate);
+						slots.add(slot);
+					}
+				}
+				existingDate.setTimeSlots(slots);
+
+			} else {
+				// 建立新的特殊日期
+				SpecialDate specialDate = new SpecialDate();
+				specialDate.setDate(dateReq.getDate());
+				specialDate.setOpenTime(dateReq.getOpenTime());
+				specialDate.setCloseTime(dateReq.getCloseTime());
+				specialDate.setRegularRate(dateReq.getRegularRate());
+				specialDate.setStore(store);
+
+				List<SpecialTimeSlot> slots = new ArrayList<>();
+				if (dateReq.getTimeSlots() != null) {
+					for (SpecialTimeSlotReq slotReq : dateReq.getTimeSlots()) {
+						SpecialTimeSlot slot = new SpecialTimeSlot();
+						slot.setStartTime(slotReq.getStartTime());
+						slot.setEndTime(slotReq.getEndTime());
+						slot.setIsDiscount(slotReq.getIsDiscount());
+						slot.setPrice(slotReq.getPrice());
+						slot.setSpecialDate(specialDate);
+						slots.add(slot);
+					}
+				}
+				specialDate.setTimeSlots(slots);
+				newSpecialDates.add(specialDate);
+			}
+		}
+
+		// 儲存新的特殊日期
+		if (!newSpecialDates.isEmpty()) {
+			specialDateRepository.saveAll(newSpecialDates);
+
+			store.getSpecialDates().addAll(newSpecialDates);
+		}
+
+		// 儲存所有更新（包括現有日期的修改）
+		if (store.getSpecialDates() != null && !store.getSpecialDates().isEmpty()) {
+			specialDateRepository.saveAll(store.getSpecialDates());
 		}
 	}
 	@Transactional
