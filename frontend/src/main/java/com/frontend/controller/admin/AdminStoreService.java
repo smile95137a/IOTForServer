@@ -149,8 +149,38 @@ public class AdminStoreService {
 		schedule.setRegularRate(storeReq.getRegularRate());
 		schedule.setDiscountRate(storeReq.getDiscountRate());
 
-		// 只有 MONDAY 包含時段設定，其他平日使用相同設定但不重複儲存時段
-		if (day == DayOfWeek.MONDAY) {
+		// **修正：所有平日都包含時段設定，不再只限制星期一**
+		try {
+			List<TimeSlot> timeSlots = splitTimeSlots(
+					storeReq.getOpenTime(),
+					storeReq.getCloseTime(),
+					storeReq.getTimeSlots(),
+					schedule
+			);
+			schedule.setTimeSlots(timeSlots);
+
+			System.out.println("設定 " + day.name() + " 的時段數量: " + timeSlots.size());
+
+			// 打印每個時段的詳細信息（可選，用於調試）
+			for (TimeSlot slot : timeSlots) {
+				System.out.println(day.name() + " 時段: " + slot.getStartTime() +
+						" ~ " + slot.getEndTime() + " (優惠: " + slot.getIsDiscount() + ")");
+			}
+
+		} catch (Exception e) {
+			throw new RuntimeException("平日優惠時段錯誤（" + day.name() + "）：" + e.getMessage());
+		}
+	}
+
+	// 或者，如果你想要平日共用同一套時段設定，可以用這個版本：
+	private void setWeekdayScheduleShared(StorePricingSchedule schedule, StoreReq storeReq, DayOfWeek day) {
+		schedule.setOpenTime(storeReq.getOpenTime());
+		schedule.setCloseTime(storeReq.getCloseTime());
+		schedule.setRegularRate(storeReq.getRegularRate());
+		schedule.setDiscountRate(storeReq.getDiscountRate());
+
+		// 所有平日都設定相同的時段
+		if (isWeekday(day)) {  // 只有平日才設定
 			try {
 				List<TimeSlot> timeSlots = splitTimeSlots(
 						storeReq.getOpenTime(),
@@ -160,14 +190,37 @@ public class AdminStoreService {
 				);
 				schedule.setTimeSlots(timeSlots);
 			} catch (Exception e) {
-				throw new RuntimeException("平日優惠時段錯誤：" + e.getMessage());
+				throw new RuntimeException("平日優惠時段錯誤（" + day.name() + "）：" + e.getMessage());
 			}
 		} else {
-			// 其他平日設置空的時段列表
+			// 週末設置空的時段列表（如果有獨立的週末設定）
 			schedule.setTimeSlots(new ArrayList<>());
 		}
 	}
 
+	// 輔助方法：判斷是否為平日
+	private boolean isWeekday(DayOfWeek day) {
+		return day != DayOfWeek.SATURDAY && day != DayOfWeek.SUNDAY;
+	}
+
+	// 同時修正查詢方法，確保能正確找到時段
+	private StorePricingSchedule findScheduleForDay(Long storeId, String dayOfWeek) {
+		StorePricingSchedule schedule = (StorePricingSchedule) storePricingScheduleRepository
+				.findByStoreIdAndDayOfWeek(storeId, dayOfWeek.toUpperCase())
+				.orElseThrow(() -> new RuntimeException("找不到 " + dayOfWeek + " 的排程設定"));
+
+		System.out.println("找到 " + dayOfWeek + " 的排程，時段數量: " +
+				(schedule.getTimeSlots() != null ? schedule.getTimeSlots().size() : 0));
+
+		if (schedule.getTimeSlots() != null) {
+			for (TimeSlot slot : schedule.getTimeSlots()) {
+				System.out.println(dayOfWeek + " 排程時段: " + slot.getStartTime() +
+						" ~ " + slot.getEndTime() + " (優惠: " + slot.getIsDiscount() + ")");
+			}
+		}
+
+		return schedule;
+	}
 	// 設定週末排程
 	private void setWeekendSchedule(StorePricingSchedule schedule, WeekendScheduleReq weekendReq, DayOfWeek day) {
 		schedule.setOpenTime(weekendReq.getOpenTime());
