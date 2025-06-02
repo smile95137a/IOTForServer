@@ -55,10 +55,15 @@ public class GameOrderService {
                 if(orderRes.getGameId() != null){
                     GameRecord byGameId = gameRecordRepository.findByGameId(orderRes.getGameId());
                     if(byGameId != null){
-                        Store store = storeRepository.findById(byGameId.getStoreId()).get();
-                        PoolTable poolTable = poolTableRepository.findById(byGameId.getPoolTableId()).get();
-                        String format = String.format("%s - %s", store.getName(), poolTable.getTableNumber());
-                        orderRes.setGameOrderName(format);
+                        Optional<Store> storeOpt = storeRepository.findById(byGameId.getStoreId());
+                        Optional<PoolTable> poolTableOpt = poolTableRepository.findById(byGameId.getPoolTableId());
+
+                        if(storeOpt.isPresent() && poolTableOpt.isPresent()){
+                            Store store = storeOpt.get();
+                            PoolTable poolTable = poolTableOpt.get();
+                            String format = String.format("%s - %s", store.getName(), poolTable.getTableNumber());
+                            orderRes.setGameOrderName(format);
+                        }
                     }
                 }
 

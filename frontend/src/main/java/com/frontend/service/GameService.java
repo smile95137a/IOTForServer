@@ -511,16 +511,20 @@ public class GameService {
     }
 
     public boolean gameIsUse(String uid){
+        // 检查是否有进行中的游戏
+        List<GameRecord> ongoingGames = gameRecordRepository.findByUserUidAndStatus(uid, "STARTED");
+        if (!ongoingGames.isEmpty()) {
+            return true;
+        }
+
+        // 检查今天是否已经开过台
         LocalDateTime startOfDay = LocalDate.now().atStartOfDay();
         LocalDateTime endOfDay = LocalDate.now().atTime(23, 59, 59);
-
-        List<GameRecord> started = gameRecordRepository
+        List<GameRecord> todayGames = gameRecordRepository
                 .findByUserUidAndStatusAndStartTimeBetween(uid, "STARTED", startOfDay, endOfDay);
 
-        return !started.isEmpty();
+        return !todayGames.isEmpty();
     }
-
-
     @Transactional
     public GameResponse endGame(GameReq gameReq, Long id) throws Exception {
         // 取得遊戲紀錄
