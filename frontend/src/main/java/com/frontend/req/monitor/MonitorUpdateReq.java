@@ -9,4 +9,6 @@ public class MonitorUpdateReq {
     private Boolean status; // 監視器狀態
     private String name;
     private Long storeId;
+    private String number;
+    private String storeIP;
 }

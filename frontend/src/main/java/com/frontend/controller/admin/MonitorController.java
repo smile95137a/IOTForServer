@@ -5,11 +5,11 @@ import com.frontend.config.service.UserPrinciple;
 import com.frontend.entity.monitor.Monitor;
 import com.frontend.req.monitor.MonitorReq;
 import com.frontend.req.monitor.MonitorUpdateReq;
+import com.frontend.res.monitor.MonitorRes;
 import com.frontend.service.MonitorService;
 import com.frontend.utils.ResponseUtils;
 import com.frontend.utils.SecurityUtils;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -32,10 +32,10 @@ public class MonitorController {
     }
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<Monitor>>> getAll() {
+    public ResponseEntity<ApiResponse<List<MonitorRes>>> getAll() {
         UserPrinciple securityUser = SecurityUtils.getSecurityUser();
         Long id = securityUser.getId();
-        List<Monitor> monitor = monitorService.getAll();
+        List<MonitorRes> monitor = monitorService.getAll();
         return ResponseEntity.ok(ResponseUtils.success(monitor));
     }
 
@@ -50,8 +50,8 @@ public class MonitorController {
 
     // 取得某商店的所有監視器
     @GetMapping("/store/{id}")
-    public ResponseEntity<ApiResponse<List<Monitor>>> getMonitorsByStoreId(@PathVariable Long id) {
-        List<Monitor> monitors = monitorService.getMonitorsByStoreUid(id);
+    public ResponseEntity<ApiResponse<List<MonitorRes>>> getMonitorsByStoreId(@PathVariable Long id) {
+        List<MonitorRes> monitors = monitorService.getMonitorsByStoreId(id);
         return ResponseEntity.ok(ResponseUtils.success(monitors));
     }
 
