@@ -106,6 +106,7 @@ public class MonitorService {
             res.setStoreId(monitor.getStore().getId());
             res.setStoreName(monitor.getStore().getName()); // 假設 Store 有 getName()
         }
+        res.setId(monitor.getId());
         return res;
     }
 }

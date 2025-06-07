@@ -5,6 +5,7 @@ import lombok.Data;
 @Data
 public class MonitorRes {
 
+    private Long id;
 
     private String uid;
 
