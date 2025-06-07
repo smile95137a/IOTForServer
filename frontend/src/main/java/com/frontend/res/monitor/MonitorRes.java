@@ -18,6 +18,4 @@ public class MonitorRes {
     private Long storeId;
 
     private String storeName;
-
-    private String storeIP;
 }

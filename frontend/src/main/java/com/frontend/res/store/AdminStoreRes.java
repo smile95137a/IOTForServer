@@ -34,6 +34,7 @@ public class AdminStoreRes {
     private Integer bookTime;
     private Integer cancelBookTime;
     private User user;
+    private String storeIP;
 
     // 平日設定 (週一到週五) - 從週一的 PricingSchedule 獲取
     @JsonFormat(pattern = "HH:mm")

@@ -35,7 +35,6 @@ public class MonitorService {
         monitor.setName(req.getName());
         monitor.setNumber(req.getNumber());
         monitor.setStatus(false); // 預設狀態為 ACTIVE
-        monitor.setStoreIP(req.getStoreIP());
         monitor.setCreateTime(LocalDateTime.now());
         monitor.setCreateUserId(userId);
         monitor.setStore(store);
@@ -47,10 +46,6 @@ public class MonitorService {
     public Monitor updateMonitor(MonitorUpdateReq req, Long userId) {
         Monitor monitor = monitorRepository.findByUid(req.getUid())
                 .orElseThrow(() -> new RuntimeException("Monitor not found"));
-
-        if(req.getStoreIP() != null){
-            monitor.setStoreIP(req.getStoreIP());
-        }
 
         if (req.getNumber() != null) {
             monitor.setNumber(req.getNumber());
@@ -101,7 +96,6 @@ public class MonitorService {
         res.setName(monitor.getName());
         res.setNumber(monitor.getNumber());
         res.setStatus(monitor.isStatus());
-        res.setStoreIP(monitor.getStoreIP());
         if (monitor.getStore() != null) {
             res.setStoreId(monitor.getStore().getId());
             res.setStoreName(monitor.getStore().getName()); // 假設 Store 有 getName()

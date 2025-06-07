@@ -68,6 +68,9 @@ public class Store {
     private Long createUserId;
 
     @Column
+    private String storeIP;
+
+    @Column
     @JsonFormat(pattern = "yyyy/MM/dd HH:mm:ss")
     private LocalDateTime updateTime;
 

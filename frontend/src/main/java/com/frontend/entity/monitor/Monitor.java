@@ -29,10 +29,6 @@ public class Monitor {
 
     @Column(nullable = false)
     private String number;
-
-    @Column(nullable = false)
-    private String storeIP;
-
     @Column(nullable = false)
     private boolean status; // 狀態 (e.g., ACTIVE, INACTIVE, ERROR)
 

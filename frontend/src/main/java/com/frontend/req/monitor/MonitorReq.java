@@ -10,6 +10,4 @@ public class MonitorReq {
     private Long storeId; // 綁定的 Store ID
 
     private String number;
-
-    private String storeIP;
 }

@@ -62,7 +62,7 @@ public class AdminStoreService {
 		store.setCreateTime(LocalDateTime.now());
 		store.setCreateUserId(userId);
 		store.setImgUrl(storeReq.getImgUrl() != null ? storeReq.getImgUrl() : "");
-
+		store.setStoreIP(storeReq.getStoreIP());
 		if(storeReq.getUser() == null) {
 			Vendor vendor = vendorRepository.findById(storeReq.getVendor().getId()).get();
 			User user = userRepository.findById(vendor.getUserId()).get();
@@ -344,7 +344,8 @@ public class AdminStoreService {
 				.contactPhone(store.getContactPhone())
 				.bookTime(store.getBookTime())
 				.cancelBookTime(store.getCancelBookTime())
-				.user(store.getUser());
+				.user(store.getUser())
+				.storeIP(store.getStoreIP());
 
 		// 定義 pricingSchedules 轉換
 		if (store.getPricingSchedules() != null) {

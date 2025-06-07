@@ -10,5 +10,4 @@ public class MonitorUpdateReq {
     private String name;
     private Long storeId;
     private String number;
-    private String storeIP;
 }

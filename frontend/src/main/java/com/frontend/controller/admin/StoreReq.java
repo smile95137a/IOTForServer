@@ -42,7 +42,7 @@ public class StoreReq {
     private Integer bookTime;
     private Integer cancelBookTime;
     private User user;
-
+    private String storeIP;
     // 平日設定 (週一到週五)
     private LocalTime openTime;
     private LocalTime closeTime;
