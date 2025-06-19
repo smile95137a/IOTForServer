@@ -544,6 +544,7 @@ public class AdminStoreService {
 			store.setBookTime(storeReq.getBookTime() == null ? 0 : storeReq.getBookTime());
 			store.setCancelBookTime(storeReq.getCancelBookTime() == null ? 0 : storeReq.getCancelBookTime());
 			store.setUser(storeReq.getUser());
+			store.setStoreIP(storeReq.getStoreIP());
 
 			if (storeReq.getImgUrl() != null && !storeReq.getImgUrl().isEmpty()) {
 				store.setImgUrl(storeReq.getImgUrl());

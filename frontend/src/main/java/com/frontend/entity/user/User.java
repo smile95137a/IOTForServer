@@ -113,4 +113,17 @@ public class User implements Serializable {
 
 	@Column
 	private Integer totalAmount;
+
+	@OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+	@JsonManagedReference("faceRecognitionReference")
+	private FaceRecognitionMember faceRecognitionMember;
+
+	// 添加便利方法
+	public boolean hasFaceRecognition() {
+		return this.faceRecognitionMember != null && this.faceRecognitionMember.getIsActive();
+	}
+
+	public String getFaceRecognitionEmployeeNo() {
+		return this.faceRecognitionMember != null ? this.faceRecognitionMember.getEmployeeNo() : null;
+	}
 }

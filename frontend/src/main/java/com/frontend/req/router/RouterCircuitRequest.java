@@ -1,12 +1,13 @@
 package com.frontend.req.router;
 
-import com.frontend.enums.RouterType;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
-public class AddRouterRequest {
-    private Long routerId;
-    private Long storeId;
+@NoArgsConstructor
+@AllArgsConstructor
+public class RouterCircuitRequest {
     private Integer circuitNumber;
     private String circuitName;
     private String circuitType;
@@ -14,4 +15,5 @@ public class AddRouterRequest {
     private Integer slaveId;
     private Boolean isControllable;
     private String routerIP;
+    
 }

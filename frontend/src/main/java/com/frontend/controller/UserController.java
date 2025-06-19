@@ -5,11 +5,18 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Optional;
 
+import com.frontend.entity.user.FaceRecognitionMember;
+import com.frontend.service.FaceRecognitionMemberService;
+import com.frontend.utils.DoorControlUtil;
+import com.frontend.utils.FaceUploadUtil;
 import com.frontend.utils.ImageUtil;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -34,6 +41,15 @@ public class UserController {
 	@Autowired
 	private UserService userService;
 
+	@Autowired
+	private FaceRecognitionMemberService faceRecognitionMemberService;
+
+
+	// 建議實務上改為從設定檔讀取
+	private static final String DEVICE_IP = "192.168.1.111";
+	private static final int PORT = 80;
+	private static final String USERNAME = "admin";
+	private static final String PASSWORD = "Handsome0202@";
 	@GetMapping("/getUserInfo")
 	public ResponseEntity<?> getUserInfo() {
 		try {
@@ -174,4 +190,90 @@ public class UserController {
 //		}
 //	}
 
+
+	@PostMapping("/create-face-recognition/{userId}")
+	public ResponseEntity<?> createFaceRecognitionMember(
+			@PathVariable Long userId) {
+
+		try {
+			// 獲取當前操作者ID（從session或JWT中獲取）
+			Long currentUserId = SecurityUtils.getSecurityUser().getId();
+
+			FaceRecognitionMember member = faceRecognitionMemberService
+					.createFaceRecognitionMember(userId, currentUserId);
+
+			return ResponseEntity.ok(ResponseUtils.success(200, "人臉辨識會員創建成功", null));
+		} catch (Exception e) {
+			return ResponseEntity.badRequest().body(e.getMessage());
+		}
+	}
+
+	@GetMapping("/search-face-recognition/{userId}")
+	public ResponseEntity<FaceRecognitionMember> searchFaceRecognitionMember(
+			@PathVariable Long userId) {
+
+		Optional<FaceRecognitionMember> member = faceRecognitionMemberService
+				.findByUserId(userId);
+
+		return member.map(ResponseEntity::ok)
+				.orElse(ResponseEntity.notFound().build());
+	}
+
+	/**
+	 * 上傳人臉圖片並傳送至設備
+	 *
+	 * @param file MultipartFile 圖片檔案
+	 * @return 回傳成功或失敗訊息
+	 */
+	@PostMapping("/upload")
+	public ResponseEntity<?> uploadFace(
+			@RequestParam("file") MultipartFile file
+	) {
+		try {
+			if (file.isEmpty()) {
+				return ResponseEntity.badRequest().body("❌ 圖片檔案不可為空");
+			}
+
+			// 儲存到暫存檔案（轉成 File）
+			File tempFile = File.createTempFile("upload_", ".jpg");
+			file.transferTo(tempFile);
+
+			FaceRecognitionMember faceRecognitionMember = faceRecognitionMemberService.findByUserId(SecurityUtils.getSecurityUser().getId()).get();
+
+			// 使用工具類上傳人臉
+			boolean success = FaceUploadUtil.uploadFace(DEVICE_IP, PORT, USERNAME, PASSWORD, tempFile, faceRecognitionMember.getEmployeeNo());
+
+			// 清理暫存檔案
+			if (tempFile.exists()) {
+				tempFile.delete();
+			}
+
+			return success ?
+					ResponseEntity.ok("✅ 上傳人臉成功") :
+					ResponseEntity.status(500).body("❌ 上傳人臉失敗，請檢查圖片品質與設備狀態");
+
+		} catch (Exception e) {
+			return ResponseEntity.internalServerError().body("❌ 錯誤：" + e.getMessage());
+		}
+	}
+
+	/**
+	 * 掃碼開門：需要先登入（token 認證）
+	 */
+	@PutMapping("/openDoor")
+	public ResponseEntity<String> openDoor(Authentication authentication) {
+
+		// 沒有登入或 token 無效，這邊不會進來，Spring Security 會自動回 401
+		if (authentication == null || !authentication.isAuthenticated()) {
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("請先登入後再操作");
+		}
+
+		// 執行開門
+		boolean result = DoorControlUtil.openDoor("65535");
+		if (result) {
+			return ResponseEntity.ok("✅ 開門成功");
+		} else {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("❌ 開門失敗");
+		}
+	}
 }
