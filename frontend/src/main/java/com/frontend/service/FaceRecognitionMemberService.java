@@ -122,7 +122,7 @@ public class FaceRecognitionMemberService {
         try {
             // 使用你的 ISAPIDeviceUtil
             ISAPIDeviceUtil.DeviceConfig deviceConfig = new ISAPIDeviceUtil.DeviceConfig(
-                    "192.168.1.111", // 設備IP
+                    "192.168.1.112", // 設備IP
                     "80",             // 設備端口
                     "admin",          // 設備用戶名
                     "Handsome0202@"        // 設備密碼
