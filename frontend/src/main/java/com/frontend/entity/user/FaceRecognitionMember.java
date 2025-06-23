@@ -28,7 +28,7 @@ public class FaceRecognitionMember implements Serializable {
     // 關聯到原本的會員
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false, unique = true)
-    @JsonBackReference
+    @JsonBackReference("faceRecognitionReference") // <== 加上名稱
     private User user;
 
     // 人臉辨識狀態
