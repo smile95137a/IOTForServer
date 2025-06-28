@@ -21,4 +21,5 @@ public class RouterResponse {
     private Integer slaveId;
     private Boolean isControllable;
     private Boolean currentCircuitStatus;  // 目前迴路開關狀態
+    private String routerPort;
 }

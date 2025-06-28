@@ -71,6 +71,7 @@ public class RouterService {
         router.setSlaveId(request.getSlaveId() != null ? request.getSlaveId() : 1);
         router.setIsControllable(request.getIsControllable() != null ? request.getIsControllable() : true);
         router.setRouterIP(request.getRouterIP());
+        router.setRouterPort(request.getRouterPort());
         return routerRepository.save(router);
     }
 
@@ -94,7 +95,7 @@ public class RouterService {
                     response.setModbusAddress(router.getModbusAddress());
                     response.setSlaveId(router.getSlaveId());
                     response.setIsControllable(router.getIsControllable());
-
+                    response.setRouterPort(router.getRouterPort());
                     // 讀取目前迴路狀態
                     Boolean currentStatus = readCircuitStatus(router);
                     response.setCurrentCircuitStatus(currentStatus);
@@ -171,6 +172,7 @@ public class RouterService {
         router.setUpdateTime(LocalDateTime.now());
         router.setUpdateUserId(SecurityUtils.getSecurityUser().getId());
         router.setRouterIP(request.getRouterIP());
+        router.setRouterPort(request.getRouterPort());
         return routerRepository.save(router);
     }
 

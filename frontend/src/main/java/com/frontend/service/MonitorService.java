@@ -38,6 +38,7 @@ public class MonitorService {
         monitor.setCreateTime(LocalDateTime.now());
         monitor.setCreateUserId(userId);
         monitor.setStore(store);
+        monitor.setMonitorPort(req.getMonitorPort());
 
         return monitorRepository.save(monitor);
     }
@@ -62,7 +63,7 @@ public class MonitorService {
                     .orElseThrow(() -> new RuntimeException("Store not found"));
             monitor.setStore(store);
         }
-
+        monitor.setMonitorPort(req.getMonitorPort());
         monitor.setUpdateTime(LocalDateTime.now());
         monitor.setUpdateUserId(userId);
 
@@ -101,6 +102,7 @@ public class MonitorService {
             res.setStoreName(monitor.getStore().getName()); // 假設 Store 有 getName()
         }
         res.setId(monitor.getId());
+        res.setMonitorPort(monitor.getMonitorPort());
         return res;
     }
 }

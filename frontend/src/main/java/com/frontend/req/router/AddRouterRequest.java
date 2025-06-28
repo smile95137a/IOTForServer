@@ -14,4 +14,5 @@ public class AddRouterRequest {
     private Integer slaveId;
     private Boolean isControllable;
     private String routerIP;
+    private String routerPort;
 }

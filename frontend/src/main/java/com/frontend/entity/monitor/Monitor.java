@@ -51,4 +51,6 @@ public class Monitor {
     @JoinColumn(name = "store_id", nullable = false)
     @JsonBackReference
     private Store store;
+    @Column
+    private String monitorPort;
 }

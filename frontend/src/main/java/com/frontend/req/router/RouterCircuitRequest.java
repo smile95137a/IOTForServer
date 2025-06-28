@@ -15,5 +15,6 @@ public class RouterCircuitRequest {
     private Integer slaveId;
     private Boolean isControllable;
     private String routerIP;
+    private String routerPort;
     
 }

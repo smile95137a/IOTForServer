@@ -53,6 +53,9 @@ public class Router extends Equipment {
     @Column
     private String routerIP;
 
+    @Column
+    private String routerPort;
+
     public void connect() {
         System.out.println("Connecting " + getClass().getSimpleName() + "...");
     }
