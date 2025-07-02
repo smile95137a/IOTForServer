@@ -19,6 +19,7 @@ import com.frontend.utils.DoorControlUtil;
 import com.frontend.utils.FaceUploadUtil;
 import com.frontend.utils.ImageUtil;
 import jakarta.servlet.http.HttpServletRequest;
+import org.apache.hc.core5.http.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -236,8 +237,7 @@ public class UserController {
 	@PostMapping("/upload")
 	public ResponseEntity<?> uploadFace(
 			@RequestParam("file") MultipartFile file
-	) {
-		try {
+	) throws IOException, ParseException {
 			if (file.isEmpty()) {
 				return ResponseEntity.badRequest().body("❌ 圖片檔案不可為空");
 			}
@@ -259,12 +259,7 @@ public class UserController {
 			if (tempFile.exists()) {
 				tempFile.delete();
 			}
-
 			return ResponseEntity.ok(ResponseUtils.success(200, "人臉上傳成功", null));
-
-		} catch (Exception e) {
-			return ResponseEntity.internalServerError().body(ResponseUtils.success(200, "❌ 錯誤：" + e.getMessage(), null));
-		}
 	}
 
 	/**
