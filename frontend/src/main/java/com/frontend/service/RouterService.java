@@ -14,6 +14,7 @@ import com.frontend.utils.SecurityUtils;
 import com.serotonin.modbus4j.ModbusFactory;
 import com.serotonin.modbus4j.ModbusMaster;
 import com.serotonin.modbus4j.ip.IpParameters;
+import com.serotonin.modbus4j.locator.BaseLocator;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
@@ -25,30 +26,6 @@ public class RouterService {
 
     private final RouterRepository routerRepository;
     private final StoreRepository storeRepository;
-    private String host;
-    private ModbusMaster master;
-
-    public void initModbusByStoreUid(String storeUid , int slave) {
-        try {
-            // 從 DB 查詢 store 對應的 host
-            Store store = storeRepository.findByUid(storeUid).get(); // 這裡假設你有定義這方法
-            Router byStoreId = routerRepository.findFirstByStoreIdAndSlaveId(store.getId() , slave).get();
-            String ip = store.getStoreIP();
-            String port = byStoreId.getRouterPort();
-            IpParameters ipParameters = new IpParameters();
-            ipParameters.setHost(ip);
-            ipParameters.setPort(Integer.parseInt(port));
-            ipParameters.setEncapsulated(false);
-
-            ModbusFactory modbusFactory = new ModbusFactory();
-            master = modbusFactory.createTcpMaster(ipParameters, true);
-            master.init();
-            System.out.println("Modbus 連線初始化成功");
-        } catch (Exception e) {
-            System.err.println("Modbus 初始化失敗: " + e.getMessage());
-        }
-    }
-
 
     public RouterService(RouterRepository routerRepository,
                          StoreRepository storeRepository,
@@ -86,7 +63,6 @@ public class RouterService {
         List<Router> routers = routerRepository.findByStoreId(storeId);
         return routers.stream()
                 .map(router -> {
-                    initModbusByStoreUid(store.getUid() , router.getSlaveId());
                     RouterResponse response = new RouterResponse();
                     response.setId(router.getId());
                     response.setEquipmentName(router.getEquipmentName());
@@ -104,7 +80,12 @@ public class RouterService {
 
                     response.setRouterPort(router.getRouterPort());
                     // 讀取目前迴路狀態
-                    Boolean currentStatus = readCircuitStatus(router);
+                    Boolean currentStatus = null;
+                    try {
+                        currentStatus = readCircuitStatus(router);
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
                     response.setIsControllable(currentStatus);
                     response.setCurrentCircuitStatus(currentStatus);
 
@@ -115,59 +96,95 @@ public class RouterService {
 
     // 新增：迴路控制功能
     @Transactional
-    public boolean controlCircuit(CircuitControlRequest request) {
+    public boolean controlCircuit(CircuitControlRequest request) throws Exception {
         Store store = storeRepository.findById(request.getStoreId())
-                .orElseThrow(() -> new IllegalArgumentException("Store not found with id: "));
+                .orElseThrow(() -> new IllegalArgumentException("Store not found"));
 
         Router router = routerRepository.findById(request.getRouterId())
-                .orElseThrow(() -> new IllegalArgumentException("Router not found with id: " + request.getRouterId()));
-
-        if (!router.getIsControllable()) {
-            throw new IllegalStateException("此迴路不可控制");
-        }
+                .orElseThrow(() -> new IllegalArgumentException("Router not found"));
 
         if (router.getModbusAddress() == null) {
             throw new IllegalStateException("Router 未設定 Modbus 地址");
         }
-
+// 新增連線（每次操作都新建）
+        ModbusMaster master = buildModbusMaster(store, router);
+        master.init();
         try {
-            int slaveId = router.getSlaveId() != null ? router.getSlaveId() : 1;
 
-            // ✅ 正確建構 BaseLocator
-            var locator = com.serotonin.modbus4j.locator.BaseLocator.coilStatus(slaveId, router.getModbusAddress());
-            initModbusByStoreUid(store.getUid() , router.getSlaveId());
-            // ✅ 寫入 true / false 到 coil
+
+            int slaveId = router.getSlaveId() != null ? router.getSlaveId() : 1;
+            var locator = BaseLocator.coilStatus(slaveId, router.getModbusAddress());
+
             master.setValue(locator, request.isTargetStatus());
 
-            System.out.println("迴路控制成功 - " + router.getCircuitName() +
-                    " (" + router.getCircuitNumber() + "): " +
+            System.out.println("✅ 迴路控制成功 - " + router.getCircuitName() + ": " +
                     (request.isTargetStatus() ? "開啟" : "關閉"));
             return true;
-
         } catch (Exception e) {
-            System.err.println("迴路控制失敗: " + e.getMessage());
+            System.err.println("❌ 迴路控制失敗: " + e.getMessage());
             e.printStackTrace();
             return false;
+        }finally {
+            if (master != null) {
+                try {
+                    master.destroy(); // ✅ 自動清理
+                } catch (Exception ignore) {}
+            }
         }
     }
 
+    private ModbusMaster buildModbusMaster(Store store, Router router) throws Exception {
+        String ip = store.getStoreIP();
+        int port = Integer.parseInt(router.getRouterPort());
 
-    private Boolean readCircuitStatus(Router router) {
-        if (router.getModbusAddress() == null || master == null) {
+        IpParameters ipParameters = new IpParameters();
+        ipParameters.setHost(ip);
+        ipParameters.setPort(port);
+        ipParameters.setEncapsulated(false);
+
+        ModbusFactory factory = new ModbusFactory();
+        return factory.createTcpMaster(ipParameters, true);
+    }
+
+
+
+    private Boolean readCircuitStatus(Router router) throws Exception {
+        Store store = router.getStore(); // 確保 Router 有關聯 Store
+        if (store == null || store.getStoreIP() == null) {
+            throw new IllegalStateException("Router 未關聯有效 Store 或 Store IP 為空");
+        }
+        ModbusMaster master = buildModbusMaster(store, router);
+        if (router.getModbusAddress() == null) {
             return null;
         }
 
         try {
+
+
+            // 每次建立新的 master 實例
+
+            master.init();
+
             int slaveId = router.getSlaveId() != null ? router.getSlaveId() : 1;
-            Boolean status = Modbus4jReadUtil.readCoilStatus(master, slaveId,
+            return Modbus4jReadUtil.readCoilStatus(
+                    master,
+                    slaveId,
                     router.getModbusAddress(),
-                    "circuit_" + router.getId());
-            return status;
+                    "circuit_" + router.getId()
+            );
+
         } catch (Exception e) {
-            System.err.println("讀取迴路狀態失敗 - Router ID: " + router.getId() + ", 錯誤: " + e.getMessage());
+            System.err.println("❌ 讀取迴路狀態失敗 - Router ID: " + router.getId() + ", 錯誤: " + e.getMessage());
             return null;
+        }finally {
+            if (master != null) {
+                try {
+                    master.destroy(); // ✅ 自動清理
+                } catch (Exception ignore) {}
+            }
         }
     }
+
 
     // 3. 更新 Router 的類型
     @Transactional

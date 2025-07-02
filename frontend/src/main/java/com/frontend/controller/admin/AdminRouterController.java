@@ -72,7 +72,7 @@ public class AdminRouterController {
 
     // 6. 控制單一 Router 開關（Modbus DO 寫入）
     @PostMapping("/control")
-    public ResponseEntity<ApiResponse<Boolean>> controlRouter(@RequestBody CircuitControlRequest request) {
+    public ResponseEntity<ApiResponse<Boolean>> controlRouter(@RequestBody CircuitControlRequest request) throws Exception {
         boolean result = routerService.controlCircuit(request);
         return ResponseEntity.ok(ResponseUtils.success(result));
     }
