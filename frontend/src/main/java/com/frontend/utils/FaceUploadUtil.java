@@ -26,6 +26,8 @@ import java.util.Scanner;
 public class FaceUploadUtil {
 
     public static boolean uploadFace(String deviceIp, int port, String username, String password, File originalImageFile, String fpid) throws IOException, ParseException {
+
+
         String url = String.format("http://%s:%d/ISAPI/Intelligent/FDLib/FaceDataRecord?format=json", deviceIp, port);
 
         File optimizedImageFile = createOptimizedFaceImage(originalImageFile);

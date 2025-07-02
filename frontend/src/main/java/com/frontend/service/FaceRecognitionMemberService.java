@@ -1,8 +1,11 @@
 package com.frontend.service;
 
+import com.frontend.entity.store.Store;
 import com.frontend.entity.user.FaceRecognitionMember;
 import com.frontend.entity.user.User;
 import com.frontend.repo.FaceRecognitionMemberRepository;
+import com.frontend.repo.RouterRepository;
+import com.frontend.repo.StoreRepository;
 import com.frontend.repo.UserRepository;
 import com.frontend.utils.ISAPIDeviceUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +24,13 @@ public class FaceRecognitionMemberService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private StoreRepository storeRepository;
+
+    private String host;
+    @Autowired
+    private RouterRepository routerRepository;
 
     /**
      * 創建人臉辨識會員
@@ -119,27 +129,31 @@ public class FaceRecognitionMemberService {
      * @param member 人臉辨識會員
      */
     private void syncToDevice(FaceRecognitionMember member) {
+        List<Store> all = storeRepository.findAll();
         try {
-            // 使用你的 ISAPIDeviceUtil
-            ISAPIDeviceUtil.DeviceConfig deviceConfig = new ISAPIDeviceUtil.DeviceConfig(
-                    "192.168.1.112", // 設備IP
-                    "80",             // 設備端口
-                    "admin",          // 設備用戶名
-                    "Handsome0202@"        // 設備密碼
-            );
+            for(Store store : all){
+                // 使用你的 ISAPIDeviceUtil
+                ISAPIDeviceUtil.DeviceConfig deviceConfig = new ISAPIDeviceUtil.DeviceConfig(
+                        store.getStoreIP(), // 設備IP
+                        "80",             // 設備端口
+                        "admin",          // 設備用戶名
+                        "Handsome0202@"        // 設備密碼
+                );
 
-            ISAPIDeviceUtil.UserInfo userInfo = new ISAPIDeviceUtil.UserInfo(
-                    member.getEmployeeNo(),
-                    member.getUser().getName(),
-                    "123456" // 默認密碼
-            );
+                ISAPIDeviceUtil.UserInfo userInfo = new ISAPIDeviceUtil.UserInfo(
+                        member.getEmployeeNo(),
+                        member.getUser().getName(),
+                        "123456" // 默認密碼
+                );
 
-            ISAPIDeviceUtil.ApiResponse response = ISAPIDeviceUtil.addUser(deviceConfig, userInfo, null);
-            
-            if (!response.isSuccess()) {
-                // 記錄同步失敗，但不影響主流程
-                System.err.println("同步到設備失敗: " + response.getErrorMessage());
+                ISAPIDeviceUtil.ApiResponse response = ISAPIDeviceUtil.addUser(deviceConfig, userInfo, null);
+
+                if (!response.isSuccess()) {
+                    // 記錄同步失敗，但不影響主流程
+                    System.err.println("同步到設備失敗: " + response.getErrorMessage());
+                }
             }
+
         } catch (Exception e) {
             System.err.println("同步到設備時發生錯誤: " + e.getMessage());
         }

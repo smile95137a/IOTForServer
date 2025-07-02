@@ -16,14 +16,15 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class DoorControlUtil {
-
-    private static final String BASE_URL = "http://192.168.1.111"; // 可改為讀取配置
+    private static String BASE_URL = "http://192.168.1.113"; // 可改為讀取配置
     private static final String USERNAME = "admin";
     private static final String PASSWORD = "Handsome0202@";
 
-    public static boolean openDoor(String doorId) {
+    public static boolean openDoor(String storeIP , String doorId) {
         try {
+            BASE_URL = "http://" + storeIP;
             String urlString = BASE_URL + "/ISAPI/AccessControl/RemoteControl/door/" + doorId;
+            System.out.println(urlString);
             String requestBody = "<RemoteControlDoor version=\"2.0\" xmlns=\"http://www.isapi.org/ver20/XMLSchema\">" +
                     "<cmd>open</cmd>" +
                     "</RemoteControlDoor>";

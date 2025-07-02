@@ -1,12 +1,14 @@
 package com.frontend.req.router;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class CircuitControlRequest {
     private Long routerId;
-    private Boolean targetStatus;  // true=開, false=關
-    
-    public Long getRouterId() { return routerId; }
-    public void setRouterId(Long routerId) { this.routerId = routerId; }
-    
-    public Boolean getTargetStatus() { return targetStatus; }
-    public void setTargetStatus(Boolean targetStatus) { this.targetStatus = targetStatus; }
+    private boolean targetStatus;  // true=開, false=關
+    private Long storeId;
 }

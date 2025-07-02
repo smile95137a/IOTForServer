@@ -16,7 +16,6 @@ import com.serotonin.modbus4j.ModbusMaster;
 import com.serotonin.modbus4j.ip.IpParameters;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
-import jakarta.annotation.PostConstruct;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -26,15 +25,19 @@ public class RouterService {
 
     private final RouterRepository routerRepository;
     private final StoreRepository storeRepository;
-
+    private String host;
     private ModbusMaster master;
 
-    @PostConstruct
-    public void initModbus() {
+    public void initModbusByStoreUid(String storeUid , int slave) {
         try {
+            // 從 DB 查詢 store 對應的 host
+            Store store = storeRepository.findByUid(storeUid).get(); // 這裡假設你有定義這方法
+            Router byStoreId = routerRepository.findFirstByStoreIdAndSlaveId(store.getId() , slave).get();
+            String ip = store.getStoreIP();
+            String port = byStoreId.getRouterPort();
             IpParameters ipParameters = new IpParameters();
-            ipParameters.setHost("192.168.1.108");
-            ipParameters.setPort(502);
+            ipParameters.setHost(ip);
+            ipParameters.setPort(Integer.parseInt(port));
             ipParameters.setEncapsulated(false);
 
             ModbusFactory modbusFactory = new ModbusFactory();
@@ -45,6 +48,7 @@ public class RouterService {
             System.err.println("Modbus 初始化失敗: " + e.getMessage());
         }
     }
+
 
     public RouterService(RouterRepository routerRepository,
                          StoreRepository storeRepository,
@@ -57,7 +61,6 @@ public class RouterService {
     public Router addRouter(Long storeId, AddRouterRequest request) {
         Store store = storeRepository.findById(storeId)
                 .orElseThrow(() -> new IllegalArgumentException("Store not found with id: " + storeId));
-
         Router router = new Router();
         router.setStore(store);
         router.setUid(UUID.randomUUID().toString());
@@ -77,9 +80,13 @@ public class RouterService {
 
     // 2. 取得某個店家的所有 Router
     public List<RouterResponse> getRoutersByStoreId(Long storeId) {
+        Store store = storeRepository.findById(storeId)
+                .orElseThrow(() -> new IllegalArgumentException("Store not found with id: " + storeId));
+
         List<Router> routers = routerRepository.findByStoreId(storeId);
         return routers.stream()
                 .map(router -> {
+                    initModbusByStoreUid(store.getUid() , router.getSlaveId());
                     RouterResponse response = new RouterResponse();
                     response.setId(router.getId());
                     response.setEquipmentName(router.getEquipmentName());
@@ -94,10 +101,11 @@ public class RouterService {
                     response.setCircuitType(router.getCircuitType());
                     response.setModbusAddress(router.getModbusAddress());
                     response.setSlaveId(router.getSlaveId());
-                    response.setIsControllable(router.getIsControllable());
+
                     response.setRouterPort(router.getRouterPort());
                     // 讀取目前迴路狀態
                     Boolean currentStatus = readCircuitStatus(router);
+                    response.setIsControllable(currentStatus);
                     response.setCurrentCircuitStatus(currentStatus);
 
                     return response;
@@ -108,6 +116,9 @@ public class RouterService {
     // 新增：迴路控制功能
     @Transactional
     public boolean controlCircuit(CircuitControlRequest request) {
+        Store store = storeRepository.findById(request.getStoreId())
+                .orElseThrow(() -> new IllegalArgumentException("Store not found with id: "));
+
         Router router = routerRepository.findById(request.getRouterId())
                 .orElseThrow(() -> new IllegalArgumentException("Router not found with id: " + request.getRouterId()));
 
@@ -124,17 +135,18 @@ public class RouterService {
 
             // ✅ 正確建構 BaseLocator
             var locator = com.serotonin.modbus4j.locator.BaseLocator.coilStatus(slaveId, router.getModbusAddress());
-
+            initModbusByStoreUid(store.getUid() , router.getSlaveId());
             // ✅ 寫入 true / false 到 coil
-            master.setValue(locator, request.getTargetStatus());
+            master.setValue(locator, request.isTargetStatus());
 
             System.out.println("迴路控制成功 - " + router.getCircuitName() +
                     " (" + router.getCircuitNumber() + "): " +
-                    (request.getTargetStatus() ? "開啟" : "關閉"));
+                    (request.isTargetStatus() ? "開啟" : "關閉"));
             return true;
 
         } catch (Exception e) {
             System.err.println("迴路控制失敗: " + e.getMessage());
+            e.printStackTrace();
             return false;
         }
     }

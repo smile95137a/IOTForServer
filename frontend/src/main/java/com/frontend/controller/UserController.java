@@ -5,9 +5,15 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.Optional;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.frontend.entity.store.Store;
 import com.frontend.entity.user.FaceRecognitionMember;
+import com.frontend.repo.StoreRepository;
 import com.frontend.service.FaceRecognitionMemberService;
 import com.frontend.utils.DoorControlUtil;
 import com.frontend.utils.FaceUploadUtil;
@@ -44,9 +50,11 @@ public class UserController {
 	@Autowired
 	private FaceRecognitionMemberService faceRecognitionMemberService;
 
+	@Autowired
+	private StoreRepository storeRepository;
 
 	// 建議實務上改為從設定檔讀取
-	private static final String DEVICE_IP = "192.168.1.111";
+	private static final String DEVICE_IP = "192.168.1.113";
 	private static final int PORT = 80;
 	private static final String USERNAME = "admin";
 	private static final String PASSWORD = "Handsome0202@";
@@ -239,21 +247,23 @@ public class UserController {
 			file.transferTo(tempFile);
 
 			FaceRecognitionMember faceRecognitionMember = faceRecognitionMemberService.findByUserId(SecurityUtils.getSecurityUser().getId()).get();
-
+			List<Store> all = storeRepository.findAll();
+			boolean success = false;
 			// 使用工具類上傳人臉
-			boolean success = FaceUploadUtil.uploadFace(DEVICE_IP, PORT, USERNAME, PASSWORD, tempFile, faceRecognitionMember.getEmployeeNo());
+			for(Store store : all){
+				success = FaceUploadUtil.uploadFace(store.getStoreIP(), PORT, USERNAME, PASSWORD, tempFile, faceRecognitionMember.getEmployeeNo());
+			}
+
 
 			// 清理暫存檔案
 			if (tempFile.exists()) {
 				tempFile.delete();
 			}
 
-			return success ?
-					ResponseEntity.ok("✅ 上傳人臉成功") :
-					ResponseEntity.status(500).body("❌ 上傳人臉失敗，請檢查圖片品質與設備狀態");
+			return ResponseEntity.ok(ResponseUtils.success(200, "人臉上傳成功", null));
 
 		} catch (Exception e) {
-			return ResponseEntity.internalServerError().body("❌ 錯誤：" + e.getMessage());
+			return ResponseEntity.internalServerError().body(ResponseUtils.success(200, "❌ 錯誤：" + e.getMessage(), null));
 		}
 	}
 
@@ -261,19 +271,18 @@ public class UserController {
 	 * 掃碼開門：需要先登入（token 認證）
 	 */
 	@PutMapping("/openDoor")
-	public ResponseEntity<String> openDoor(Authentication authentication) {
+	public ResponseEntity<?> openDoor(@RequestBody String storeUid , Authentication authentication) throws JsonProcessingException {
 
 		// 沒有登入或 token 無效，這邊不會進來，Spring Security 會自動回 401
 		if (authentication == null || !authentication.isAuthenticated()) {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("請先登入後再操作");
 		}
-
+		ObjectMapper objectMapper = new ObjectMapper();
+		JsonNode jsonNode = objectMapper.readTree(storeUid);
+		String storeUidCode = jsonNode.get("storeUid").asText();
+		Store store = storeRepository.findByUid(storeUidCode).get();
 		// 執行開門
-		boolean result = DoorControlUtil.openDoor("65535");
-		if (result) {
-			return ResponseEntity.ok("✅ 開門成功");
-		} else {
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("❌ 開門失敗");
-		}
+		boolean result = DoorControlUtil.openDoor(store.getStoreIP(),"65535");
+			return ResponseEntity.ok(ResponseUtils.success(200 , "開門成功" , null));
 	}
 }
