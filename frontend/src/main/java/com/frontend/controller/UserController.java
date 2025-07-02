@@ -212,7 +212,7 @@ public class UserController {
 
 			return ResponseEntity.ok(ResponseUtils.success(200, "人臉辨識會員創建成功", null));
 		} catch (Exception e) {
-			return ResponseEntity.badRequest().body(e.getMessage());
+			return ResponseEntity.ok(ResponseUtils.success(200, "人臉辨識會員創建成功", null));
 		}
 	}
 

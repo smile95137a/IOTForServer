@@ -190,10 +190,9 @@ public class ISAPIDeviceUtil {
      * @param secretKey QR码签名密钥（可为null，使用默认密钥）
      * @return API响应结果
      */
-    public static ApiResponse addUser(DeviceConfig config, UserInfo userInfo, String secretKey) {
+    public static ApiResponse addUser(DeviceConfig config, UserInfo userInfo, String secretKey) throws Exception {
         long startTime = System.currentTimeMillis();
 
-        try {
             log("开始添加用户: " + userInfo);
             log("设备配置: " + config);
 
@@ -220,14 +219,7 @@ public class ISAPIDeviceUtil {
 
             return response;
 
-        } catch (Exception e) {
-            log("添加用户时发生异常: " + e.getMessage());
-            e.printStackTrace();
 
-            ApiResponse response = new ApiResponse(false, -1, null, "添加用户时发生错误: " + e.getMessage());
-            response.responseTime = System.currentTimeMillis() - startTime;
-            return response;
-        }
     }
 
     /**

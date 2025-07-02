@@ -39,7 +39,7 @@ public class FaceRecognitionMemberService {
      * @return 創建結果
      */
     @Transactional
-    public FaceRecognitionMember createFaceRecognitionMember(Long userId, Long currentUserId) {
+    public FaceRecognitionMember createFaceRecognitionMember(Long userId, Long currentUserId) throws Exception {
         // 檢查會員是否存在
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("會員不存在"));
@@ -128,9 +128,8 @@ public class FaceRecognitionMemberService {
      * 同步到門禁設備（可選實現）
      * @param member 人臉辨識會員
      */
-    private void syncToDevice(FaceRecognitionMember member) {
+    private void syncToDevice(FaceRecognitionMember member) throws Exception {
         List<Store> all = storeRepository.findAll();
-        try {
             for(Store store : all){
                 // 使用你的 ISAPIDeviceUtil
                 ISAPIDeviceUtil.DeviceConfig deviceConfig = new ISAPIDeviceUtil.DeviceConfig(
@@ -154,8 +153,5 @@ public class FaceRecognitionMemberService {
                 }
             }
 
-        } catch (Exception e) {
-            System.err.println("同步到設備時發生錯誤: " + e.getMessage());
-        }
     }
 }
