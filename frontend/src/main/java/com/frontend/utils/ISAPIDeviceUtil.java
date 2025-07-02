@@ -82,7 +82,7 @@ public class ISAPIDeviceUtil {
             this.name = name;
             this.password = password;
             this.beginTime = LocalDateTime.now();
-            this.endTime = beginTime.plusYears(1);
+            this.endTime = beginTime.plusYears(10);
         }
 
         // Setters for optional fields
@@ -472,8 +472,15 @@ public class ISAPIDeviceUtil {
                 .append("      \"endTime\": \"").append(endTimeStr).append("\",\n")
                 .append("      \"timeType\": \"local\"\n")
                 .append("    },\n")
+                .append("    \"doorRight\": \"1\",\n")
+                .append("    \"RightPlan\": [\n")
+                .append("      {\n")
+                .append("        \"doorNo\": 1,\n")
+                .append("        \"planTemplateNo\": \"1\"\n")
+                .append("      }\n")
+                .append("    ],\n")
                 .append("    \"password\": \"").append(userInfo.getPassword()).append("\",\n")
-                .append("    \"userVerifyMode\": \"").append("\",\n")
+                .append("    \"userVerifyMode\": \"\",\n")
                 .append("    \"checkUser\": ").append(false).append("\n")
                 .append("  }\n")
                 .append("}");

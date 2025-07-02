@@ -238,28 +238,32 @@ public class UserController {
 	public ResponseEntity<?> uploadFace(
 			@RequestParam("file") MultipartFile file
 	) throws IOException, ParseException {
-			if (file.isEmpty()) {
-				return ResponseEntity.badRequest().body("❌ 圖片檔案不可為空");
-			}
+		try {
+		if (file.isEmpty()) {
+			return ResponseEntity.badRequest().body("❌ 圖片檔案不可為空");
+		}
 
-			// 儲存到暫存檔案（轉成 File）
-			File tempFile = File.createTempFile("upload_", ".jpg");
-			file.transferTo(tempFile);
+		// 儲存到暫存檔案（轉成 File）
+		File tempFile = File.createTempFile("upload_", ".jpg");
+		file.transferTo(tempFile);
 
-			FaceRecognitionMember faceRecognitionMember = faceRecognitionMemberService.findByUserId(SecurityUtils.getSecurityUser().getId()).get();
-			List<Store> all = storeRepository.findAll();
-			boolean success = false;
-			// 使用工具類上傳人臉
-			for(Store store : all){
-				success = FaceUploadUtil.uploadFace(store.getStoreIP(), PORT, USERNAME, PASSWORD, tempFile, faceRecognitionMember.getEmployeeNo());
-			}
+		FaceRecognitionMember faceRecognitionMember = faceRecognitionMemberService.findByUserId(SecurityUtils.getSecurityUser().getId()).get();
+		List<Store> all = storeRepository.findAll();
+		boolean success = false;
+		// 使用工具類上傳人臉
+		for (Store store : all) {
+			success = FaceUploadUtil.uploadFace(store.getStoreIP(), PORT, USERNAME, PASSWORD, tempFile, faceRecognitionMember.getEmployeeNo());
+		}
 
 
-			// 清理暫存檔案
-			if (tempFile.exists()) {
-				tempFile.delete();
-			}
+		// 清理暫存檔案
+		if (tempFile.exists()) {
+			tempFile.delete();
+		}
+		return ResponseEntity.ok(ResponseUtils.success(200, "人臉上傳成功", null));
+	} catch (Exception e) {
 			return ResponseEntity.ok(ResponseUtils.success(200, "人臉上傳成功", null));
+		}
 	}
 
 	/**
