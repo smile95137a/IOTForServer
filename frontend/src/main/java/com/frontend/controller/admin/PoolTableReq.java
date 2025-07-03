@@ -1,5 +1,6 @@
 package com.frontend.controller.admin;
 
+import java.util.List;
 import java.util.Set;
 
 import com.frontend.entity.poolTable.TableEquipment;
@@ -19,4 +20,5 @@ public class PoolTableReq {
     private Store store;
     private Set<TableEquipment> tableEquipments;
     private Boolean isUse;
+    private List<Long> routerIds;
 }

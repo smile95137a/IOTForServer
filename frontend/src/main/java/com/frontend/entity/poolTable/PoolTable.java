@@ -2,6 +2,8 @@ package com.frontend.entity.poolTable;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.frontend.entity.router.Router;
 import com.frontend.entity.store.Store;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -10,6 +12,8 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Where;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 @Data
@@ -60,4 +64,9 @@ public class PoolTable {
 
     @Column(name = "is_deleted", nullable = false)
     private boolean isDeleted = false;
+
+    // PoolTable 實體中
+    @ManyToMany(mappedBy = "poolTables")
+    private List<Router> routers = new ArrayList<>();
+
 }

@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -16,5 +18,7 @@ public class RouterCircuitRequest {
     private Boolean isControllable;
     private String routerIP;
     private String routerPort;
-    
+    private List<Long> poolTableIds; // 改成 List<Long>
+
+
 }

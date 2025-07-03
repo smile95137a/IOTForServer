@@ -6,6 +6,7 @@ import com.frontend.entity.game.GameOrder;
 import com.frontend.entity.game.GameRecord;
 import com.frontend.entity.poolTable.PoolTable;
 import com.frontend.entity.poolTable.TableEquipment;
+import com.frontend.entity.router.Router;
 import com.frontend.entity.store.*;
 import com.frontend.entity.transection.GameTransactionRecord;
 import com.frontend.entity.user.User;
@@ -14,6 +15,7 @@ import com.frontend.repo.*;
 import com.frontend.req.game.BookGameReq;
 import com.frontend.req.game.CheckoutReq;
 import com.frontend.req.game.GameReq;
+import com.frontend.req.router.CircuitControlRequest;
 import com.frontend.req.store.TimeSlotInfo;
 import com.frontend.res.game.GamePriceRes;
 import com.frontend.res.game.GameRes;
@@ -62,7 +64,10 @@ public class GameService {
     @Autowired
     private BookGameRepository bookGameRepository;
     @Autowired
-    private TimeSlotRepository timeSlotRepository;
+    private RouterService routerService;
+
+    @Autowired
+    private RouterRepository routerRepository;
 
     public GameRecord bookStartGame(GameReq gameReq) throws Exception {
         boolean b = this.checkoutOrder();
@@ -271,6 +276,16 @@ public class GameService {
             table.setStatus(true);
             tableEquipmentRepository.save(table);
         }
+
+        List<Router> byPoolTableId1 = routerRepository.findByPoolTables_Id(byStoreUid.getId());
+        for(Router router : byPoolTableId1) {
+            CircuitControlRequest request = new CircuitControlRequest();
+            request.setRouterId(router.getId());
+            request.setTargetStatus(true);
+            request.setStoreId(router.getStore().getId());
+            routerService.controlCircuit(request);
+        }
+
 
         // **新增：获取当天所有时段信息**
         List<TimeSlotInfo> allTimeSlots = getAllTimeSlotsForDate(store, today);
@@ -980,6 +995,15 @@ public class GameService {
 
         game.setStatus("IS_PAY");
         gameOrderRepository.save(game);
+
+        List<Router> byPoolTableId1 = routerRepository.findByPoolTables_Id(byId.get().getId());
+        for(Router router : byPoolTableId1) {
+            CircuitControlRequest request = new CircuitControlRequest();
+            request.setRouterId(router.getId());
+            request.setTargetStatus(false);
+            request.setStoreId(router.getStore().getId());
+            routerService.controlCircuit(request);
+        }
 
         return new GameRes(null , null , 0L , vendor , store.getContactPhone());
     }

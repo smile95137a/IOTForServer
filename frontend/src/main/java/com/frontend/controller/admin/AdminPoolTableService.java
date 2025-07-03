@@ -3,6 +3,7 @@ package com.frontend.controller.admin;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -12,14 +13,17 @@ import com.frontend.entity.game.BookGame;
 import com.frontend.entity.game.GameOrder;
 import com.frontend.entity.game.GameRecord;
 import com.frontend.entity.poolTable.TableEquipment;
+import com.frontend.entity.router.Router;
 import com.frontend.entity.store.Store;
 import com.frontend.entity.store.StorePricingSchedule;
 import com.frontend.entity.store.TimeSlot;
 import com.frontend.entity.user.User;
 import com.frontend.repo.*;
 import com.frontend.req.game.GameReq;
+import com.frontend.req.router.CircuitControlRequest;
 import com.frontend.res.game.GameResponse;
 import com.frontend.res.poolTable.AdminPoolTableRes;
+import com.frontend.service.RouterService;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -52,14 +56,48 @@ public class AdminPoolTableService {
     @Autowired
     private StorePricingScheduleRepository storePricingScheduleRepository;
 
+    @Autowired
+    private RouterRepository routerRepository;
+
+    @Autowired
+    private RouterService routerService;
+
     // Create a new pool table
-    public PoolTable createPoolTable(PoolTableReq poolTableReq, Long id) {
+    @Transactional
+    public PoolTable createPoolTable(PoolTableReq poolTableReq, Long userId) {
         PoolTable poolTable = convertToEntity(poolTableReq);
-        poolTable.setUid(RandomUtils.genRandom(24)); // 生成唯一 UID
+        poolTable.setUid(RandomUtils.genRandom(24));
         poolTable.setCreateTime(LocalDateTime.now());
-        poolTable.setCreateUserId(id);
+        poolTable.setCreateUserId(userId);
+
+        // 先儲存 PoolTable 使其變成 persistent
+        poolTable = poolTableRepository.save(poolTable);
+
+        // 查出要關聯的 Routers
+        List<Router> routers = routerRepository.findAllById(poolTableReq.getRouterIds());
+
+        // 設定雙向關聯
+        for (Router router : routers) {
+            // PoolTable -> Router
+            poolTable.getRouters().add(router);
+
+            // Router -> PoolTable（避免覆蓋）
+            if (router.getPoolTables() == null) {
+                router.setPoolTables(new ArrayList<>());
+            }
+            if (!router.getPoolTables().contains(poolTable)) {
+                router.getPoolTables().add(poolTable);
+            }
+        }
+
+        // 儲存 routers（更新他們的關聯）
+        routerRepository.saveAll(routers);
+
+        // 最後再存一次 PoolTable（雖然可以省略，為了保險）
         return poolTableRepository.save(poolTable);
     }
+
+
 
     private PoolTable convertToEntity(PoolTableReq req) {
         PoolTable poolTable = new PoolTable();
@@ -113,60 +151,94 @@ public class AdminPoolTableService {
 
     // Update a pool table
     @Transactional
-    public PoolTable updatePoolTable(String uid, PoolTableReq updatedPoolTableReq, Long id) {
-        if(updatedPoolTableReq.getStatus().equals("FAULT")){
-            PoolTable poolTable = poolTableRepository.findByUid(uid).get();
-            List<GameRecord> book = gameRecordRepository.findAllByPoolTableIdAndStatus(poolTable.getId(), "BOOK");
+    public PoolTable updatePoolTable(String uid, PoolTableReq updatedPoolTableReq, Long userId) {
+        PoolTable poolTable = poolTableRepository.findByUid(uid)
+                .orElseThrow(() -> new RuntimeException("PoolTable not found with uid: " + uid));
 
-            for (GameRecord gameRecord : book) {
+        // 若狀態為 FAULT，取消所有預約並退費
+        if ("FAULT".equals(updatedPoolTableReq.getStatus())) {
+            List<GameRecord> bookList = gameRecordRepository.findAllByPoolTableIdAndStatus(poolTable.getId(), "BOOK");
+
+            for (GameRecord gameRecord : bookList) {
                 User user = userRepository.findByUid(gameRecord.getUserUid());
-                List<BookGame> byUserUId = bookGameRepository.findByUserUId(user.getUid());
-                for(BookGame bookGame:byUserUId){
+
+                // 取消該使用者的所有預約
+                List<BookGame> bookGames = bookGameRepository.findByUserUId(user.getUid());
+                for (BookGame bookGame : bookGames) {
                     bookGame.setStatus("CANCEL");
                     bookGameRepository.save(bookGame);
                 }
 
+                // 取消遊戲紀錄，退費
                 gameRecord.setStatus("CANCEL");
                 gameRecordRepository.save(gameRecord);
 
-                User byUid = userRepository.findByUid(gameRecord.getUserUid());
-                byUid.setPoint(byUid.getPoint() + gameRecord.getPrice());
-                byUid.setBalance(byUid.getAmount() + byUid.getPoint());
-                userRepository.save(byUid);
+                user.setPoint(user.getPoint() + gameRecord.getPrice());
+                user.setBalance(user.getAmount() + user.getPoint());
+                userRepository.save(user);
             }
+
+            // 更新桌子狀態為 FAULT
             poolTable.setStatus("FAULT");
             return poolTableRepository.save(poolTable);
-        }else{
-            // 根據 UID 查找原有的 PoolTable
-            return poolTableRepository.findByUid(uid).map(poolTable -> {
-                // 使用更新的 PoolTableReq 來設置新的數據
-                poolTable.setTableNumber(updatedPoolTableReq.getTableNumber());
-                poolTable.setStatus(updatedPoolTableReq.getStatus());
-                poolTable.setIsUse(updatedPoolTableReq.getIsUse());
-                if(updatedPoolTableReq.getStore() != null){
-                    poolTable.setStore(updatedPoolTableReq.getStore());
-                }
-                // 這裡假設 Store 是直接從 PoolTableReq 傳過來的
-//            if(updatedPoolTableReq.getTableEquipments() != null){
-//                poolTable.setTableEquipments(updatedPoolTableReq.getTableEquipments());
-//            }
-                // 設置時間和用戶信息
-                poolTable.setUpdateTime(LocalDateTime.now());
-                poolTable.setUpdateUserId(id);
-
-                // 保存更新後的 PoolTable
-                return poolTableRepository.save(poolTable);
-            }).orElseThrow(() -> new RuntimeException("PoolTable not found with uid: " + uid));
         }
+
+        // 一般狀態下更新資料
+        poolTable.setTableNumber(updatedPoolTableReq.getTableNumber());
+        poolTable.setStatus(updatedPoolTableReq.getStatus());
+        poolTable.setIsUse(updatedPoolTableReq.getIsUse());
+
+        if (updatedPoolTableReq.getStore() != null) {
+            poolTable.setStore(updatedPoolTableReq.getStore());
+        }
+
+        // 更新 Router 關聯
+        if (updatedPoolTableReq.getRouterIds() != null) {
+            List<Router> newRouters = routerRepository.findAllById(updatedPoolTableReq.getRouterIds());
+            poolTable.setRouters(newRouters); // 設定 PoolTable → Routers
+
+            // 雙向維護：確保 Router 也有這張桌子（不移除舊的）
+            for (Router router : newRouters) {
+                List<PoolTable> routerTables = router.getPoolTables();
+                if (routerTables == null) {
+                    routerTables = new ArrayList<>();
+                }
+                if (!routerTables.contains(poolTable)) {
+                    routerTables.add(poolTable);
+                    router.setPoolTables(routerTables);
+                }
+            }
+
+            routerRepository.saveAll(newRouters); // 儲存 Router 更新
+        }
+
+        // 設定更新人與時間
+        poolTable.setUpdateTime(LocalDateTime.now());
+        poolTable.setUpdateUserId(userId);
+
+        return poolTableRepository.save(poolTable);
     }
+
 
 
     // Delete a pool table
     @Transactional
     public void deletePoolTable(String uid) {
-        poolTableRepository.deleteByUid(uid);
+        PoolTable poolTable = poolTableRepository.findByUid(uid)
+                .orElseThrow(() -> new IllegalArgumentException("PoolTable not found with uid: " + uid));
+
+        // 解除 poolTable 和 router 的雙向關聯
+        if (poolTable.getRouters() != null) {
+            for (Router router : poolTable.getRouters()) {
+                router.getPoolTables().remove(poolTable);
+            }
+            poolTable.getRouters().clear();
+        }
+
+        poolTableRepository.delete(poolTable);
     }
-    
+
+
     public List<PoolTable> findByStoreId(Long storeId) {
         List<PoolTable> poolTables = poolTableRepository.findByStoreId(storeId);
 
@@ -193,6 +265,15 @@ public class AdminPoolTableService {
             gameReq.setPoolTableUId(poolTableReq.getTableUId());
             gameReq.setPoolTableId(poolTable.getId());
             this.endGame(gameReq , byUid.getId());
+        }
+
+        List<Router> byPoolTableId1 = routerRepository.findByPoolTables_Id(poolTable.getId());
+        for(Router router : byPoolTableId1) {
+            CircuitControlRequest request = new CircuitControlRequest();
+            request.setRouterId(router.getId());
+            request.setTargetStatus(false);
+            request.setStoreId(router.getStore().getId());
+            routerService.controlCircuit(request);
         }
         return poolTable;
     }

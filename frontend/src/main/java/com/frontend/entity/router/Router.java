@@ -1,13 +1,18 @@
 package com.frontend.entity.router;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.frontend.entity.equipment.Equipment;
+import com.frontend.entity.poolTable.PoolTable;
 import com.frontend.entity.store.Store;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Where;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -23,8 +28,20 @@ public class Router extends Equipment {
 
     @ManyToOne
     @JoinColumn(name = "store_id")
-    @JsonBackReference("routerReference")
+    @JsonBackReference("routerStoreReference")
     private Store store;
+
+    // Router.java
+    // Router 實體中
+    @ManyToMany
+    @JoinTable(
+            name = "router_pool_table",
+            joinColumns = @JoinColumn(name = "router_id"),
+            inverseJoinColumns = @JoinColumn(name = "pool_table_id")
+    )
+    private List<PoolTable> poolTables = new ArrayList<>();
+
+
 
     @Column
     private Long routerNumber;

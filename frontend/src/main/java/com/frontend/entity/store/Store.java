@@ -16,6 +16,7 @@ import org.hibernate.annotations.Where;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
@@ -99,7 +100,7 @@ public class Store {
     private Integer cancelBookTime;
 
     @OneToMany(mappedBy = "store", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference("routerReference")
+    @JsonManagedReference("routerStoreReference")
     private Set<Router> routers;
 
     @ManyToOne(fetch = FetchType.LAZY)

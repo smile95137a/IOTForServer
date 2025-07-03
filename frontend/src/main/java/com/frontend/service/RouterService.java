@@ -1,9 +1,11 @@
 package com.frontend.service;
 
 import com.frontend.ISAPI.Modbus4jReadUtil;
+import com.frontend.entity.poolTable.PoolTable;
 import com.frontend.entity.router.Router;
 import com.frontend.entity.store.Store;
 import com.frontend.factory.RouterFactory;
+import com.frontend.repo.PoolTableRepository;
 import com.frontend.repo.RouterRepository;
 import com.frontend.repo.StoreRepository;
 import com.frontend.req.router.AddRouterRequest;
@@ -26,18 +28,20 @@ public class RouterService {
 
     private final RouterRepository routerRepository;
     private final StoreRepository storeRepository;
-
+    private final PoolTableRepository poolTableRepository;
     public RouterService(RouterRepository routerRepository,
                          StoreRepository storeRepository,
-                         RouterFactory routerFactory) {
+                         RouterFactory routerFactory, PoolTableRepository poolTableRepository) {
         this.routerRepository = routerRepository;
         this.storeRepository = storeRepository;
+        this.poolTableRepository = poolTableRepository;
     }
 
     // 1. 新增 Router
     public Router addRouter(Long storeId, AddRouterRequest request) {
         Store store = storeRepository.findById(storeId)
                 .orElseThrow(() -> new IllegalArgumentException("Store not found with id: " + storeId));
+
         Router router = new Router();
         router.setStore(store);
         router.setUid(UUID.randomUUID().toString());
@@ -110,8 +114,6 @@ public class RouterService {
         ModbusMaster master = buildModbusMaster(store, router);
         master.init();
         try {
-
-
             int slaveId = router.getSlaveId() != null ? router.getSlaveId() : 1;
             var locator = BaseLocator.coilStatus(slaveId, router.getModbusAddress());
 
@@ -209,11 +211,21 @@ public class RouterService {
     // 4. 刪除 Router
     @Transactional
     public void deleteRouter(Long id) {
-        if (!routerRepository.existsById(id)) {
-            throw new IllegalArgumentException("Router not found with id: " + id);
+        Router router = routerRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Router not found with id: " + id));
+
+        // 解除 router 和 poolTables 的雙向關聯
+        if (router.getPoolTables() != null) {
+            for (PoolTable table : router.getPoolTables()) {
+                table.getRouters().remove(router);
+            }
+            router.getPoolTables().clear();
         }
-        routerRepository.deleteById(id);
+
+        routerRepository.delete(router);
     }
+
+
 
     // 5. 取得某個店家底下 Router 數量
     public int getRouterCountByStoreId(Long storeId) {
