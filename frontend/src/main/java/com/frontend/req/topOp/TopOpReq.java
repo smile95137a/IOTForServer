@@ -14,4 +14,6 @@ public class TopOpReq {
     private String payType;
 
     private Integer point;
+
+    private Boolean isFirst;
 }

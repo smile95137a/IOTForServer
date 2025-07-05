@@ -1,7 +1,9 @@
 package com.frontend.service;
 
+import com.frontend.entity.topLog.TopLog;
 import com.frontend.entity.transection.TransactionRecord;
 import com.frontend.entity.user.User;
+import com.frontend.repo.TopLogRepository;
 import com.frontend.repo.TransactionRecordRepository;
 import com.frontend.repo.UserRepository;
 import com.frontend.req.topOp.TopOpReq;
@@ -18,6 +20,9 @@ public class PaymentService {
 
     @Autowired
     private TransactionRecordRepository transactionRecordRepository;
+
+    @Autowired
+    private TopLogRepository topLogRepository;
 
     public Integer topOp(TopOpReq topOpReq , Long userId){
         User user = userRepository.findById(userId).get();
@@ -40,8 +45,25 @@ public class PaymentService {
         transactionRecord.setUser(user);
         transactionRecordRepository.save(transactionRecord);
 
+        if(topOpReq.getIsFirst()){
+            TopLog topLog = new TopLog();
+            topLog.setIsFirst(true);
+            topLog.setUserDate(LocalDateTime.now());
+            topLog.setUserId(userId);
 
+            topLogRepository.save(topLog);
+        }
 
         return user.getAmount();
+    }
+
+    public Boolean getUserUse(Long userId) {
+        TopLog byUserId = topLogRepository.findByUserId(userId);
+
+        if(byUserId == null){
+            return false;
+        }
+
+        return byUserId.getIsFirst();
     }
 }

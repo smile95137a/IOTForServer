@@ -36,4 +36,19 @@ public class PaymentController {
             return ResponseEntity.ok(error);
         }
     }
+
+    @GetMapping("/isUse")
+    public ResponseEntity<ApiResponse<?>> getUserUse() throws Exception {
+        UserPrinciple securityUser = SecurityUtils.getSecurityUser();
+        Long userId = securityUser.getId();
+        try {
+            Boolean userUse = paymentService.getUserUse(userId);
+            ApiResponse<Object> success = ResponseUtils.success(200, " ", userUse);
+            return ResponseEntity.ok(success);
+        } catch (Exception e) {
+            e.printStackTrace();
+            ApiResponse<Object> error = ResponseUtils.error(999,  e.getMessage(), false);
+            return ResponseEntity.ok(error);
+        }
+    }
 }

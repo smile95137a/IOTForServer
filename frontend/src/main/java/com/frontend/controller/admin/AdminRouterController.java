@@ -6,6 +6,7 @@ import com.frontend.enums.RouterType;
 import com.frontend.req.router.AddRouterRequest;
 import com.frontend.req.router.CircuitControlRequest;
 import com.frontend.req.router.RouterCircuitRequest;
+import com.frontend.res.poolTable.RouterWithTableInfoResponse;
 import com.frontend.res.router.RouterResponse;
 import com.frontend.service.RouterService;
 import com.frontend.utils.ResponseUtils;
@@ -30,6 +31,14 @@ public class AdminRouterController {
     @GetMapping("/store/{storeId}")
     public ResponseEntity<ApiResponse<List<RouterResponse>>> getRoutersByStoreId(@PathVariable Long storeId) {
         List<RouterResponse> routers = routerService.getRoutersByStoreId(storeId);
+        return ResponseEntity.ok(ResponseUtils.success(routers));
+    }
+
+    @GetMapping("/store/{storeId}/{poolTableId}")
+    public ResponseEntity<ApiResponse<List<RouterWithTableInfoResponse>>> getRoutersWithTableInfo(
+            @PathVariable Long storeId,
+            @PathVariable Long poolTableId) {
+        List<RouterWithTableInfoResponse> routers = routerService.getRoutersWithTableInfo(storeId, poolTableId);
         return ResponseEntity.ok(ResponseUtils.success(routers));
     }
 

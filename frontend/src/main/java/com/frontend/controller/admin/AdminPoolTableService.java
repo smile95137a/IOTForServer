@@ -133,19 +133,27 @@ public class AdminPoolTableService {
     }
 
     private AdminPoolTableRes convertToAdminPoolTableRes(PoolTable poolTable) {
+        List<Long> routerIds = poolTable.getRouters() != null
+                ? poolTable.getRouters().stream()
+                .map(Router::getId) // 假設 Router 有 getId()
+                .collect(Collectors.toList())
+                : new ArrayList<>();
+
         AdminPoolTableRes.AdminPoolTableResBuilder builder = AdminPoolTableRes.builder()
                 .storeId(poolTable.getStore().getId())
                 .uid(poolTable.getUid())
                 .tableNumber(poolTable.getTableNumber())
-                .status(poolTable.getStatus());
+                .status(poolTable.getStatus())
+                .routerId(routerIds);
 
-        // 只在 tableEquipments 不为 null 时设置 tableEquipments
-//        if (poolTable.getTableEquipments() != null) {
-//            builder.tableEquipments(poolTable.getTableEquipments());
-//        }
+        // 如果需要裝備也要帶入，可取消註解
+//    if (poolTable.getTableEquipments() != null) {
+//        builder.tableEquipments(poolTable.getTableEquipments());
+//    }
 
         return builder.build();
     }
+
 
 
 
@@ -194,24 +202,32 @@ public class AdminPoolTableService {
 
         // 更新 Router 關聯
         if (updatedPoolTableReq.getRouterIds() != null) {
+            // 1. 先處理舊的關聯 - 移除這張桌子從所有舊 Router 中
+            List<Router> oldRouters = new ArrayList<>(poolTable.getRouters());
+            for (Router oldRouter : oldRouters) {
+                oldRouter.getPoolTables().remove(poolTable);
+            }
+
+            // 2. 設定新的 Router 關聯
             List<Router> newRouters = routerRepository.findAllById(updatedPoolTableReq.getRouterIds());
             poolTable.setRouters(newRouters); // 設定 PoolTable → Routers
 
-            // 雙向維護：確保 Router 也有這張桌子（不移除舊的）
-            for (Router router : newRouters) {
-                List<PoolTable> routerTables = router.getPoolTables();
+            // 3. 雙向維護：確保新的 Router 也有這張桌子
+            for (Router newRouter : newRouters) {
+                List<PoolTable> routerTables = newRouter.getPoolTables();
                 if (routerTables == null) {
                     routerTables = new ArrayList<>();
+                    newRouter.setPoolTables(routerTables);
                 }
                 if (!routerTables.contains(poolTable)) {
                     routerTables.add(poolTable);
-                    router.setPoolTables(routerTables);
                 }
             }
 
-            routerRepository.saveAll(newRouters); // 儲存 Router 更新
+            // 4. 儲存所有變更
+            routerRepository.saveAll(oldRouters); // 儲存舊的 Router（移除關聯）
+            routerRepository.saveAll(newRouters); // 儲存新的 Router（新增關聯）
         }
-
         // 設定更新人與時間
         poolTable.setUpdateTime(LocalDateTime.now());
         poolTable.setUpdateUserId(userId);

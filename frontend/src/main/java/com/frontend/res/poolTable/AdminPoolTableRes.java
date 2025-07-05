@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
 import java.util.Set;
 @Builder
 @Data
@@ -18,4 +19,5 @@ public class AdminPoolTableRes {
     private String status;
     private Set<TableEquipment> tableEquipments;
     private Long storeId;
+    private List<Long> routerId;
 }

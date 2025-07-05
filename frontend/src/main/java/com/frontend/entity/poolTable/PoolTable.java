@@ -2,6 +2,7 @@ package com.frontend.entity.poolTable;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.frontend.entity.router.Router;
 import com.frontend.entity.store.Store;
@@ -67,6 +68,7 @@ public class PoolTable {
 
     // PoolTable 實體中
     @ManyToMany(mappedBy = "poolTables")
+    @JsonIgnore
     private List<Router> routers = new ArrayList<>();
 
 }

@@ -11,6 +11,7 @@ import com.frontend.repo.StoreRepository;
 import com.frontend.req.router.AddRouterRequest;
 import com.frontend.req.router.CircuitControlRequest;
 import com.frontend.req.router.RouterCircuitRequest;
+import com.frontend.res.poolTable.RouterWithTableInfoResponse;
 import com.frontend.res.router.RouterResponse;
 import com.frontend.utils.SecurityUtils;
 import com.serotonin.modbus4j.ModbusFactory;
@@ -22,6 +23,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class RouterService {
@@ -230,5 +232,28 @@ public class RouterService {
     // 5. 取得某個店家底下 Router 數量
     public int getRouterCountByStoreId(Long storeId) {
         return routerRepository.countByStoreId(storeId);
+    }
+
+    public List<RouterWithTableInfoResponse> getRoutersWithTableInfo(Long storeId, Long poolTableId) {
+        // 查詢該店家的所有 Router
+        List<Router> routers = routerRepository.findByStoreId(storeId);
+
+        return routers.stream()
+                .map(router -> convertToResponseWithTableInfo(router, poolTableId))
+                .collect(Collectors.toList());
+    }
+
+    private RouterWithTableInfoResponse convertToResponseWithTableInfo(Router router, Long poolTableId) {
+        RouterWithTableInfoResponse response = new RouterWithTableInfoResponse();
+        response.setId(router.getId());
+        response.setName(router.getCircuitName());
+
+        // 檢查這個 Router 是否已經被這個特定的桌台關聯
+        boolean isAssociatedWithThisTable = router.getPoolTables().stream()
+                .anyMatch(table -> table.getId().equals(poolTableId));
+
+        response.setAssociated(isAssociatedWithThisTable);
+
+        return response;
     }
 }
