@@ -16,4 +16,6 @@ public class TopOpReq {
     private Integer point;
 
     private Boolean isFirst;
+
+    private String sendType;
 }

@@ -4,6 +4,7 @@ import com.frontend.config.message.ApiResponse;
 import com.frontend.config.service.UserPrinciple;
 import com.frontend.repo.UserRepository;
 import com.frontend.req.topOp.TopOpReq;
+import com.frontend.res.topOp.TopRes;
 import com.frontend.service.PaymentService;
 import com.frontend.utils.ResponseUtils;
 import com.frontend.utils.SecurityUtils;
@@ -27,14 +28,21 @@ public class PaymentController {
         UserPrinciple securityUser = SecurityUtils.getSecurityUser();
         Long userId = securityUser.getId();
         try {
-            Integer newPrice = paymentService.topOp(topOpReq, userId);
-            ApiResponse<Object> success = ResponseUtils.success(200, String.format("新增金額後儲值金為%d元" , newPrice), true);
-            return ResponseEntity.ok(success);
+            if("dep".equals(topOpReq.getSendType())){
+                Integer newPrice = paymentService.topOp(topOpReq, userId);
+                ApiResponse<Object> success = ResponseUtils.success(200, String.format("新增金額後儲值金為%d元" , newPrice), true);
+                return ResponseEntity.ok(success);
+            }else if("send".equals(topOpReq.getSendType())){
+                Integer newPrice = paymentService.sendTop(topOpReq, userId);
+                ApiResponse<Object> success = ResponseUtils.success(200, String.format("新增金額後儲值金為%d元" , newPrice), true);
+                return ResponseEntity.ok(success);
+            }
         } catch (Exception e) {
             e.printStackTrace();
             ApiResponse<Object> error = ResponseUtils.error(999,  e.getMessage(), false);
             return ResponseEntity.ok(error);
         }
+        return null;
     }
 
     @GetMapping("/isUse")
@@ -43,7 +51,13 @@ public class PaymentController {
         Long userId = securityUser.getId();
         try {
             Boolean userUse = paymentService.getUserUse(userId);
-            ApiResponse<Object> success = ResponseUtils.success(200, " ", userUse);
+            Boolean sendUse = paymentService.getSendUse(userId);
+
+            TopRes topRes = new TopRes();
+            topRes.setFirstUse(userUse);
+            topRes.setSendUse(sendUse);
+
+            ApiResponse<Object> success = ResponseUtils.success(200, " ", topRes);
             return ResponseEntity.ok(success);
         } catch (Exception e) {
             e.printStackTrace();
@@ -51,4 +65,5 @@ public class PaymentController {
             return ResponseEntity.ok(error);
         }
     }
+
 }
