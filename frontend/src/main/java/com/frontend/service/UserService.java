@@ -81,7 +81,7 @@ public class UserService {
 					.phoneNumber(userDto.getPhone())
 					.createTime(LocalDateTime.now())
 					.name(userDto.getName())
-					.amount(300)
+					.amount(0)
 					.balance(0)
 					.point(0)
 					.totalAmount(0)
