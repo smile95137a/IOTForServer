@@ -3,10 +3,7 @@ package com.frontend.entity.user;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -29,6 +26,8 @@ public class FaceRecognitionMember implements Serializable {
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false, unique = true)
     @JsonBackReference("faceRecognitionReference") // <== 加上名稱
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private User user;
 
     // 人臉辨識狀態

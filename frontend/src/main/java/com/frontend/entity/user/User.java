@@ -8,10 +8,7 @@ import com.frontend.entity.role.Role;
 import com.frontend.entity.store.Store;
 import com.frontend.entity.vendor.Vendor;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -116,6 +113,7 @@ public class User implements Serializable {
 
 	@OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
 	@JsonManagedReference("faceRecognitionReference")
+	@EqualsAndHashCode.Exclude
 	private FaceRecognitionMember faceRecognitionMember;
 
 	// 添加便利方法
