@@ -208,20 +208,20 @@ public class GameService {
         }
 
         // ✅ 扣儲值金與點數
-        int remainingAmount = store.getDeposit();
-        int availableBalance = byUid.getAmount() + byUid.getPoint();
-
-        if (availableBalance >= store.getDeposit()) {
-            if (byUid.getAmount() >= store.getDeposit()) {
-                byUid.setAmount(byUid.getAmount() - store.getDeposit());
-            } else {
-                remainingAmount -= byUid.getAmount();
-                byUid.setAmount(0);
-                byUid.setPoint(byUid.getPoint() - remainingAmount);
-            }
-        } else {
-            throw new GameBookingException("儲值金額和額外獎勳不足以支付總金額");
-        }
+//        int remainingAmount = store.getDeposit();
+//        int availableBalance = byUid.getAmount() + byUid.getPoint();
+//
+//        if (availableBalance >= store.getDeposit()) {
+//            if (byUid.getAmount() >= store.getDeposit()) {
+//                byUid.setAmount(byUid.getAmount() - store.getDeposit());
+//            } else {
+//                remainingAmount -= byUid.getAmount();
+//                byUid.setAmount(0);
+//                byUid.setPoint(byUid.getPoint() - remainingAmount);
+//            }
+//        } else {
+//            throw new GameBookingException("儲值金額和額外獎勳不足以支付總金額");
+//        }
 
         byUid.setBalance(byUid.getAmount() + byUid.getPoint());
         userRepository.save(byUid);
@@ -252,7 +252,7 @@ public class GameService {
         gameRecord.setGameId(UUID.randomUUID().toString());
         gameRecord.setStartTime(startTime);
         gameRecord.setUserUid(byUid.getUid());
-        gameRecord.setPrice(store.getDeposit());
+        gameRecord.setPrice(0);
         gameRecord.setStatus("STARTED");
         gameRecord.setStoreId(store.getId());
         gameRecord.setStoreName(store.getName());
@@ -519,12 +519,6 @@ public class GameService {
         }
     }
 
-    // 添加檢查特殊日期的方法
-    private boolean isTimeInRange(LocalTime currentTime, LocalTime startTime, LocalTime endTime) {
-        // 判断当前时间是否在开始时间和结束时间之间
-        return !currentTime.isBefore(startTime) && !currentTime.isAfter(endTime);
-    }
-
     public boolean gameIsUse(String uid){
         // 检查是否有进行中的游戏
         List<GameRecord> ongoingGames = gameRecordRepository.findByUserUidAndStatus(uid, "STARTED");
@@ -565,13 +559,16 @@ public class GameService {
         // 計算遊玩時間
         Duration duration = Duration.between(gameRecord.getStartTime(), endDateTime);
         long totalMinutes = duration.toMinutes();
-
-        // 退還押金
+// 退還押金 只有預約才退還
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new Exception("用户信息未找到"));
-        user.setAmount(user.getAmount() + store.getDeposit());
-        user.setBalance(user.getAmount() + user.getPoint());
-        userRepository.save(user);
+        if(bookGame != null){
+            user.setAmount(user.getAmount() + store.getDeposit());
+            user.setBalance(user.getAmount() + user.getPoint());
+            userRepository.save(user);
+        }
+
+
 
         // 計算價格
         int adjustedPrice = (int)calculateAdjustedPrice(store.getId(), gameRecord.getStartTime(), endDateTime).getTotalPrice();
@@ -1481,7 +1478,7 @@ public class GameService {
             // 使用與endGame相同的價格計算邏輯
             GamePriceRes gamePriceRes = calculateAdjustedPrice(byGameId.getStoreId(), startTime, endTime);
             gamePriceRes.setSecond(totalSeconds);
-
+            BookGame bookGame = bookGameRepository.findByGameId(gameReq.getGameId());
             // **新增：计算并设置新字段**
 
             // 获取费率信息 (需要从游戏记录或重新计算)
@@ -1493,12 +1490,23 @@ public class GameService {
             gamePriceRes.setDiscountHourlyRate(discountRate * 60);
 
             // 设置球台租金 (负数，表示已支付)
-            gamePriceRes.setTableRental(-store.getDeposit().doubleValue());
+            if(bookGame == null){
+                gamePriceRes.setTableRental(0);
+                gamePriceRes.setDeposit(0);
+            }else{
+                gamePriceRes.setTableRental(-store.getDeposit().doubleValue());
+            }
+
 
             // 计算最终金额 = 游戏费用 - 已付押金
             // 如果是负数 = 要退款给客户
             // 如果是正数 = 客户还要付钱
-            double finalAmount = gamePriceRes.getTotalPrice() - store.getDeposit();
+            double finalAmount = 0.0;
+            if (bookGame != null) {
+               finalAmount = gamePriceRes.getTotalPrice() - store.getDeposit();
+            }else{
+                finalAmount = gamePriceRes.getTotalPrice();
+            }
             gamePriceRes.setFinalAmount(finalAmount);
 
             // 回傳計算結果
