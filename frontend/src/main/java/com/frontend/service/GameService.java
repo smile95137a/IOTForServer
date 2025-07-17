@@ -563,7 +563,13 @@ public class GameService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new Exception("用户信息未找到"));
         if(bookGame != null){
-            user.setAmount(user.getAmount() + store.getDeposit());
+            long durationHours = 0;
+            if(bookGame != null){
+                durationHours = Duration.between(bookGame.getStartTime(), bookGame.getEndTime()).toHours();
+            }
+            int bookDeposit = (int) (store.getDeposit() * durationHours);
+            int recordDeposit = bookDeposit;
+            user.setAmount(user.getAmount() + recordDeposit);
             user.setBalance(user.getAmount() + user.getPoint());
             userRepository.save(user);
         }
@@ -1488,13 +1494,18 @@ public class GameService {
             // 设置每小时费率
             gamePriceRes.setRegularHourlyRate(regularRate * 60);
             gamePriceRes.setDiscountHourlyRate(discountRate * 60);
-
+            long durationHours = 0;
+            if(bookGame != null){
+                durationHours = Duration.between(bookGame.getStartTime(), bookGame.getEndTime()).toHours();
+            }
+            int bookDeposit = (int) (store.getDeposit() * durationHours);
+            int recordDeposit = bookDeposit;
             // 设置球台租金 (负数，表示已支付)
             if(bookGame == null){
                 gamePriceRes.setTableRental(0);
                 gamePriceRes.setDeposit(0);
             }else{
-                gamePriceRes.setTableRental(-store.getDeposit().doubleValue());
+                gamePriceRes.setTableRental(recordDeposit);
             }
 
 
@@ -1503,7 +1514,7 @@ public class GameService {
             // 如果是正数 = 客户还要付钱
             double finalAmount = 0.0;
             if (bookGame != null) {
-               finalAmount = gamePriceRes.getTotalPrice() - store.getDeposit();
+               finalAmount = gamePriceRes.getTotalPrice() - recordDeposit;
             }else{
                 finalAmount = gamePriceRes.getTotalPrice();
             }
