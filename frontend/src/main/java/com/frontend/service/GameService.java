@@ -279,11 +279,19 @@ public class GameService {
 
         List<Router> byPoolTableId1 = routerRepository.findByPoolTables_Id(byStoreUid.getId());
         for(Router router : byPoolTableId1) {
-            CircuitControlRequest request = new CircuitControlRequest();
-            request.setRouterId(router.getId());
-            request.setTargetStatus(true);
-            request.setStoreId(router.getStore().getId());
-            routerService.controlCircuit(request);
+            try {
+                CircuitControlRequest request = new CircuitControlRequest();
+                request.setRouterId(router.getId());
+                request.setTargetStatus(true);
+                request.setStoreId(router.getStore().getId());
+
+                routerService.controlCircuit(request);
+
+                System.out.println("成功控制 router: " + router.getId());
+
+            } catch (Exception e) {
+                System.err.println("控制 router 失敗: " + router.getId() + "，錯誤: " + e.getMessage());
+            }
         }
 
 
@@ -841,7 +849,7 @@ public class GameService {
         gamePriceRes.setTotalRawMinutes(totalRawMinutes);
         gamePriceRes.setTotalDiscountMinutes(totalDiscountMinutes);
         gamePriceRes.setTotalRegularMinutes(totalRegularMinutes);
-        gamePriceRes.setTotalPrice(totalPrice);
+        gamePriceRes.setTotalPrice((double) Math.round(totalPrice));
         return gamePriceRes;
     }
 
@@ -1001,11 +1009,20 @@ public class GameService {
 
         List<Router> byPoolTableId1 = routerRepository.findByPoolTables_Id(byId.get().getId());
         for(Router router : byPoolTableId1) {
-            CircuitControlRequest request = new CircuitControlRequest();
-            request.setRouterId(router.getId());
-            request.setTargetStatus(false);
-            request.setStoreId(router.getStore().getId());
-            routerService.controlCircuit(request);
+            try {
+                CircuitControlRequest request = new CircuitControlRequest();
+                request.setRouterId(router.getId());
+                request.setTargetStatus(false);
+                request.setStoreId(router.getStore().getId());
+
+                routerService.controlCircuit(request);
+
+                System.out.println("成功控制 router: " + router.getId());
+
+            } catch (Exception e) {
+                // 不要 throw，這樣才會繼續跑
+                System.err.println("控制 router 失敗: " + router.getId() + "，錯誤: " + e.getMessage());
+            }
         }
 
         return new GameRes(null , null , 0L , vendor , store.getContactPhone());
@@ -1506,6 +1523,7 @@ public class GameService {
                 gamePriceRes.setDeposit(0);
             }else{
                 gamePriceRes.setTableRental(recordDeposit);
+                gamePriceRes.setDeposit(recordDeposit);
             }
 
 
