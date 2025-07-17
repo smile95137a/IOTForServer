@@ -19,4 +19,6 @@ public class PoolTableRes {
 
     private String storeName;
 
+    private double priceByHour;
+
 }

@@ -120,6 +120,25 @@ public class GameService {
         byStoreUid.setIsUse(true);
         poolTableRepository.save(byStoreUid);
 
+        List<Router> byPoolTableId1 = routerRepository.findByPoolTables_Id(byStoreUid.getId());
+        for(Router router : byPoolTableId1) {
+            try {
+                CircuitControlRequest request = new CircuitControlRequest();
+                request.setRouterId(router.getId());
+                request.setTargetStatus(true);
+                request.setStoreId(router.getStore().getId());
+
+                routerService.controlCircuit(request);
+
+                System.out.println("成功控制 router: " + router.getId());
+
+            } catch (Exception e) {
+                System.err.println("控制 router 失敗: " + router.getId() + "，錯誤: " + e.getMessage());
+            }
+        }
+
+
+
         return gameRecord;
     }
 

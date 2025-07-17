@@ -38,10 +38,6 @@ public class PoolTableController {
     public ResponseEntity<ApiResponse<PoolTableRes>> getPoolTableById(@PathVariable String uid) {
         try {
             PoolTableRes poolTable = poolTableService.getPoolTableById(uid);
-            if(poolTable.getGameId() == null) {
-                ApiResponse<PoolTableRes> error = ResponseUtils.success(9999 , "目前有人正在開局，請換別台使用" ,poolTable);
-                return ResponseEntity.ok(error);
-            }
             ApiResponse<PoolTableRes> success = ResponseUtils.success(poolTable);
             return ResponseEntity.ok(success);
         }catch (Exception e){
