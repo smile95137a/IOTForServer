@@ -589,55 +589,135 @@ public class AdminStoreService {
 		}).orElseThrow(() -> new Exception("Store not found with uid: " + uid));
 	}
 
-	// 輔助方法:更新特殊日期（保留原有日期，只新增新的）
+	// 版本1：完全替换特殊日期（删除所有旧的，新增所有新的）
 	private void updateSpecialDates(StoreReq storeReq, Store store) {
+		// 1. 先删除所有现有的特殊日期
+		if (store.getSpecialDates() != null && !store.getSpecialDates().isEmpty()) {
+			// 删除所有时段
+			for (SpecialDate existingDate : store.getSpecialDates()) {
+				if (existingDate.getTimeSlots() != null) {
+					specialTimeSlotRepository.deleteAll(existingDate.getTimeSlots());
+				}
+			}
+			// 删除所有特殊日期
+			specialDateRepository.deleteAll(store.getSpecialDates());
+			store.getSpecialDates().clear();
+			System.out.println("删除了所有现有的特殊日期");
+		}
+
+		// 2. 新增所有请求中的特殊日期
 		List<SpecialDate> newSpecialDates = new ArrayList<>();
 
 		for (SpecialDateReq dateReq : storeReq.getSpecialDates()) {
-			// 檢查是否已存在相同日期的特殊日期
-			boolean dateExists = false;
-			if (store.getSpecialDates() != null) {
-				dateExists = store.getSpecialDates().stream()
-						.anyMatch(existingDate -> existingDate.getDate().equals(dateReq.getDate()));
-			}
+			SpecialDate specialDate = new SpecialDate();
+			specialDate.setDate(dateReq.getDate());
+			specialDate.setOpenTime(dateReq.getOpenTime());
+			specialDate.setCloseTime(dateReq.getCloseTime());
+			specialDate.setRegularRate(dateReq.getRegularRate());
+			specialDate.setStore(store);
 
-			// 如果日期不存在，才新增
-			if (!dateExists) {
-				SpecialDate specialDate = new SpecialDate();
-				specialDate.setDate(dateReq.getDate());
-				specialDate.setOpenTime(dateReq.getOpenTime());
-				specialDate.setCloseTime(dateReq.getCloseTime());
-				specialDate.setRegularRate(dateReq.getRegularRate());
-				specialDate.setStore(store);
-
-				List<SpecialTimeSlot> slots = new ArrayList<>();
-				if (dateReq.getTimeSlots() != null) {
-					for (SpecialTimeSlotReq slotReq : dateReq.getTimeSlots()) {
-						SpecialTimeSlot slot = new SpecialTimeSlot();
-						slot.setStartTime(slotReq.getStartTime());
-						slot.setEndTime(slotReq.getEndTime());
-						slot.setIsDiscount(slotReq.getIsDiscount());
-						slot.setPrice(slotReq.getPrice());
-						slot.setSpecialDate(specialDate);
-						slots.add(slot);
-					}
+			List<SpecialTimeSlot> slots = new ArrayList<>();
+			if (dateReq.getTimeSlots() != null) {
+				for (SpecialTimeSlotReq slotReq : dateReq.getTimeSlots()) {
+					SpecialTimeSlot slot = new SpecialTimeSlot();
+					slot.setStartTime(slotReq.getStartTime());
+					slot.setEndTime(slotReq.getEndTime());
+					slot.setIsDiscount(slotReq.getIsDiscount());
+					slot.setPrice(slotReq.getPrice());
+					slot.setSpecialDate(specialDate);
+					slots.add(slot);
 				}
-				specialDate.setTimeSlots(slots);
-				newSpecialDates.add(specialDate);
-			} else {
-				System.out.println("特殊日期 " + dateReq.getDate() + " 已存在，跳過新增");
 			}
+			specialDate.setTimeSlots(slots);
+			newSpecialDates.add(specialDate);
 		}
 
-		// 只儲存新的特殊日期
+		// 3. 保存新的特殊日期
 		if (!newSpecialDates.isEmpty()) {
 			specialDateRepository.saveAll(newSpecialDates);
-
 			store.getSpecialDates().addAll(newSpecialDates);
-			System.out.println("新增了 " + newSpecialDates.size() + " 個特殊日期");
+			System.out.println("新增了 " + newSpecialDates.size() + " 个特殊日期");
 		}
 	}
 
+	// 版本2：精确更新特殊日期（只删除不在请求中的，更新或新增请求中的）
+	private void updateSpecialDatesSelectively(StoreReq storeReq, Store store) {
+		Set<LocalDate> requestDates = storeReq.getSpecialDates().stream()
+				.map(SpecialDateReq::getDate)
+				.collect(Collectors.toSet());
+
+		// 1. 删除不在请求中的特殊日期
+		if (store.getSpecialDates() != null) {
+			List<SpecialDate> datesToRemove = store.getSpecialDates().stream()
+					.filter(date -> !requestDates.contains(date.getDate()))
+					.collect(Collectors.toList());
+
+			for (SpecialDate dateToRemove : datesToRemove) {
+				if (dateToRemove.getTimeSlots() != null) {
+					specialTimeSlotRepository.deleteAll(dateToRemove.getTimeSlots());
+				}
+				specialDateRepository.delete(dateToRemove);
+				store.getSpecialDates().remove(dateToRemove);
+			}
+			System.out.println("删除了 " + datesToRemove.size() + " 个特殊日期");
+		}
+
+		// 2. 更新或新增请求中的特殊日期
+		for (SpecialDateReq dateReq : storeReq.getSpecialDates()) {
+			// 查找是否已存在
+			SpecialDate existingDate = null;
+			if (store.getSpecialDates() != null) {
+				existingDate = store.getSpecialDates().stream()
+						.filter(date -> date.getDate().equals(dateReq.getDate()))
+						.findFirst()
+						.orElse(null);
+			}
+
+			if (existingDate != null) {
+				// 更新现有日期
+				existingDate.setOpenTime(dateReq.getOpenTime());
+				existingDate.setCloseTime(dateReq.getCloseTime());
+				existingDate.setRegularRate(dateReq.getRegularRate());
+
+				// 删除旧时段，新增新时段
+				if (existingDate.getTimeSlots() != null) {
+					specialTimeSlotRepository.deleteAll(existingDate.getTimeSlots());
+					existingDate.getTimeSlots().clear();
+				}
+			} else {
+				// 新增日期
+				existingDate = new SpecialDate();
+				existingDate.setDate(dateReq.getDate());
+				existingDate.setOpenTime(dateReq.getOpenTime());
+				existingDate.setCloseTime(dateReq.getCloseTime());
+				existingDate.setRegularRate(dateReq.getRegularRate());
+				existingDate.setStore(store);
+				existingDate.setTimeSlots(new ArrayList<>());
+
+				if (store.getSpecialDates() == null) {
+					store.setSpecialDates(new HashSet<>());
+				}
+				store.getSpecialDates().add(existingDate);
+			}
+
+			// 新增时段
+			if (dateReq.getTimeSlots() != null) {
+				for (SpecialTimeSlotReq slotReq : dateReq.getTimeSlots()) {
+					SpecialTimeSlot slot = new SpecialTimeSlot();
+					slot.setStartTime(slotReq.getStartTime());
+					slot.setEndTime(slotReq.getEndTime());
+					slot.setIsDiscount(slotReq.getIsDiscount());
+					slot.setPrice(slotReq.getPrice());
+					slot.setSpecialDate(existingDate);
+					existingDate.getTimeSlots().add(slot);
+				}
+			}
+		}
+
+		// 3. 保存所有更新
+		specialDateRepository.saveAll(store.getSpecialDates());
+		System.out.println("处理完成，当前共有 " + store.getSpecialDates().size() + " 个特殊日期");
+	}
 	// 如果你希望能夠覆蓋更新特殊日期，可以使用這個版本
 	private void updateSpecialDatesWithOverride(StoreReq storeReq, Store store) {
 		List<SpecialDate> newSpecialDates = new ArrayList<>();
