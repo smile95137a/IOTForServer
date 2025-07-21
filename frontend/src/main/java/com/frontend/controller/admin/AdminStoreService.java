@@ -797,39 +797,49 @@ public class AdminStoreService {
 			specialDateRepository.saveAll(store.getSpecialDates());
 		}
 	}
+
 	@Transactional
 	public void deleteStore(String uid) {
-		Store store = storeRepository.findByUid(uid)
-				.orElseThrow(() -> new RuntimeException("找不到該 Store: " + uid));
+		try {
+			Store store = storeRepository.findByUid(uid)
+					.orElseThrow(() -> new RuntimeException("找不到該 Store: " + uid));
 
-		// 清空 poolTables 的關聯
-		if (store.getPoolTables() != null) {
-			store.getPoolTables().forEach(table -> table.setStore(null)); // 解除關聯
-			store.getPoolTables().clear(); // 清除集合
+			// 1. 先處理 PoolTable 的相關實體 (equipments)
+			if (store.getPoolTables() != null) {
+				store.getPoolTables().forEach(poolTable -> {
+					// 處理 table_equipments 的關聯
+					if (poolTable.getTableEquipments() != null) {
+						poolTable.getTableEquipments().forEach(equipment -> equipment.setPoolTable(null));
+						poolTable.getTableEquipments().clear();
+					}
+					// 解除 pool_table 與 store 的關聯
+					poolTable.setStore(null);
+				});
+				store.getPoolTables().clear();
+			}
+
+			// 2. 處理其他關聯
+			if (store.getPricingSchedules() != null) {
+				store.getPricingSchedules().forEach(schedule -> schedule.setStore(null));
+				store.getPricingSchedules().clear();
+			}
+
+			if (store.getRouters() != null) {
+				store.getRouters().forEach(router -> router.setStore(null));
+				store.getRouters().clear();
+			}
+
+			// 3. 解除其他關聯
+			store.setUser(null);
+			store.setVendor(null);
+			store.setDeleted(true);
+
+			// 4. 儲存變更
+			storeRepository.save(store);
+		}catch (Exception e){
+			e.printStackTrace();
 		}
 
-		// 清空 pricingSchedules 的關聯
-		if (store.getPricingSchedules() != null) {
-			store.getPricingSchedules().forEach(schedule -> schedule.setStore(null));
-			store.getPricingSchedules().clear();
-		}
-
-		// 清空 routers 的關聯
-		if (store.getRouters() != null) {
-			store.getRouters().forEach(router -> router.setStore(null));
-			store.getRouters().clear();
-		}
-
-		// 解除 user 的關聯
-		store.setUser(null);
-
-		// 解除 vendor 的關聯（如果你不想移除 vendor，可略過這一行）
-		store.setVendor(null);
-
-		store.setDeleted(true);
-
-		// 最後儲存變更
-		storeRepository.save(store);
 	}
 
 

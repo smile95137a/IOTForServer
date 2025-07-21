@@ -25,7 +25,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 
 @RestController
-@RequestMapping("/api/b/stores")
+    @RequestMapping("/api/b/stores")
 public class AdminStoreController {
 
     @Autowired

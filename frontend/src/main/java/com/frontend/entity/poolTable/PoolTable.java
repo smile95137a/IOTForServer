@@ -9,6 +9,7 @@ import com.frontend.entity.store.Store;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Where;
 
@@ -23,6 +24,7 @@ import java.util.Set;
 @Entity
 @Table(name = "pool_tables")
 @Where(clause = "is_deleted = false")
+@EqualsAndHashCode(exclude = {"tableEquipments", "routers", "store"})
 public class PoolTable {
 
     @Id
@@ -43,8 +45,9 @@ public class PoolTable {
     @JsonBackReference("poolTableReference")
     private Store store;
 
-//    @OneToMany(mappedBy = "poolTable", cascade = CascadeType.ALL, orphanRemoval = true)
-//    private Set<TableEquipment> tableEquipments; // 桌台設備設定
+    @OneToMany(mappedBy = "poolTable", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private Set<TableEquipment> tableEquipments; // 桌台設備設定
 
     @Column
     @JsonFormat(pattern = "yyyy/MM/dd HH:mm:ss")

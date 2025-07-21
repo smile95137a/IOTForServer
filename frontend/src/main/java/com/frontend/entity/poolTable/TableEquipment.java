@@ -1,5 +1,6 @@
 package com.frontend.entity.poolTable;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.frontend.entity.equipment.Equipment;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -19,6 +20,7 @@ public class TableEquipment extends Equipment {
 
     @ManyToOne
     @JoinColumn(name = "pool_table_id", nullable = false)
+    @JsonIgnore
     private PoolTable poolTable; // 所屬桌台
 
 }
