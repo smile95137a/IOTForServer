@@ -12,9 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/b/banners")
@@ -52,18 +50,10 @@ public class AdminBannerController {
             @PathVariable Long id,
             @RequestBody BannerReq bannerUpdateReq) {
 
-        // 轉換 status，默認為 UNAVAILABLE
-        BannerStatus status;
-        try {
-            status = BannerStatus.valueOf(bannerUpdateReq.getStatus().toUpperCase());
-        } catch (IllegalArgumentException e) {
-            status = BannerStatus.UNAVAILABLE;
-        }
-
-        // 更新 Banner
-        Banner banner = bannerService.updateBanner(id, bannerUpdateReq.getBannerUid(), status, bannerUpdateReq.getNewsId());
-        return ResponseEntity.ok(ResponseUtils.success(banner));
+        Banner updatedBanner = bannerService.updateBanner(id, bannerUpdateReq);
+        return ResponseEntity.ok(ResponseUtils.success(updatedBanner));
     }
+
 
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteBanner(@PathVariable Long id) {
