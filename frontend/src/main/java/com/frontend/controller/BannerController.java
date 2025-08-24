@@ -37,11 +37,12 @@ public class BannerController {
     // 透過 ID 取得 Banner
     @GetMapping("/banner/{id}")
     public ResponseEntity<ApiResponse<BannerRes>> getBannerById(@PathVariable Long id) {
-        Optional<BannerRes> bannerRes = bannerService.getBannerById(id);
-
-        return bannerRes
-                .map(b -> ResponseEntity.ok(ResponseUtils.success(b))) // 直接返回已转换的 BannerRes
-                .orElseGet(() -> ResponseEntity.ok(ResponseUtils.error(9999, "無此桌台", null)));
+        try {
+            BannerRes bannerRes = bannerService.getBannerById(id);
+            return ResponseEntity.ok(ResponseUtils.success(bannerRes));
+        } catch (RuntimeException e) {
+            return ResponseEntity.ok(ResponseUtils.error(9999, "無此banner", null));
+        }
     }
 
 

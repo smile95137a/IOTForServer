@@ -8,6 +8,7 @@ import com.frontend.res.banner.BannerRes;
 import com.frontend.service.BannerService;
 import com.frontend.utils.ImageUtil;
 import com.frontend.utils.ResponseUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -19,38 +20,33 @@ import java.util.Optional;
 @RequestMapping("/api/b/banners")
 public class AdminBannerController {
 
-    private final BannerService bannerService;
+    @Autowired
+    private BannerService bannerService;
 
-    public AdminBannerController(BannerService bannerService) {
-        this.bannerService = bannerService;
-    }
 
-    // 取得所有 Banner
     @GetMapping
     public ResponseEntity<ApiResponse<List<BannerRes>>> getAllBanners() {
         List<BannerRes> banners = bannerService.getAllBannersByB();
         return ResponseEntity.ok(ResponseUtils.success(banners));
     }
 
-    // 透過 ID 取得 Banner
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<BannerRes>> getBannerById(@PathVariable Long id) {
-        Optional<BannerRes> bannerRes = bannerService.getBannerById(id);
-
-        return bannerRes
-                .map(b -> ResponseEntity.ok(ResponseUtils.success(b))) // 直接返回已转换的 BannerRes
-                .orElseGet(() -> ResponseEntity.ok(ResponseUtils.error(9999, "無此桌台", null)));
+        try {
+            BannerRes bannerRes = bannerService.getBannerById(id);
+            return ResponseEntity.ok(ResponseUtils.success(bannerRes));
+        } catch (RuntimeException e) {
+            return ResponseEntity.ok(ResponseUtils.error(9999, "無此banner", null));
+        }
     }
 
 
-    // 新增 Banner
     @PostMapping
     public ResponseEntity<ApiResponse<Banner>> createBanner(@RequestBody BannerReq bannerReq) {
         Banner banner = bannerService.createBanner(bannerReq);
         return ResponseEntity.ok(ResponseUtils.success(banner));
     }
 
-    // 更新 Banner
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<Banner>> updateBanner(
             @PathVariable Long id,
@@ -69,14 +65,12 @@ public class AdminBannerController {
         return ResponseEntity.ok(ResponseUtils.success(banner));
     }
 
-    // 刪除 Banner
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteBanner(@PathVariable Long id) {
         bannerService.deleteBanner(id);
         return ResponseEntity.ok(ResponseUtils.success(null));
     }
 
-    // 上傳 Banner 圖片
     @PostMapping("/{bannerId}/upload-image")
     public ResponseEntity<ApiResponse<String>> uploadProfileImage(@PathVariable Long bannerId, @RequestParam("file") MultipartFile file) {
         try {

@@ -4,10 +4,12 @@ import com.frontend.entity.banner.Banner;
 import com.frontend.entity.news.News;
 import com.frontend.entity.user.User;
 import com.frontend.enums.BannerStatus;
+import com.frontend.mapper.BannerMapper;
 import com.frontend.repo.BannerRepository;
 import com.frontend.repo.NewsRepository;
 import com.frontend.req.banner.BannerReq;
 import com.frontend.res.banner.BannerRes;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -19,51 +21,34 @@ import java.util.stream.Collectors;
 @Service
 public class BannerService {
 
-    private final BannerRepository bannerRepository;
-    private final NewsRepository newsRepository;
+    @Autowired
+    private BannerRepository bannerRepository;
 
-    public BannerService(BannerRepository bannerRepository, NewsRepository newsRepository) {
-        this.bannerRepository = bannerRepository;
-        this.newsRepository = newsRepository;
-    }
+    @Autowired
+    private NewsRepository newsRepository;
+
+    @Autowired
+    private BannerMapper bannerMapper;
 
     // 取得所有 Banner（包含關聯的 News）
     public List<BannerRes> getAllBanners() {
-        // 获取所有 Banner 实体
         List<Banner> banners = bannerRepository.findAllWithNews();
 
-        // 转换成 BannerRes 列表
-        // 转换成 BannerRes 列表
-        return banners.stream()
-                .filter(banner -> banner.getStatus() == BannerStatus.AVAILABLE) // 只保留 AVAILABLE
-                .map(banner -> new BannerRes(
-                        banner.getBannerId(),
-                        banner.getBannerUid(),
-                        banner.getImageUrl(),
-                        banner.getStatus(),
-                        banner.getNews() // 如果需要，可以深度复制 news 对象
-                ))
-                .collect(Collectors.toList());
-
+        return bannerMapper.toResList(
+                banners.stream()
+                        .filter(banner -> banner.getStatus() == BannerStatus.AVAILABLE)
+                        .toList()
+        );
     }
 
     // 透過 ID 取得 Banner（包含關聯的 News）
-    public Optional<BannerRes> getBannerById(Long id) {
-        Optional<Banner> banner = bannerRepository.findByIdWithNews(id);
+    public BannerRes getBannerById(Long id) {
+        Banner banner = bannerRepository.findByIdWithNews(id)
+                .orElseThrow(() -> new RuntimeException("Banner not found")); // ✅ 避免 NullPointer / get()
 
-        // 如果 Banner 存在，则转换为 BannerRes
-        return banner.map(b -> {
-            // 进行手动映射
-            BannerRes bannerRes = new BannerRes(
-                    b.getBannerId(),
-                    b.getBannerUid(),
-                    b.getImageUrl(),
-                    b.getStatus(),
-                    b.getNews()  // 这里直接返回 News 对象，或者根据需要选择字段
-            );
-            return bannerRes;
-        });
+        return bannerMapper.toRes(banner); // ✅ 交給 MapStruct 轉換
     }
+
 
 
     // 新增 Banner
