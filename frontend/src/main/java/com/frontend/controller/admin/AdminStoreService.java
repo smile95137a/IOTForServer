@@ -572,8 +572,14 @@ public class AdminStoreService {
 			}
 
 			// 只更新新增的特殊日期，保留原有的
-			if (storeReq.getSpecialDates() != null && !storeReq.getSpecialDates().isEmpty()) {
-				updateSpecialDates(storeReq, store);
+			if (storeReq.getSpecialDates() != null) {
+				if (storeReq.getSpecialDates().isEmpty()) {
+					// 空清單 → 刪除所有特殊日期
+					deleteAllSpecialDates(store);
+				} else {
+					// 有資料 → 更新特殊日期
+					updateSpecialDates(storeReq, store);
+				}
 			}
 
 			// **修正：使用 Repository 直接刪除，確保真正執行刪除**
@@ -615,6 +621,20 @@ public class AdminStoreService {
         storePricingScheduleRepository.deleteById(schedule.getId());
     }
     */
+	}
+
+	private void deleteAllSpecialDates(Store store) {
+		if (store.getSpecialDates() != null && !store.getSpecialDates().isEmpty()) {
+			for (SpecialDate existingDate : store.getSpecialDates()) {
+				if (existingDate.getTimeSlots() != null) {
+					specialTimeSlotRepository.deleteAll(existingDate.getTimeSlots());
+				}
+			}
+			specialDateRepository.deleteAll(store.getSpecialDates());
+			store.getSpecialDates().clear();
+			storeRepository.save(store); // 確保同步更新
+			System.out.println("已刪除所有特殊日期");
+		}
 	}
 
 	// 版本1：完全替换特殊日期（删除所有旧的，新增所有新的）
