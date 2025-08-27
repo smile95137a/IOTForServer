@@ -100,78 +100,79 @@ public class AdminPoolTableService {
         PoolTable poolTable = poolTableRepository.findByUid(uid)
                 .orElseThrow(() -> new RuntimeException("PoolTable not found with uid: " + uid));
 
-        // 若狀態為 FAULT，取消所有預約並退費
+        // 狀態變成 FAULT → 取消預約並退費
         if ("FAULT".equals(updatedPoolTableReq.getStatus())) {
-            List<GameRecord> bookList = gameRecordRepository.findAllByPoolTableIdAndStatus(poolTable.getId(), "BOOK");
-
-            for (GameRecord gameRecord : bookList) {
-                User user = userRepository.findByUid(gameRecord.getUserUid());
-
-                // 取消該使用者的所有預約
-                List<BookGame> bookGames = bookGameRepository.findByUserUId(user.getUid());
-                for (BookGame bookGame : bookGames) {
-                    bookGame.setStatus("CANCEL");
-                    bookGameRepository.save(bookGame);
-                }
-
-                // 取消遊戲紀錄，退費
-                gameRecord.setStatus("CANCEL");
-                gameRecordRepository.save(gameRecord);
-
-                user.setPoint(user.getPoint() + gameRecord.getPrice());
-                user.setBalance(user.getAmount() + user.getPoint());
-                userRepository.save(user);
-            }
-
-            // 更新桌子狀態為 FAULT
+            handleFaultStatus(poolTable);
             poolTable.setStatus("FAULT");
-            return poolTableRepository.save(poolTable);
+        } else {
+            // 一般更新
+            updateBasicInfo(poolTable, updatedPoolTableReq);
+            updateRouters(poolTable, updatedPoolTableReq.getRouterIds());
         }
 
-        // 一般狀態下更新資料
-        poolTable.setTableNumber(updatedPoolTableReq.getTableNumber());
-        poolTable.setStatus(updatedPoolTableReq.getStatus());
-        poolTable.setIsUse(updatedPoolTableReq.getIsUse());
-
-        if (updatedPoolTableReq.getStore() != null) {
-            poolTable.setStore(updatedPoolTableReq.getStore());
-        }
-
-        // 更新 Router 關聯
-        if (updatedPoolTableReq.getRouterIds() != null) {
-            // 1. 先處理舊的關聯 - 移除這張桌子從所有舊 Router 中
-            List<Router> oldRouters = new ArrayList<>(poolTable.getRouters());
-            for (Router oldRouter : oldRouters) {
-                oldRouter.getPoolTables().remove(poolTable);
-            }
-
-            // 2. 設定新的 Router 關聯
-            List<Router> newRouters = routerRepository.findAllById(updatedPoolTableReq.getRouterIds());
-            poolTable.setRouters(newRouters); // 設定 PoolTable → Routers
-
-            // 3. 雙向維護：確保新的 Router 也有這張桌子
-            for (Router newRouter : newRouters) {
-                List<PoolTable> routerTables = newRouter.getPoolTables();
-                if (routerTables == null) {
-                    routerTables = new ArrayList<>();
-                    newRouter.setPoolTables(routerTables);
-                }
-                if (!routerTables.contains(poolTable)) {
-                    routerTables.add(poolTable);
-                }
-            }
-
-            // 4. 儲存所有變更
-            routerRepository.saveAll(oldRouters); // 儲存舊的 Router（移除關聯）
-            routerRepository.saveAll(newRouters); // 儲存新的 Router（新增關聯）
-        }
-        // 設定更新人與時間
         poolTable.setUpdateTime(LocalDateTime.now());
         poolTable.setUpdateUserId(userId);
 
         return poolTableRepository.save(poolTable);
     }
 
+    private void handleFaultStatus(PoolTable poolTable) {
+        List<GameRecord> bookList = gameRecordRepository.findAllByPoolTableIdAndStatus(poolTable.getId(), "BOOK");
+
+        for (GameRecord gameRecord : bookList) {
+            User user = userRepository.findByUid(gameRecord.getUserUid());
+
+            // 取消該使用者的所有預約
+            List<BookGame> bookGames = bookGameRepository.findByUserUId(user.getUid());
+            for (BookGame bookGame : bookGames) {
+                bookGame.setStatus("CANCEL");
+            }
+            bookGameRepository.saveAll(bookGames);
+
+            // 取消遊戲紀錄並退費
+            gameRecord.setStatus("CANCEL");
+            gameRecordRepository.save(gameRecord);
+
+            user.setPoint(user.getPoint() + gameRecord.getPrice());
+            user.setBalance(user.getAmount() + user.getPoint());
+            userRepository.save(user);
+        }
+    }
+
+    private void updateBasicInfo(PoolTable poolTable, PoolTableReq req) {
+        poolTable.setTableNumber(req.getTableNumber());
+        poolTable.setStatus(req.getStatus());
+        poolTable.setIsUse(req.getIsUse());
+
+        if (req.getStore() != null) {
+            poolTable.setStore(req.getStore());
+        }
+    }
+
+    private void updateRouters(PoolTable poolTable, List<Long> routerIds) {
+        if (routerIds == null) return;
+
+        // 移除舊關聯
+        List<Router> oldRouters = new ArrayList<>(poolTable.getRouters());
+        oldRouters.forEach(r -> r.getPoolTables().remove(poolTable));
+
+        // 設定新關聯
+        List<Router> newRouters = routerRepository.findAllById(routerIds);
+        poolTable.setRouters(newRouters);
+
+        newRouters.forEach(router -> {
+            if (router.getPoolTables() == null) {
+                router.setPoolTables(new ArrayList<>());
+            }
+            if (!router.getPoolTables().contains(poolTable)) {
+                router.getPoolTables().add(poolTable);
+            }
+        });
+
+        // 儲存 Router 關聯
+        routerRepository.saveAll(oldRouters);
+        routerRepository.saveAll(newRouters);
+    }
 
 
     // Delete a pool table

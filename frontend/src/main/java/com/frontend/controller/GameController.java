@@ -53,22 +53,6 @@ public class GameController {
         }
     }
 
-//    @PostMapping("/end")
-//    public ResponseEntity<ApiResponse<?>> endGame(@RequestBody GameReq gameReq) {
-//        try {
-//            UserPrinciple securityUser = SecurityUtils.getSecurityUser();
-//            Long id = securityUser.getId();
-//            GameResponse gameResponse = gameService.endGame(gameReq, id);
-//            return ResponseEntity.ok(ResponseUtils.success(200, "開台成功", gameResponse));
-//        }catch (Exception e) {
-//            e.printStackTrace();
-//            return ResponseEntity.ok(ResponseUtils.error(9999, e.getMessage(), null));
-//        }
-//
-//
-//    }
-
-
     @PostMapping("/checkout")
     public ResponseEntity<ApiResponse<?>> checkout(@RequestBody CheckoutReq checkoutReq) {
         try {
