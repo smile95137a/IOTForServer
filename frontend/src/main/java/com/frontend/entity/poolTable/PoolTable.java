@@ -74,4 +74,11 @@ public class PoolTable {
     @JsonIgnore
     private List<Router> routers = new ArrayList<>();
 
+
+    public void addRouter(Router router) {
+        this.routers.add(router);
+        if (!router.getPoolTables().contains(this)) {
+            router.getPoolTables().add(this);
+        }
+    }
 }

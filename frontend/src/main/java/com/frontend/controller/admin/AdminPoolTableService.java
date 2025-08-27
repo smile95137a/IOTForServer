@@ -18,6 +18,7 @@ import com.frontend.entity.store.Store;
 import com.frontend.entity.store.StorePricingSchedule;
 import com.frontend.entity.store.TimeSlot;
 import com.frontend.entity.user.User;
+import com.frontend.mapper.PoolTableMapper;
 import com.frontend.repo.*;
 import com.frontend.req.game.GameReq;
 import com.frontend.req.router.CircuitControlRequest;
@@ -25,6 +26,7 @@ import com.frontend.res.game.GameResponse;
 import com.frontend.res.poolTable.AdminPoolTableRes;
 import com.frontend.service.RouterService;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -32,128 +34,63 @@ import com.frontend.entity.poolTable.PoolTable;
 import com.frontend.utils.RandomUtils;
 
 @Service
+@RequiredArgsConstructor
 public class AdminPoolTableService {
 
-    @Autowired
-    private PoolTableRepository poolTableRepository;
-    @Autowired
-    private TableEquipmentRepository tableEquipmentRepository;
-    @Autowired
-    private GameRecordRepository gameRecordRepository;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private GameOrderRepository gameOrderRepository;
-
-    @Autowired
-    private StoreRepository storeRepository;
-
-    @Autowired
-    private BookGameRepository bookGameRepository;
-
-    @Autowired
-    private StorePricingScheduleRepository storePricingScheduleRepository;
-
-    @Autowired
-    private RouterRepository routerRepository;
-
-    @Autowired
-    private RouterService routerService;
+    private final PoolTableRepository poolTableRepository;
+    private final TableEquipmentRepository tableEquipmentRepository;
+    private final GameRecordRepository gameRecordRepository;
+    private final UserRepository userRepository;
+    private final GameOrderRepository gameOrderRepository;
+    private final StoreRepository storeRepository;
+    private final BookGameRepository bookGameRepository;
+    private final StorePricingScheduleRepository storePricingScheduleRepository;
+    private final RouterRepository routerRepository;
+    private final RouterService routerService;
+    private final PoolTableMapper poolTableMapper;
 
     // Create a new pool table
     @Transactional
     public PoolTable createPoolTable(PoolTableReq poolTableReq, Long userId) {
-        PoolTable poolTable = convertToEntity(poolTableReq);
-        poolTable.setUid(RandomUtils.genRandom(24));
-        poolTable.setCreateTime(LocalDateTime.now());
-        poolTable.setCreateUserId(userId);
+        PoolTable poolTable = convertToEntity(poolTableReq, userId);
 
-        // 先儲存 PoolTable 使其變成 persistent
-        poolTable = poolTableRepository.save(poolTable);
-
-        // 查出要關聯的 Routers
+        // 查出要關聯的 Routers（這些 entity 已經是 persistent 狀態）
         List<Router> routers = routerRepository.findAllById(poolTableReq.getRouterIds());
 
-        // 設定雙向關聯
-        for (Router router : routers) {
-            // PoolTable -> Router
-            poolTable.getRouters().add(router);
+        // 維護雙向關聯
+        routers.forEach(poolTable::addRouter);
 
-            // Router -> PoolTable（避免覆蓋）
-            if (router.getPoolTables() == null) {
-                router.setPoolTables(new ArrayList<>());
-            }
-            if (!router.getPoolTables().contains(poolTable)) {
-                router.getPoolTables().add(poolTable);
-            }
-        }
-
-        // 儲存 routers（更新他們的關聯）
-        routerRepository.saveAll(routers);
-
-        // 最後再存一次 PoolTable（雖然可以省略，為了保險）
+        // 儲存一次就好
         return poolTableRepository.save(poolTable);
     }
 
 
-
-    private PoolTable convertToEntity(PoolTableReq req) {
+    private PoolTable convertToEntity(PoolTableReq req, Long userId) {
         PoolTable poolTable = new PoolTable();
+        poolTable.setUid(RandomUtils.genRandom(24));
+        poolTable.setCreateTime(LocalDateTime.now());
+        poolTable.setCreateUserId(userId);
         poolTable.setTableNumber(req.getTableNumber());
         poolTable.setStatus(req.getStatus());
-        if(req.getStore() != null){
-            poolTable.setStore(req.getStore());
-        }
-        // 這裡假設 Store 是直接從 PoolTableReq 傳過來的
-//        if(req.getTableEquipments() != null){
-//            poolTable.setTableEquipments(req.getTableEquipments());
-//        }
         poolTable.setIsUse(false);
+
+        if (req.getStore() != null) {
+            Store store = storeRepository.findById(req.getStore().getId())
+                    .orElseThrow(() -> new RuntimeException("Store not found"));
+            poolTable.setStore(store);
+        }
 
         return poolTable;
     }
 
-
     public Optional<AdminPoolTableRes> getPoolTableById(String uid) {
-        Optional<PoolTable> poolTable = poolTableRepository.findByUid(uid);
-        if (poolTable.isPresent()) {
-            AdminPoolTableRes adminPoolTableRes = convertToAdminPoolTableRes(poolTable.get());
-            return Optional.of(adminPoolTableRes);
-        }
-        return Optional.empty();
+        return poolTableRepository.findByUid(uid)
+                .map(poolTableMapper::toRes); // MapStruct 自動轉換
     }
 
     public List<AdminPoolTableRes> getAllPoolTables() {
-        List<PoolTable> poolTables = poolTableRepository.findAll();
-        return poolTables.stream()
-                .map(this::convertToAdminPoolTableRes)
-                .collect(Collectors.toList());
+        return poolTableMapper.toResList(poolTableRepository.findAll());
     }
-
-    private AdminPoolTableRes convertToAdminPoolTableRes(PoolTable poolTable) {
-        List<Long> routerIds = poolTable.getRouters() != null
-                ? poolTable.getRouters().stream()
-                .map(Router::getId) // 假設 Router 有 getId()
-                .collect(Collectors.toList())
-                : new ArrayList<>();
-
-        AdminPoolTableRes.AdminPoolTableResBuilder builder = AdminPoolTableRes.builder()
-                .storeId(poolTable.getStore().getId())
-                .uid(poolTable.getUid())
-                .tableNumber(poolTable.getTableNumber())
-                .status(poolTable.getStatus())
-                .routerId(routerIds);
-
-        // 如果需要裝備也要帶入，可取消註解
-//    if (poolTable.getTableEquipments() != null) {
-//        builder.tableEquipments(poolTable.getTableEquipments());
-//    }
-
-        return builder.build();
-    }
-
 
 
 
@@ -257,7 +194,6 @@ public class AdminPoolTableService {
 
     public List<PoolTable> findByStoreId(Long storeId) {
         List<PoolTable> poolTables = poolTableRepository.findByStoreId(storeId);
-
         return poolTables;
     }
 

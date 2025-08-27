@@ -73,11 +73,10 @@ public class Router extends Equipment {
     @Column
     private String routerPort;
 
-    public void connect() {
-        System.out.println("Connecting " + getClass().getSimpleName() + "...");
-    }
-
-    public void disconnect() {
-        System.out.println("Disconnecting " + getClass().getSimpleName() + "...");
+    public void addPoolTable(PoolTable poolTable) {
+        this.poolTables.add(poolTable);
+        if (!poolTable.getRouters().contains(this)) {
+            poolTable.getRouters().add(this);
+        }
     }
 }
